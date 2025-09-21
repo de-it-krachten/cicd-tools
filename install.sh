@@ -10,3 +10,4 @@ for f in /opt/cicd-tools/bin/*
 do
   $sudo ln -fs $f /usr/local/bin/$(basename $f)
 done
+$sudo chown -h -R root:root ${prefix}
