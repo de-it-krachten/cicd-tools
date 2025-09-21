@@ -72,7 +72,8 @@ MOLECULE_DISTRO=${MOLECULE_DISTRO:-'rockylinux8'}
 export MOLECULE_DISTRO
 
 ROLES_PATH=${TMPDIR}/${BASENAME}.${RANDOM}.${RANDOM}
-export ROLES_PATH
+COLLECTIONS_PATH=${TMPDIR}/${BASENAME}.${RANDOM}.${RANDOM}
+export ROLES_PATH COLLECTIONS_PATH
 
 ##############################################################
 #
@@ -212,7 +213,8 @@ function Setup
   ansible-galaxy install -r molecule/default/requirements.yml -p $ROLES_PATH || exit 1
 
   # Get all collections needed by molecule
-  ${DIRNAME1}/ansible-collections.sh -r $ROLES_PATH || exit 1
+  ${DIRNAME1}/ansible-collections.sh -c $COLLECTIONS_PATH -r $ROLES_PATH || exit 1
+  export ANSIBLE_COLLECTIONS_PATH=$COLLECTIONS_PATH
 
   # Make this step not run a second time
   export Setup_executed=true
@@ -609,7 +611,7 @@ function Patch_ansible29
 #############################################################
 
 # Make sure temporary files are cleaned at exit
-trap 'rm -f ${TMPFILE}* ; rm -fr $ROLES_PATH ; [[ $Log == true ]] && echo "Log file : $LOGFILE"' EXIT
+trap 'rm -f ${TMPFILE}* ; rm -fr $ROLES_PATH $COLLECTIONS_PATH ; [[ $Log == true ]] && echo "Log file : $LOGFILE"' EXIT
 trap 'exit 1' HUP QUIT KILL TERM INT
 
 # Defaults
