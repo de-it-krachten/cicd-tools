@@ -1,0 +1,79 @@
+---
+
+# Generic
+generic:
+  playbook: {{ Name }}
+  playbook_short: {{ Name_short }}
+  description: |
+    <put description in .cicd.overwrite>
+
+# Dependencies
+dependencies:
+  roles: []
+  collections: []
+
+# Supported platforms
+{% include 'platforms.yml.j2' %}
+
+# List of platform deviations
+platforms_overwrite: {}
+
+# Github
+github:
+  active: true
+  molecule: false
+  self_hosted: false
+  fail_fast: false
+  parallel: true
+  owner: de-it-krachten
+  repo: {{ Name }}
+  # https://docs.ansible.com/ansible/latest/reference_appendices/release_and_maintenance.html
+  image: ubuntu2204
+  python: '3.13'
+  lint_matrix:
+    - name: ansible_2.17
+      ansible: "ansible>10,<11"
+      ansible_core: "ansible-core>2.17,<2.18"
+      ansible_lint: "ansible-lint"
+    - name: ansible_2.18
+      ansible: "ansible>11,<12"
+      ansible_core: "ansible-core>2.18,<2.19"
+      ansible_lint: "ansible-lint"
+
+# Gitlab
+gitlab:
+  active: false
+
+# Azure DevOps
+ado:
+  active: false
+
+# templates
+ci_templates:
+  yamllint:
+    src: yamllint/templates/yamllint
+    dest: .yamllint
+  ci.yml:
+    src: github/templates/ci.yml
+    dest: .github/workflows/ci.yml
+    when: github_runner_cloud
+  ci-self-hosted.yml:
+    src: github/templates/ci-self-hosted.yml
+    dest: .github/workflows/ci.yml
+    when: github_runner_self_hosted
+  release.yml:
+    src: github/templates/release.yml
+    dest: .github/workflows/release.yml
+    when: github_runner_cloud
+  releaserc.yml:
+    src: github/templates/releaserc.yml
+    dest: .releaserc.yml
+    when: github_runner_cloud
+  gitlab-ci.yml:
+    src: gitlab/templates/gitlab-ci.yml
+    dest: .gitlab-ci.yml
+    when: gitlab_active
+  gitignore:
+    src: git/templates/gitignore
+    dest: .gitignore
+    force: false

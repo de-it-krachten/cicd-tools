@@ -1,0 +1,50 @@
+<% set collection_file = generic.namespace + '-' + generic.name + '-${nextRelease.version}.tar.gz' %>
+
+branches:
+  - name: main
+    prerelease: false
+  - name: master
+    prerelease: false
+
+plugins:
+
+  # Analyze commits to decide release type (major/minor/patch)
+  - "@semantic-release/commit-analyzer"
+
+  # Generate release notes
+  - "@semantic-release/release-notes-generator"
+
+  # Update CHANGELOG.md
+  - - "@semantic-release/changelog"
+    - changelogFile: CHANGELOG.md
+
+  # Update version in galaxy.yml
+  - - "@semantic-release/exec"
+    - prepareCmd: "sed -i \"s/^version:.*/version: ${nextRelease.version}/\" galaxy.yml"
+
+  # Commit galaxy.yml + changelog changes
+  - - "@semantic-release/git"
+    - assets:
+        - galaxy.yml
+        - CHANGELOG.md
+      message: "chore(release): ${nextRelease.version} [skip ci]"
+
+  # Clean up npm junk before GitHub release
+  - - "@semantic-release/exec"
+    - prepareCmd: "rm -rf node_modules package.json package-lock.json FILES.json MANIFEST.json"
+
+  # Build package before publishing release
+  - - "@semantic-release/exec"
+    - prepareCmd: "ansible-galaxy collection build --force"
+
+  # Create GitHub release
+  - - "@semantic-release/github"
+    - assets:
+        - path: "<= collection_file =>"
+          label: "<= collection_file =>"
+
+<% if collection_upload | bool %>
+  # Optional: publish to Ansible Galaxy
+  - - "@semantic-release/exec"
+    - publishCmd: "ansible-galaxy collection publish <= collection_file => --token $GALAXY_TOKEN"
+<% endif %>

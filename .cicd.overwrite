@@ -1,0 +1,7 @@
+---
+package:
+  prefix: /opt/cicd-tools
+github: {}
+gitlab: {}
+ado: {}
+ci_templates: {}

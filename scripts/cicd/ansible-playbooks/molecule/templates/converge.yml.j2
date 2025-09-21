@@ -1,0 +1,19 @@
+---
+
+- name: Converge
+  hosts: all
+<% if molecule['converge']['vars'] is defined %>
+  vars:
+<% for key, value in molecule['converge']['vars'].items() %>
+    <= key =>: <= value =>
+<% endfor %>
+<% endif %>
+  tasks:
+
+    - name: "Include role '<= role =>'"
+      include_role:
+        name: "<= role =>"
+
+<% for playbook in molecule['converge']['playbooks'] %>
+- import_playbook: "{{ lookup('env', 'MOLECULE_SCENARIO_DIRECTORY') }}/<= playbook =>"
+<% endfor %>

@@ -1,0 +1,315 @@
+---
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches-ignore:
+      - master
+      - main
+  workflow_dispatch:
+  schedule:
+    - cron: "0 7 * * 1"
+
+defaults:
+  run:
+    working-directory: "<= github.owner =>/<= github.repo =>"
+
+<% if github.vars is defined %>
+env:
+<% for key, value in github['vars'].items() %>
+  <= key =>: "<= value =>"
+<% endfor %>
+<% endif %>
+
+jobs:
+
+  lint:
+    name: "${{ matrix.name }}"
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: <= github.fail_fast | default(True) | lower =>
+      matrix:
+        include:
+<% for item in github.lint_matrix %>
+          - name: "<= item.name =>"
+            # ansible: "<= item.ansible =>"
+            ansible: "<= item.ansible_core =>"
+            ansible_lint: "<= item.ansible_lint =>"
+<% endfor %>
+
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v4
+        with:
+          path: "${{ github.repository }}"
+
+      - name: Set up Python 3.
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+<% if github.deploy_keys is defined %>
+      - name: Set-up SSH agent
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: |
+<% for key in github.deploy_keys %>
+            ${{ secrets.<= key => }}
+<% endfor %>
+<% endif %>
+
+      - name: Show runner info
+        run: |
+
+          hostname="$(hostname -f)"
+          eval os_name=$(awk -F= '/^NAME=/ {print $2}' /etc/os-release)
+          eval os_version=$(awk -F= '/^VERSION=/ {print $2}' /etc/os-release)
+          os="$os_name $os_version"
+          user="$(id -un)"
+          python=$(which python3)
+
+          echo "hostname : $hostname"
+          echo "user     : $user"
+          echo "os       : $os"
+          echo "python   : $python ($(python3 --version))"
+
+      - name: Disable specific apparmor profiles
+        run: |
+          sudo ln -s /etc/apparmor.d/usr.sbin.mysqld /etc/apparmor.d/disable/
+          sudo apparmor_parser -R /etc/apparmor.d/usr.sbin.mysqld
+<% for prof in github.apparmor_profiles | default([]) %>
+          sudo ln -s /etc/apparmor.d/<= prof => /etc/apparmor.d/disable/
+          sudo apparmor_parser -R /etc/apparmor.d/<= prof =>
+<% endfor %>
+
+      - name: Install test dependencies.
+        run: |
+          sudo rm -f /usr/bin/yq
+          python3 -m venv ~/.venv
+          source ~/.venv/bin/activate
+          pip3 install pip wheel setuptools --upgrade
+          pip3 install "${{ matrix.ansible }}" "${{ matrix.ansible_lint }}" yamllint jmespath yq e2j2 jinja2-ansible-filters
+          pip3 list
+
+      - name: Retrieve & install wrapper scripts
+        run: |
+          set -e
+          sudo apt install curl
+          curl -s -o /tmp/install.sh \
+            https://raw.githubusercontent.com/de-it-krachten/ansible-role-molecule/dev/files/install.sh
+          bash /tmp/install.sh
+
+      - name: Install required galaxy collections
+        run: |
+          source ~/.venv/bin/activate
+          /usr/local/bin/ansible-collections.sh
+
+      - name: For ansible 2.9, we need to perform some tweaking
+        run: |
+          source ~/.venv/bin/activate
+          ansible=$(pip show ansible 2>/dev/null | awk '/Version:/ {print $2}')
+          ansible_core=$(pip show ansible-core 2>/dev/null | awk '/Version:/ {print $2}')
+          ansible=${ansible:-$ansible_core}
+          echo "Ansible version = $ansible"
+          if [[ $ansible =~ 2.9.* ]]
+          then
+            echo "Patching for Rocky support"
+            site=$(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")
+            sed -i "s/'AlmaLinux'\],/'AlmaLinux', 'Rocky'\],/" $site/ansible/module_utils/facts/system/distribution.py
+            echo "Downgrading 'community.general' to '3.8.3'"
+            ansible-galaxy collection install community.general:3.8.3 --force
+          else
+            echo "No need to patch it"
+          fi
+
+      - name: Show component versions
+        run: |
+          source ~/.venv/bin/activate
+          ansible --version
+          ansible-lint --version
+          yamllint --version
+
+      - name: Lint code.
+        run: |
+          set -e
+          source ~/.venv/bin/activate
+          yamllint .
+          ansible-lint.sh
+
+<% if github.molecule|bool %>
+  molecule:
+    name: "${{ matrix.name }}"
+    runs-on: "${{ matrix.runs_on }}"
+    needs: lint
+    # continue-on-error: ${{ matrix.continue_on_error }}
+    strategy:
+      fail-fast: <= github.fail_fast | default(True) | lower =>
+      matrix:
+        include:
+<% for distro in platforms|dict2items %>
+<% if distro.value.ci|bool %>
+          - name: <= distro.key =>
+            runs_on: <= distro.value.github.runs_on | default('ubuntu-22.04') =>
+            distro: <= distro.key =>
+            playbook: converge.yml
+<% if distro.key | regex_search('(rhel8|oraclelinux8|almalinux8|rockylinux8|opensuse15|sles15)') %>
+            ansible: "ansible-core>2.16,<2.17"
+            ansible_lint: "ansible-lint>6,<7"
+<% else %>
+            ansible: "ansible-core>2.18,<2.19"
+            ansible_lint: "ansible-lint"
+<% endif %>
+            hetznercloud: <= True if distro.value.molecule.hetznercloud is defined else False =>
+
+<% endif %>
+<% endfor %>
+
+    steps:
+
+      - name: Check out the codebase.
+        uses: actions/checkout@v4
+        with:
+          path: "${{ github.repository }}"
+
+<% if github.ssh_access is defined and github.ssh_access | bool %>
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
+        with:
+          ## limits ssh access and adds the ssh public key for the user which triggered the workflow
+          limit-access-to-actor: true
+          ## limits ssh access and adds the ssh public keys of the listed GitHub users
+          # limit-access-to-users: mark-it-kracht
+<% endif %>
+
+      - name: Set up Python 3.
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+<% if github.deploy_keys is defined %>
+      - name: Set-up SSH agent
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: |
+<% for key in github.deploy_keys %>
+            ${{ secrets.<= key => }}
+<% endfor %>
+<% endif %>
+
+      - name: Show runner info
+        run: |
+
+          hostname="$(hostname -f)"
+          eval os_name=$(awk -F= '/^NAME=/ {print $2}' /etc/os-release)
+          eval os_version=$(awk -F= '/^VERSION=/ {print $2}' /etc/os-release)
+          os="$os_name $os_version"
+          user="$(id -un)"
+          python=$(which python3)
+
+          echo "hostname : $hostname"
+          echo "user     : $user"
+          echo "os       : $os"
+          echo "python   : $python ($(python3 --version))"
+
+      - name: Disable specific apparmor profiles
+        run: |
+          sudo ln -s /etc/apparmor.d/usr.sbin.mysqld /etc/apparmor.d/disable/
+          sudo apparmor_parser -R /etc/apparmor.d/usr.sbin.mysqld
+<% for prof in github.apparmor_profiles | default([]) %>
+          sudo ln -s /etc/apparmor.d/<= prof => /etc/apparmor.d/disable/
+          sudo apparmor_parser -R /etc/apparmor.d/<= prof =>
+<% endfor %>
+
+      - name: Install test dependencies.
+        run: |
+          sudo rm -f /usr/bin/yq
+          python3 -m venv ~/.venv
+          source ~/.venv/bin/activate
+          pip3 install pip wheel setuptools --upgrade
+          pip3 install yq e2j2 jinja2-ansible-filters passlib
+          # pip3 install "${{ matrix.ansible }}" "${{ matrix.ansible_lint }}" "ansible-compat<4" "molecule<5" yamllint jmespath
+          pip3 install "${{ matrix.ansible }}" "${{ matrix.ansible_lint }}" yamllint jmespath molecule
+
+          echo "MOLECULE_DRIVER = $MOLECULE_DRIVER"
+          if [[ $MOLECULE_DRIVER == 'hetznercloud' ]] ; then
+            pip3 install molecule-hetznercloud
+            ansible-galaxy collection install hetzner.hcloud community.crypto
+            site=$(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")
+            createyml_file=$site/molecule_hetznercloud/playbooks/create.yml
+            createyml_url=https://raw.githubusercontent.com/de-it-krachten/molecule-hetznercloud/sshkey/molecule_hetznercloud/playbooks/create.yml
+            sudo apt install curl
+            curl -s -o $createyml_file $createyml_url
+          elif [[ $MOLECULE_DRIVER == 'vagrant' ]] ; then
+            pip3 install molecule-vagrant
+          elif [[ $MOLECULE_DRIVER == 'podman' ]] ; then
+            pip3 install molecule-podman
+          else
+            pip3 install molecule-docker
+          fi
+
+          pip3 install "requests<2.29" "urllib3<2"
+
+          pip3 list
+        env:
+          MOLECULE_DRIVER: ${{ vars.MOLECULE_DRIVER }}
+
+      - name: Retrieve & install wrapper scripts
+        run: |
+          set -e
+          sudo apt install curl
+          curl -s -o /tmp/install.sh \
+            https://raw.githubusercontent.com/de-it-krachten/ansible-role-molecule/dev/files/install.sh
+          bash /tmp/install.sh
+
+      - name: Install required galaxy collections
+        run: |
+          source ~/.venv/bin/activate
+          /usr/local/bin/ansible-collections.sh
+
+      - name: For ansible 2.9, we need to perform some tweaking
+        run: |
+          source ~/.venv/bin/activate
+          ansible=$(pip show ansible 2>/dev/null | awk '/Version:/ {print $2}')
+          ansible_core=$(pip show ansible-core 2>/dev/null | awk '/Version:/ {print $2}')
+          ansible=${ansible:-$ansible_core}
+          echo "Ansible version = $ansible"
+          if [[ $ansible =~ 2.9.* ]]
+          then
+            echo "Patching for Rocky support"
+            site=$(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")
+            sed -i "s/'AlmaLinux'\],/'AlmaLinux', 'Rocky'\],/" $site/ansible/module_utils/facts/system/distribution.py
+            echo "Downgrading 'community.general' to '3.8.3'"
+            ansible-galaxy collection install community.general:3.8.3 --force
+          else
+            echo "No need to patch it"
+          fi
+
+      - name: Set-up github runner
+        run: |
+          sudo modprobe ip6table_filter
+
+      - name: Show component versions
+        run: |
+          source ~/.venv/bin/activate
+          ansible --version
+          ansible-lint --version
+          yamllint --version
+          molecule --version
+
+      - name: Run Molecule tests.
+        run: |
+          source ~/.venv/bin/activate
+          molecule-test.sh -A
+        env:
+          PY_COLORS: '1'
+          ANSIBLE_FORCE_COLOR: '1'
+          MOLECULE_DISTRO: ${{ matrix.distro }}
+          MOLECULE_PLAYBOOK: ${{ matrix.playbook }}
+<% if github.ssh_access is defined and github.ssh_access | bool %>
+          MOLECULE_WAIT_AFTER_ERROR: '900'
+<% endif %>
+          HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
+          MOLECULE_DRIVER: ${{ vars.MOLECULE_DRIVER }}
+<% endif %>

@@ -1,0 +1,56 @@
+---
+name: Ansible Role <= generic.role =>
+
+trigger:
+  batch: true
+  branches:
+    include:
+      - dev
+  tags:
+    include:
+      - "*"
+  paths:
+    exclude:
+      - "*.md"
+      - ".gitignore"
+      - "LICENSE"
+
+pr: none
+
+pool:
+  vmImage: ubuntu-latest
+
+jobs:
+
+  - job: test
+    timeoutInMinutes: 120
+    displayName: Tests
+    steps:
+
+      - checkout: self
+
+      - script: |
+          pip3 install ansible ansible-lint yamllint molecule-docker
+        displayName: Setup runner
+        condition: always()
+
+      - script: yamllint -s .
+        displayName: Lint YAML files
+        condition: always()
+
+      - script: ansible-lint .
+        displayName: Lint Ansible configuration
+        condition: always()
+
+<% if ado.molecule|bool %>
+      - script: molecule test
+        displayName: Test Ansible role
+        env:
+          ANSIBLE_DISPLAY_SKIPPED_HOSTS: "False"
+          ANSIBLE_FORCE_COLOR: "True"
+          ANSIBLE_FORKS: "30"
+          ANSIBLE_NOCOLOR": "False"
+          ANSIBLE_PIPELINING: "True"
+          ANSIBLE_SSH_ARGS: "-o ControlMaster=auto -o ControlPersist=60s"
+          ANSIBLE_STDOUT_CALLBACK: debug
+<% endif %>

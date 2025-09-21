@@ -1,0 +1,14 @@
+---
+
+<% set org = generic.org %>
+<% if galaxy.dependencies | length > 0 %>
+<% for role in galaxy.dependencies %>
+<% set src = 'https://github.com/de-it-krachten/ansible-role-' + (role.name | default(role) | regex_replace(org + '.')) + '.git' %>
+- name: <= role.name | default(role) =>
+  src: <= role.src if role.src is defined else src =>
+  version: <= role.version | default('main') =>
+  scm: git
+<% endfor %>
+<% else %>
+[]
+<% endif %>

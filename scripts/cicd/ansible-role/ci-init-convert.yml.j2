@@ -1,0 +1,4 @@
+{% for item in items %}
+{{ item }}:
+{{ vars[item] | to_nice_yaml | regex_replace('^', '    ', multiline=True) }}
+{% endfor %}

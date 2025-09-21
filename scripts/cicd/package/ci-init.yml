@@ -1,0 +1,95 @@
+---
+
+- name: Galaxy
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    base_path: "{{ collection_dir }}"
+    obsolete_files: []
+
+  tasks:
+
+    # ---------------------------------------------------------------------
+    # Initialize all variables & data structures
+    # ---------------------------------------------------------------------
+
+    - name: Show collection settings
+      ansible.builtin.debug:
+        msg:
+          collection: "{{ collection }}"
+          collection_dir: "{{ base_path }}"
+
+    - name: Load .cicd and .cicd.overwrite files
+      ansible.builtin.set_fact:
+        cicd_vars: "{{ lookup('file', base_path+'/.cicd') | from_yaml }}"
+        cicd_vars_overwrite: "{{ lookup('file', base_path+'/.cicd.overwrite') | from_yaml }}"
+
+    - name: Merge dicts
+      ansible.builtin.set_fact:
+        cicd: "{{ cicd_vars | combine(cicd_vars_overwrite, recursive=True) }}"
+
+    - name: Define some sub-keys as top-level
+      ansible.builtin.set_fact:
+        "{{ item }}": "{{ vars['cicd'][item] }}"
+      loop:
+        # - generic
+        - package
+        # - collection
+        # - dependencies
+        # - platforms
+        # - platforms_overwrite
+        # - galaxy
+        - github
+        - gitlab
+        - ado
+
+
+    # ---------------------------------------------------------------------
+    # Start initialization
+    # ---------------------------------------------------------------------
+
+    - name: Set some helper vars
+      ansible.builtin.set_fact:
+        github_active: "{{ github.active | default(False) }}"
+        github_self_hosted: "{{ github.self_hosted | default(False) }}"
+        github_runner_cloud: "{{ true if (github.active|bool and not github.self_hosted|bool) else false }}"
+        github_runner_self_hosted: "{{ true if (github.active|bool and github.self_hosted|bool) else false }}"
+        gitlab_active: "{{ gitlab.active | default(False) }}"
+        ado_active: "{{ ado.active | default(False) }}"
+        # molecule_active: "{{ molecule.active }}"
+
+    - name: Display helper vars
+      ansible.builtin.debug:
+        msg:
+          github_self_hosted: "{{ github_self_hosted }}"
+          github_runner_cloud: "{{ github_runner_cloud }}"
+          github_runner_self_hosted: "{{ github_runner_self_hosted }}"
+          github_active: "{{ github_active }}"
+          gitlab_active: "{{ gitlab_active }}"
+          ado_active: "{{ ado_active }}"
+          # molecule_active: "{{ molecule_active }}"
+
+    - name: Create all directories
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: directory
+        mode: "0755"
+      when: item.platform is undefined or vars[item.platform]
+      loop:
+        - { path: "{{ base_path }}/meta" }
+        - { path: "{{ base_path }}/.github", platform: github }
+        - { path: "{{ base_path }}/.github/workflows", platform: github }
+
+    - name: Distribute all templates (nested jinja)
+      ansible.builtin.template:
+        src: "{{ item.value.src }}.j2"
+        dest: "{{ base_path }}/{{ item.value.dest }}"
+        force: "{{ item.value.force | default(omit) }}"
+        variable_start_string: "<="
+        variable_end_string: "=>"
+        block_start_string: "<%"
+        block_end_string: "%>"
+        mode: "0644"
+      when: item.value.when is undefined or vars[item.value.when]|bool
+      loop: "{{ cicd.ci_templates|dict2items }}"

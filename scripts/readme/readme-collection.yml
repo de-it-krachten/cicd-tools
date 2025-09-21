@@ -1,0 +1,189 @@
+---
+
+- name: README collection
+  hosts: localhost
+  connection: local
+  gather_facts: no
+#  vars_files:
+#    - "{{ working_dir }}/.cicd"
+  vars:
+    tmpdir: "{{ lookup('env', 'TMPDIR') }}"
+    github_owner: de-it-krachten
+    github_repo: "{{ name }}"
+    readme_file: README.md
+    md_template1: README.md.j2
+    md_template2: README-tasklist.md.j2
+    md_template3: tasklist.md.j2
+    tasklists: {}
+
+    defaults: "{{ working_dir + '/defaults/main.yml' }}"
+
+  tasks:
+
+    - name: Show vars
+      ansible.builtin.debug:
+        msg:
+          tmpdir: "{{ tmpdir }}"
+          working_dir: "{{ working_dir }}"
+
+    - name: Load .cicd and .cicd.overwrite files
+      ansible.builtin.set_fact:
+        cicd_vars: "{{ lookup('file', working_dir+'/.cicd') | from_yaml }}"
+        cicd_vars_overwrite: "{{ lookup('file', working_dir+'/.cicd.overwrite') | from_yaml }}"
+
+    - name: Merge dicts
+      ansible.builtin.set_fact:
+        cicd: "{{ cicd_vars | combine(cicd_vars_overwrite, recursive=True) }}"
+
+    - name: Define some sub-keys as top-level
+      ansible.builtin.set_fact:
+        "{{ item }}": "{{ vars['cicd'][item] }}"
+      when: cicd[item] is defined
+      loop:
+        - generic
+        - dependencies
+        - platforms
+        - platforms_overwrite
+        - galaxy
+        - github
+        - gitlab
+        - molecule
+        - ci_templates
+        - tasklists
+
+    - name: Create empty roles file
+      ansible.builtin.copy:
+        content: |
+          ---
+          roles: []
+        dest: "{{ working_dir }}/.roles"
+        force: false
+        mode: "0644"
+
+    - name: Create empty collections file
+      ansible.builtin.copy:
+        content: |
+          ---
+          collections:
+            - community.general
+        dest: "{{ working_dir }}/.collections"
+        force: false
+        mode: "0644"
+
+    - name: Merge platforms with platforms_overwrite
+      ansible.builtin.set_fact:
+        platforms: "{{ platforms|combine(platforms_overwrite, recursive=True) }}"
+
+    - name: Read extra dependencies from file
+      ansible.builtin.set_fact:
+        dep_roles: "{{ lookup('file', working_dir+'/.roles') | from_yaml | json_query('roles') }}"
+        dep_collections: "{{ lookup('file', working_dir+'/.collections') | from_yaml | json_query('collections[].name') }}"
+
+    - name: Define dependencies
+      ansible.builtin.set_fact:
+        dependencies:
+          roles: "{{ (dependencies.roles | default([])) + dep_roles | sort | unique }}"
+          collections: "{{ (dependencies.collections | default([])) + dep_collections | sort | unique }}"
+
+    - name: Create directories beneath $TMPDIR
+      ansible.builtin.file:
+        path: "{{ tmpdir }}/{{ item }}"
+        state: directory
+        mode: "0700"
+      loop:
+        - defaults
+        - vars
+        - molecule/default
+
+    - name: Get all variable files below defaults + vars
+      ansible.builtin.find:
+        paths:
+          - "{{ working_dir }}/defaults"
+          - "{{ working_dir }}/vars"
+        patterns: "*.yml"
+        follow: true
+        file_type: any
+      register: _varfiles
+
+    - name: Copy all variable files into $TMPDIR
+      ansible.builtin.copy:
+        src: "{{ item.path }}"
+        dest: "{{ tmpdir }}/{{ item.path | dirname | basename }}/{{ item.path | basename }}"
+        remote_src: true
+        mode: "0644"
+      loop: "{{ _varfiles.files }}"
+      loop_control:
+        label: "{{ item.path }}"
+
+    - name: Strip all variable files
+      ansible.builtin.shell: |
+        varfile={{ tmpdir }}/{{ item.path | dirname | basename }}/{{ item.path | basename }}
+        sed -i "/^---$/d" $varfile
+        sed -i -n '/./,$p' $varfile
+      changed_when: true
+      loop: "{{ _varfiles.files }}"
+      loop_control:
+        label: "{{ item.path }}"
+
+    - name: Molecule/defaults/converge.yml | create temporary file and remove unwanted lines
+      ansible.builtin.shell: |
+        converge_file={{ tmpdir }}/molecule/default/converge.yml
+        cp {{ working_dir }}/molecule/default/converge.yml $converge_file
+        sed -i "s/name: Converge/name: sample playbook for role '{{ generic.role_short }}'/" $converge_file
+        sed -i "/^---$/d" $converge_file
+        sed -i "s/ansible-role-//" $converge_file
+        sed -i -n '/./,$p' $converge_file
+      changed_when: true
+
+    - name: Get list of all vars files
+      ansible.builtin.set_fact:
+        varsfiles: "{{ lookup('fileglob', tmpdir+'/vars/*.yml', wantlist=True) | sort }}"
+
+    - name: Get list of all platform specific defaults
+      ansible.builtin.set_fact:
+        defaultsfiles: "{{ lookup('fileglob', tmpdir+'/defaults/*.yml', wantlist=True) | sort }}"
+
+    # basic README w/out task lists
+    - name: README without task lists
+      when: tasklists | default([]) | length == 0
+      block:
+
+        - name: Create README.md from template '{{ md_template1 }}' (w/out taskslists)  # noqa name[template]
+          ansible.builtin.template:
+            src: "{{ md_template1 }}"
+            dest: "{{ working_dir }}/{{ readme_file }}"
+            mode: "0644"
+
+
+    # basic README w/ task lists
+    - name: README with task lists
+      when: tasklists | default([]) | length > 0
+      block:
+
+        - name: Create documentation on all tasklists
+          ansible.builtin.include_tasks: tasklist.yml
+          loop: "{{ tasklists|dict2items }}"
+          loop_control:
+            loop_var: tasklist
+
+        - name: Create README.md from template '{{ md_template2 }}' (w/ taskslists)  # noqa name[template]
+          ansible.builtin.template:
+            src: "{{ md_template2 }}"
+            dest: "{{ working_dir }}/{{ readme_file }}"
+            mode: "0644"
+
+
+    - name: Restore all temporary stuff
+      ansible.builtin.include_tasks: replace.yml
+      vars:
+        filepath: "{{ working_dir }}/{{ readme_file }}"
+
+    - name: Create md file per tasklist
+      ansible.builtin.template:
+        src: "{{ md_template3 }}"
+        dest: "{{ working_dir }}/{{ tasklist['key'] }}.md"
+        mode: "0644"
+      loop: "{{ tasklists|dict2items }}"
+      loop_control:
+        loop_var: tasklist
+      when: tasklists is defined

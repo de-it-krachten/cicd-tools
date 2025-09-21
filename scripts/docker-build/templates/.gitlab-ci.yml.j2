@@ -1,0 +1,64 @@
+---
+# -*- coding: utf-8 -*-
+
+default:
+  tags:
+    - docker
+
+before_script:
+  - source /usr/local/virtualenv/$ANSIBLE_CURRENT/bin/activate
+  - runner-info.sh
+
+stages:
+  - prepare
+  - build
+  - push
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.pip"
+  GIT_STRATEGY: clone
+
+#cache:
+#  key: "$CI_COMMIT_SHORT_SHA"
+#  untracked: true
+#  paths:
+#    - .pip/
+#    - virtenv/
+
+
+# ---------------------------------------------------------
+# prepare
+# ---------------------------------------------------------
+
+prepare:
+  stage: prepare
+  script:
+    - hostname -f
+
+# ---------------------------------------------------------
+# build
+# ---------------------------------------------------------
+
+build:
+  stage: build
+  script:
+    - docker-build.sh
+  artifacts:
+    paths:
+      - images
+    expire_in: 15 mins
+  except:
+    - master
+    - main
+
+# ---------------------------------------------------------
+# push
+# ---------------------------------------------------------
+
+push:
+  stage: push
+  script:
+    - docker-build.sh -p
+  only:
+    - master
+    - main

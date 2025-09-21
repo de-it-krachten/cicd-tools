@@ -1,0 +1,82 @@
+---
+
+- name: Ansible-list-modules
+  hosts: localhost
+  vars:
+    ansible_type: role
+  vars_files:
+    - vars/keywords.yml
+  tasks:
+
+    - name: The variable ansible_code_path is mandatory
+      ansible.builtin.assert:
+        that:
+          - ansible_code_path is defined
+          - ansible_code_path|d('')|length > 0
+          - ansible_type is defined
+          - ansible_type is search('^(role|playbooks)$')
+
+    - name: Load collections from previous migration
+      ansible.builtin.set_fact:
+        collections: "{{ lookup('file', ansible_code_path + '/.collections') | from_yaml | json_query('collections') }}"
+
+    - name: Find files (playbooks)
+      ansible.builtin.include_tasks:
+        file: tasks/playbooks.yml
+      when: ansible_type == 'playbooks'
+
+    - name: Find tasks files (role)
+      ansible.builtin.include_tasks:
+        file: tasks/role.yml
+      when: ansible_type == 'role'
+
+    - name: Get tasks from playbooks
+      ansible.builtin.include_tasks:
+        file: tasks/{{ item }}.yml
+      loop:
+        - play
+        - task
+      when: ansible_type == 'playbooks'
+
+    - name: Get tasks from role
+      ansible.builtin.include_tasks:
+        file: tasks/{{ item }}.yml
+      loop:
+        - task
+      when: ansible_type == 'role'
+
+
+
+    - name: Combine collection & module lists
+      ansible.builtin.set_fact:
+        collections: "{{ collectionsp | default([]) + collectionst }}"
+        modules: "{{ modulesp | default([]) + modulest }}"
+
+    - name: Create list of failing modules
+      ansible.builtin.set_fact:
+        failing_modules: "{{ modules | select('match', '^[a-z0-9_]+$') | list }}"
+
+    - name: Show modules
+      ansible.builtin.debug:
+        var: modules
+        verbosity: 1
+
+    - name: Show collections
+      ansible.builtin.debug:
+        var: collections
+        verbosity: 1
+
+    - name: Show failing modules
+      ansible.builtin.debug:
+        var: failing_modules
+
+    - name: Fail now
+      ansible.builtin.fail:
+        msg: "One or more non-FQCN module names found"
+      when: failing_modules | length > 0
+
+    - name: Write collections to file
+      ansible.builtin.template:
+        src: collections.j2
+        dest: "{{ ansible_code_path }}/.collections"
+        mode: "0644"

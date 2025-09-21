@@ -1,0 +1,65 @@
+---
+
+# Generic
+generic:
+  namespace: "{{ Name_short | regex_replace('_.*') }}"
+  name: "{{ Name_short | regex_replace('.*_') }}"
+  description: |
+    <put description in .cicd.overwrite>
+  authors:
+    - "De IT Krachten BV"
+  license: EUPL-1.2
+  repository: "https://github.com/de-it-krachten/{{ Name }}"
+  homepage: "https://github.com/de-it-krachten/{{ Name }}"
+
+# Dependencies
+dependencies:
+  collections: []
+
+# Github
+github:
+  active: true
+  molecule: true
+  self_hosted: false
+  fail_fast: false
+  parallel: true
+  owner: de-it-krachten
+  repo: "{{ Name }}"
+
+# Gitlab
+gitlab:
+  active: false
+
+# Azure Devops
+ado:
+  active: false
+
+# Templates
+ci_templates:
+  galaxy.yml:
+    src: galaxy/templates/galaxy.yml
+    dest: galaxy.yml
+#  ci.yml:
+#    src: github/templates/ci.yml
+#    dest: .github/workflows/ci.yml
+#    when: github_active
+  release.yml:
+    src: github/templates/release.yml
+    dest: .github/workflows/release.yml
+    when: github_active
+  releaserc.yml:
+    src: github/templates/releaserc.yml
+    dest: .releaserc.yml
+    when: github_active
+  gitlab-ci.yml:
+    src: gitlab/templates/gitlab-ci.yml
+    dest: .gitlab-ci.yml
+    when: gitlab_active
+  azure-pipelines.yml:
+    src: ado/templates/azure-pipelines.yml
+    dest: azure-pipelines.yml
+    when: ado_active
+  gitignore:
+    src: git/templates/gitignore
+    dest: .gitignore
+    force: false

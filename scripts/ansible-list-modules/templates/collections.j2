@@ -1,0 +1,10 @@
+---
+{% set collections = (collections|difference(['ansible.builtin'])) %}
+{% if collections|length > 0 %}
+collections:
+{% for collection in collections %}
+  - {{ collection }}
+{% endfor %}
+{% else %}
+collections: []
+{% endif %}

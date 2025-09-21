@@ -1,0 +1,69 @@
+---
+
+dependency:
+  name: galaxy
+driver:
+  name: molecule_hetznercloud
+lint: |
+  set -e
+  yamllint .
+  ln -fs molecule/default/requirements.yml
+  ansible-lint
+  rm -f requirements.yml
+platforms:
+{% for platform in MOLECULE_DISTROS %}
+  <% for node in molecule.nodes|default([]) %>
+  - name: <= generic.role_short | replace('_', '-') =>-{{ platform.name }}-<= node.name =>
+    server_type: "{{ platform.server_type | default('cx22') }}"
+    image: "{{ platform.image }}"
+    location: "{{ platform.location | default('hel1') }}"
+    <% if node.groups is defined and node.groups|length > 0 %>
+    groups: <= node.groups =>
+    <% endif %>
+  <% endfor %>
+{% endfor %}
+provisioner:
+  name: ansible
+{% if MOLECULE_ANSIBLE_ARGS is defined %}
+  ansible_args:
+{% for molecule_ansible_arg in MOLECULE_ANSIBLE_ARGS %}
+    - {{ molecule_ansible_arg }}
+{% endfor %}
+{% endif %}
+  env:
+    ANSIBLE_PIPELINING: "True"
+    ANSIBLE_VERBOSITY: <= molecule.ansible.verbosity | default(0) =>
+  lint:
+    name: ansible-lint
+  playbooks:
+    converge: ${MOLECULE_PLAYBOOK:-converge.yml}
+  inventory:
+<% set __group_vars = {} %>
+<% if molecule.group_vars is defined %>
+    group_vars: <= __group_vars | combine(molecule.group_vars,recursive=true) | to_json =>
+<% else %>
+    group_vars: <= __group_vars | to_json =>
+<% endif %>
+<% if molecule.host_vars is defined or molecule.host_vars_static is defined %>
+    host_vars:
+  <% if molecule.host_vars is defined %>
+{% for platform in MOLECULE_DISTROS %}
+<= molecule.host_vars | to_nice_yaml(indent=2) | indent(width=6,first=True) =>
+{% endfor %}
+  <% endif %>
+  <% if molecule.host_vars_static is defined %>
+<= molecule.host_vars_static | to_nice_yaml(indent=2) | indent(width=6,first=True) =>
+  <% endif %>
+<% else %>
+    host_vars: {}
+<% endif %>
+scenario:
+  name: default
+<% if molecule.scenario.test_sequence is defined %>
+  test_sequence:
+  <% for item in molecule.scenario.test_sequence %>
+    - <= item =>
+  <% endfor %>
+<% endif %>
+verifier:
+  name: ansible

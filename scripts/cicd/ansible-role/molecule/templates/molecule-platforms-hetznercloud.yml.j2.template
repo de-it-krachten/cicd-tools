@@ -1,0 +1,14 @@
+---
+
+<% for platform in platforms|dict2items %>
+  <% if platform.value.molecule.hetznercloud is defined %>
+- name: <= platform.key =>
+  ci: <= platform.value.ci | lower =>
+    <% if platform.value.molecule.hetznercloud.server_type is defined %>
+  server_type: <= platform.value.molecule.hetznercloud.server_type =>
+    <% endif %>
+    <% if platform.value.molecule.hetznercloud.image is defined %>
+  image: <= platform.value.molecule.hetznercloud.image =>
+    <% endif %>
+  <% endif %>
+<% endfor %>

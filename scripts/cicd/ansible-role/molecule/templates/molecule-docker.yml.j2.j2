@@ -1,0 +1,117 @@
+---
+
+dependency:
+  name: galaxy
+driver:
+  name: docker
+lint: |
+  set -e
+  yamllint .
+  ln -fs molecule/default/requirements.yml
+  ansible-lint
+  rm -f requirements.yml
+platforms:
+<% if molecule.dns_server is defined and molecule.dns_server %>
+  - name: <= generic.role_short =>-dns
+    image: "geerlingguy/docker-rockylinux8-ansible:latest"
+    command: ${MOLECULE_DOCKER_COMMAND:-""}
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    cgroupns_mode: host
+    privileged: true
+    pre_build_image: true
+    groups: ['dns']
+<% endif %>
+{% for platform in MOLECULE_DISTROS %}
+<% for node in molecule.nodes|default([]) %>
+  - name: <= generic.role_short =>-{{ platform.name }}-<= node.name =>
+    image: "{{ platform.image }}"
+{% if platform.kernel_memory is defined %}
+    kernel_memory: {{ platform.kernel_memory }}
+{% endif %}
+{% if platform.memory is defined %}
+    memory: {{ platform.memory }}
+{% endif %}
+    rhsm: {{ platform.rhsm | default(False) }}
+    command: ${MOLECULE_DOCKER_COMMAND:-""}
+{% if platform.environment is defined %}
+    environment:
+{% for key, value in platform.environment.items() %}
+      {{ key }}: "{{ value }}"
+{% endfor %}
+{% endif %}
+    volumes:
+{% for volume in platform.volumes %}
+      - {{ volume }}
+{% endfor %}
+<% if node.volumes is defined %>
+<= node.volumes | to_nice_yaml(indent=2) | indent(width=6,first=True) =>
+<% endif %>
+{% if platform.networks is defined %}
+    networks:
+{% for network in platform.networks %}
+      - name: <= generic.role_short =>-{{ network }}
+{% endfor %}
+{% endif %}
+{% if platform.ports is defined %}
+    published_ports:
+{% for port in platform.ports %}
+      - {{ port }}
+{% endfor %}
+{% endif %}
+{% if platform.cgroupns_mode is defined %}
+    cgroupns_mode: {{ platform.cgroupns_mode }}
+{% endif %}
+    privileged: {{ platform.privileged | default(True) }}
+    pre_build_image: {{ platform.pre_build_image | default(True) }}
+    dockerfile: Dockerfile.{{ platform.name }}.j2
+<% if node.groups is defined and node.groups|length > 0 %>
+    groups: <= node.groups =>
+<% endif %>
+<% endfor %>
+{% endfor %}
+provisioner:
+  name: ansible
+{% if MOLECULE_ANSIBLE_ARGS is defined %}
+  ansible_args:
+{% for molecule_ansible_arg in MOLECULE_ANSIBLE_ARGS %}
+    - {{ molecule_ansible_arg }}
+{% endfor %}
+{% endif %}
+  env:
+    ANSIBLE_PIPELINING: "True"
+    ANSIBLE_VERBOSITY: <= molecule.ansible.verbosity | default(0) =>
+  lint:
+    name: ansible-lint
+  playbooks:
+    converge: ${MOLECULE_PLAYBOOK:-converge.yml}
+  inventory:
+<% set __group_vars = {} %>
+<% if molecule.group_vars is defined %>
+    group_vars: <= __group_vars | combine(molecule.group_vars,recursive=true) | to_json =>
+<% else %>
+    group_vars: <= __group_vars | to_json =>
+<% endif %>
+<% if molecule.host_vars is defined or molecule.host_vars_static is defined %>
+    host_vars:
+<% if molecule.host_vars is defined %>
+{% for platform in MOLECULE_DISTROS %}
+<= molecule.host_vars | to_nice_yaml(indent=2) | indent(width=6,first=True) =>
+{% endfor %}
+<% endif %>
+<% if molecule.host_vars_static is defined %>
+<= molecule.host_vars_static | to_nice_yaml(indent=2) | indent(width=6,first=True) =>
+<% endif %>
+<% else %>
+    host_vars: {}
+<% endif %>
+scenario:
+  name: default
+<% if molecule.scenario.test_sequence is defined %>
+  test_sequence:
+<% for item in molecule.scenario.test_sequence %>
+    - <= item =>
+<% endfor %>
+<% endif %>
+verifier:
+  name: ansible

@@ -1,0 +1,136 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Below is in standard configuration for platform
+# Default location for VMs
+#
+# Environment settings can be found in /etc/profile.d/vagarant.sh
+# var_machine_folder = '/opt/ansible_dev/.VMs'
+# export VAGRANT_HOME=my/new/path/goes/here/
+
+require 'yaml'
+
+Vagrant.configure("2") do |config|
+
+#  config.ssh.private_key_path = "~/.ssh/vagrant"
+#  config.ssh.insert_key = false
+#  config.ssh.private_key_path = ["/data/vagrant/.vagrant.d/insecure_private_key", "/home/mark/.ssh/vagrant"]
+#  config.vm.provision "file", source: "/home/mark/.ssh/vagrant.pub", destination: "~/.ssh/authorized_keys"
+#  config.ssh.username = "vagrant"
+#  config.ssh.password = "vagrant"
+
+
+<% for vm in vms %>
+  config.vm.define "<= vm.name =>" do |config|
+<% if vm.box is defined and vm.box != 'dummy' %>
+    config.vm.box = "<= vm.box =>"
+<% else %>
+    config.vm.box = "generic/alpine318"
+<% endif %>
+<% if vm.version is defined %>
+    config.vm.box_version = "<= vm.version =>"
+<% endif %>
+<% if vm.disksize is defined %>
+    config.vm.disk :disk, size: '<= vm.disksize =>', primary: true
+<% endif %>
+<% for item in vm.networks | default([]) %>
+<% set auto_config = item.auto_config | default(true) %>
+    config.vm.network "private_network", ip: "<= item.ip =>", name: '<= item.tmpname | default(item.name) =>', auto_config: <= auto_config | lower =>, adapter: <= loop.index + 1 =>
+<% endfor %>
+
+<% if vm.vbguest is defined and vm.vbguest.auto_update is defined %>
+    config.vbguest.auto_update = <= vm.vbguest_auto_update | default('false') =>
+<% endif %>
+    config.vm.provider "virtualbox" do |vb|
+<% if vm.nested_hw_virt is defined %>
+      vb.customize ['modifyvm', :id, '--nested-hw-virt', '<= vm.nested_hw_virt =>']
+<% endif %>
+      vb.memory = <= vm.memory =>
+      vb.cpus = <= vm.cpus =>
+
+      # Disks
+<% if vm.disks is defined %>
+<% for disk in vm.disks %>
+<% if disk.path is defined %>
+      file_to_disk = '<= disk.path =>'
+<% else %>
+      file_to_disk = '<= vm.name =>_<= disk.name =>.vdi'
+      unless File.exist?(file_to_disk)
+        vb.customize ['createhd', '--filename', file_to_disk, '--size', <= disk.size => * 1024]
+      end
+<% endif %>
+<% if disk.type is defined and disk.type == 'ide' %>
+      vb.customize ['storageattach', :id, '--storagectl', 'IDE Controller', '--port', <= loop.index =>, '--device', 0, '--type', 'hdd', '--medium', file_to_disk]
+<% else %>
+      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', <= loop.index =>, '--device', 0, '--type', 'hdd', '--medium', file_to_disk]
+<% endif %>
+<% endfor %>
+<% endif %>
+
+      # ISO images
+<% if vm.isos is defined %>
+    # Configure storage controller
+    # vb.customize ["storagectl", :id, "--name", "IDE Controller", "--add", "ide"]
+
+<% for iso in vm.isos %>
+    # Attach ISO file <= iso.path =>
+    vb.customize ["storageattach", :id, "--storagectl", "IDE Controller", "--port", <= loop.index0 =>, "--device", 0, "--type", "dvddrive", "--medium", "<= iso.path =>"]
+
+<% endfor %>
+<% endif %>
+
+      # network adapter - internal
+<% for network in vm.networks | default([]) %>
+<% if network.type | default('hostonly') == 'intnet' %>
+      vb.customize ["modifyvm", :id, "--nic<= loop.index + 1 =>", "intnet"]
+      vb.customize ["modifyvm", :id, "--intnet<= loop.index + 1 =>", "<= network.name =>"]
+<% endif %>
+<% if network.promiscuous_mode | default(false) %>
+      vb.customize ["modifyvm", :id, "--nicpromisc<= loop.index + 1 =>", "allow-all"]
+<% endif %>
+<% endfor %>
+
+      # Boot order
+<% if vm.bootorder is defined %>
+<% for item in vm.bootorder %>
+      vb.customize ["modifyvm", :id, "--boot<= loop.index =>", "<= item =>"]
+<% endfor %>
+<% endif %>
+
+    end
+  end
+<% endfor %>
+
+<% for playbook in playbooks %>
+  config.vm.provision "<= playbook.phase =>", type: "ansible", run: "<= playbook.run|default('once') =>" do |ansible|
+
+    # ansible.limit
+    ansible.limit = "all"
+
+    # ansible.raw_arguments
+    ansible.raw_arguments = [
+      "-e", "@<= Vagrantdir + '/ansible.extra_vars.yml' =>"
+    ]
+
+<%- for key, value in (ansible.options|default({})).items() %>
+    ansible.<= key => = "<= value =>"
+<%- endfor %>
+
+    # ansible.verbose
+<% if ansible_verbose is defined %>
+    ansible.verbose = "<= ansible_verbose =>"
+<% endif %>
+
+    # ansible.playbook
+<% if playbook.file_type is defined and playbook.file_type == 'absolute' %>
+    ansible.playbook = "<= playbook.file =>"
+<% else %>
+    ansible.playbook = "<= Ansibledir =>/<= playbook.file =>"
+<% endif %>
+
+    # ansible.groups
+    ansible.groups = YAML.load_file("<= Vagrantdir + '/ansible.groups.yml' =>")
+
+  end
+<% endfor %>
+end

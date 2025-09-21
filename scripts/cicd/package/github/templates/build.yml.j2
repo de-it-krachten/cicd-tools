@@ -1,0 +1,193 @@
+name: Build native packages
+
+on:
+  workflow_run:
+    workflows: ["Release"]
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      package_name:
+        description: "Package name"
+        required: false
+        default: "<= package.name =>"
+      target_prefix:
+        description: "Install location"
+        required: false
+        default: "<= package.prefix =>"
+
+jobs:
+  get-version:
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_tag.outputs.version }}
+    steps:
+      - name: Install GitHub CLI
+        run: sudo apt-get update && sudo apt-get install -y gh
+
+      - name: Get latest release version
+        id: get_tag
+        run: |
+          VERSION=$(gh release view \
+            --repo "${{ github.repository }}" \
+            --json tagName -q .tagName | sed 's/^v//')
+          [[ $VERSION == "" ]] && exit 1
+          echo "version=$VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-packages:
+    needs: get-version
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    env:
+      TARGET_PREFIX: ${{ github.event.inputs.target_prefix || '<= package.prefix =>' }}
+      PACKAGE_NAME: ${{ github.event.inputs.package_name || '<= package.name =>' }}
+      VERSION: ${{ needs.get-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y dpkg-dev rpm gh
+
+      # -------------------
+      # Build .deb
+      # -------------------
+
+      # Prep build location
+      - name: Prepare DEB
+        run: |
+          mkdir -p build/debian/DEBIAN
+          mkdir -p build/debian${TARGET_PREFIX}
+          cp -r scripts/* build/debian${TARGET_PREFIX}/
+
+          cat > build/debian/DEBIAN/control <<EOF
+          Package: ${PACKAGE_NAME}
+          Version: ${VERSION}
+          Section: utils
+          Priority: optional
+          Architecture: all
+          Maintainer: <= package.maintainer =>
+          Description: Collection of CI/CD scripts used mainly for Ansible
+          EOF
+
+          # postinst (symlinks)
+          cat > build/debian/DEBIAN/postinst <<EOF
+          #!/bin/sh
+          set -e
+          for f in ${TARGET_PREFIX}/bin/*; do
+            ln -sf "\$f" /usr/local/bin/\$(basename "\$f")
+          done
+          EOF
+          chmod 755 build/debian/DEBIAN/postinst
+
+          # prerm (remove symlinks)
+          cat > build/debian/DEBIAN/prerm <<EOF
+          #!/bin/sh
+          set -e
+          if [ "\$1" = "remove" ]; then
+            for f in ${TARGET_PREFIX}/bin/*; do
+              rm -f /usr/local/bin/\$(basename "\$f")
+            done
+          fi
+          EOF
+          chmod 755 build/debian/DEBIAN/prerm
+
+      # Fix ownership
+      - name: Fix ownership for DEB
+        run: sudo chown -R root:root build/debian
+
+      # Build package
+      - name: Build DEB
+        run: dpkg-deb --build build/debian ${PACKAGE_NAME}_${VERSION}.deb
+
+      # Upload artifact
+      - name: Upload DEB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: built-package-deb
+          path: ${PACKAGE_NAME}_*.deb
+
+      # Attach to GitHub Release
+      - name: Attach DEB to GitHub Release
+        run: |
+          gh release upload "v${VERSION}" \
+            ${PACKAGE_NAME}_${VERSION}.deb \
+            --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+      # -------------------
+      # Build .rpm
+      # -------------------
+
+      # Prep build location
+      - name: Prepare RPM
+        run: |
+          mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+          tar czf ~/rpmbuild/SOURCES/${PACKAGE_NAME}.tar.gz scripts/
+
+          cat > ~/rpmbuild/SPECS/${PACKAGE_NAME}.spec <<EOF
+          Name: ${PACKAGE_NAME}
+          Version: ${VERSION}
+          Release: 1%{?dist}
+          Summary: Collection of custom utility scripts
+          License: MIT
+          URL: https://github.com/de-it-krachten/${PACKAGE_NAME}
+          BuildArch: noarch
+          Source0: %{name}.tar.gz
+
+          %description
+          Collection of custom utility scripts.
+
+          %prep
+          %setup -q -n scripts
+
+          %install
+          mkdir -p %{buildroot}${TARGET_PREFIX}
+          cp -a * %{buildroot}${TARGET_PREFIX}/
+
+          %files
+          ${TARGET_PREFIX}/*
+
+          %post
+          for f in ${TARGET_PREFIX}/bin/*; do
+            ln -sf \$f /usr/local/bin/\$(basename \$f)
+          done
+
+          %preun
+          if [ \$1 -eq 0 ]; then
+            for f in ${TARGET_PREFIX}/bin/*; do
+              rm -f /usr/local/bin/\$(basename \$f)
+            done
+          fi
+
+          %changelog
+          * $(date +"%a %b %d %Y") <= package.maintainer => - ${VERSION}-1
+          - Initial package
+          EOF
+
+      # Build package
+      - name: Build RPM
+        run: rpmbuild -ba ~/rpmbuild/SPECS/${PACKAGE_NAME}.spec
+
+      # Upload artifact
+      - name: Upload RPM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: built-package-rpm
+          path: ~/rpmbuild/RPMS/noarch/*.rpm
+
+      # Attach to GitHub Release
+      - name: Attach RPM to GitHub Release
+        run: |
+          gh release upload "v${VERSION}" \
+            ~/rpmbuild/RPMS/noarch/*.rpm \
+            --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,21 @@
+---
+
+# Generic
+generic:
+  role: {{ Name }}
+  role_short: {{ Name_short }}
+  role_description: |
+    <basic role description>
+  collections: []
+
+# Supported platforms
+{%- if Name | regex_search('_docker') %}
+{%- include 'platforms-overwrite-docker.yml.j2' %}
+{%- else %}
+{%- include 'platforms-overwrite-ci.yml.j2' %}
+{%- endif %}
+
+# Molecule
+molecule:
+  requirements:
+    roles_extra: []
