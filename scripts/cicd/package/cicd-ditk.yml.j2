@@ -1,0 +1,66 @@
+---
+
+# Generic
+generic: {}
+
+package:
+  name: {{ package_name }}
+  owner: de-it-krachten
+  repo: https://github.com/de-it-krachten/{{ package_name }}
+  maintainer: "De IT Krachten B.V. <github@de-it-krachten.nl>"
+  prefix: {{ package_prefix }}
+
+# Github
+github:
+  active: true
+  molecule: true
+  self_hosted: false
+  fail_fast: false
+  parallel: true
+  owner: de-it-krachten
+  repo: {{ package_name }}
+  image: ubuntu2204
+  python: '3.13'
+
+# Gitlab
+gitlab:
+  active: false
+
+# Azure DevOps
+ado:
+  active: false
+
+# templates
+ci_templates:
+  build.yml:
+    src: github/templates/build.yml
+    dest: .github/workflows/build.yml
+    when: github_runner_cloud  
+#  ci.yml:
+#    src: github/templates/ci.yml
+#    dest: .github/workflows/ci.yml
+#    when: github_runner_cloud
+#  ci-self-hosted.yml:
+#    src: github/templates/ci-self-hosted.yml
+#    dest: .github/workflows/ci.yml
+#    when: github_runner_self_hosted
+  release.yml:
+    src: github/templates/release.yml
+    dest: .github/workflows/release.yml
+    when: github_runner_cloud
+  releaserc.yml:
+    src: github/templates/releaserc.yml
+    dest: .releaserc.yml
+    when: github_runner_cloud
+  gitlab-ci.yml:
+    src: gitlab/templates/gitlab-ci.yml
+    dest: .gitlab-ci.yml
+    when: gitlab_active
+  azure-pipelines.yml:
+    src: ado/templates/azure-pipelines.yml
+    dest: azure-pipelines.yml
+    when: ado_active
+#  gitignore:
+#    src: git/templates/gitignore
+#     dest: .gitignore
+#     force: false

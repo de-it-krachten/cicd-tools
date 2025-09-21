@@ -1,0 +1,59 @@
+---
+
+# Create image using ansible and deploy an container
+- name: Cleanup containers
+  hosts: localhost
+  # become: true
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    container_tool: "{{ lookup('env', 'DOCKER_BINARY') }}"
+  tasks:
+
+    - name: Load pipeline variable from file
+      ansible.builtin.set_fact:
+        build_vars: "{{ lookup('file', 'docker-settings.yml') | from_yaml }}"
+
+    - name: Delete docker containers
+      when: container_tool == 'docker'
+      block:
+
+        - name: Delete Docker container
+          community.docker.docker_container:
+            name: "{{ build_vars.container.name }}"
+            state: absent
+            container_default_behavior: compatibility
+          when: build_vars.container.name is defined
+
+        - name: Delete Docker image - intermediate
+          community.docker.docker_image:
+            name: "{{ build_vars.image.intermediate }}"
+            state: absent
+          when: build_vars.image.intermediate is defined
+
+        - name: Delete Docker images - final
+          community.docker.docker_image:
+            name: "{{ build_vars.image.name }}:{{ item }}"
+            state: absent
+          loop: "{{ [build_vars.image.tag] + (build_vars.image.tags | default([])) }}"
+
+    - name: Delete podman containers
+      when: container_tool == 'podman'
+      block:
+
+        - name: Delete podman container
+          containers.podman.podman_container:
+            name: "{{ build_vars.container.name }}"
+            state: absent
+          when: build_vars.container.name is defined
+
+        - name: Delete podman image - intermediate
+          containers.podman.podman_container:
+            name: "{{ build_vars.image.intermediate }}"
+            state: absent
+          when: build_vars.image.intermediate is defined
+
+        - name: Delete podman images - final
+          containers.podman.podman_container:
+            name: "{{ build_vars.image.name }}:{{ item }}"
+            state: absent
+          loop: "{{ [build_vars.image.tag] + (build_vars.image.tags | default([])) }}"

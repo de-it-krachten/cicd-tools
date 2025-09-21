@@ -1,0 +1,79 @@
+---
+
+# Add container to inventory
+- hosts: localhost
+  vars:
+    docker_container_name: "{{ lookup('env', 'CONTAINER_NAME') }}"
+    docker_container_image: "{{ lookup('env', 'CONTAINER_IMAGE') }}"
+    buildpath: "{{ lookup('env', 'BUILD_PATH') }}"
+  tasks:
+
+    - name: Add docker container
+      add_host:
+        name: "{{ docker_container_name }}"
+        ansible_connection: docker
+        ansible_host: "{{ docker_container_name }}"
+        ansible_user: root
+        ansible_docker_extra_args: >-
+          -H tcp://127.0.0.1:2375
+        groups:
+          - containers
+
+
+# Configure DNF to use proxy
+- hosts: containers
+  become: yes
+  vars:
+    proxy_url: "{{ lookup('env', 'HTTPS_PROXY') | default('') }}"
+    proxy_use: "{{ True if ( proxy_url is defined and proxy_url|length > 0 ) else False }}"
+
+  tasks:
+
+    - name: Create awx/tmp
+      file:
+        path: /var/lib/awx/.ansible/tmp
+        state: directory
+        owner: root
+        group: root
+        mode: "0700"
+
+    - name: Configure DNF to use proxy
+      lineinfile:
+        path: /etc/dnf/dnf.conf
+        line: "proxy={{ proxy_url }}"
+        regexp: "^proxy=.*$"
+      when: proxy_use is defined and proxy_use|bool
+
+
+## Migrate from CentOS -> RockyLinux
+#- hosts: containers
+#  become: yes
+#  roles:
+#    - { role: centos2rocky, when: "ansible_distribution == 'CentOS'" }
+
+
+# Container preparation
+- hosts: containers
+  gather_facts: true
+  become: yes
+  vars:
+    awx_container_creation: true
+    tower_env: T
+    tower:
+      T:
+        tower_host: localhost
+        tower_host_alias: awx.local
+        tower_user: admin
+        tower_pass: Qwerty123
+        tower_api_user: api_user
+        tower_api_password: Qwerty123
+
+    package_list:
+      - gpg
+      - pass
+      - jq
+
+  roles:
+    - { role: deitkrachten.package, package_mode: upgrade-verbose }
+    - { role: deitkrachten.package, package_mode: install-verbose }
+    - role: olam

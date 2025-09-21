@@ -1,0 +1,125 @@
+---
+
+<% for platform in platforms|dict2items %>
+<% if platform.value.ci|bool %>
+- name: <= platform.key =>
+<% if molecule.driver == 'vagrant' %>
+<% if platform.value.molecule.vagrant.box is defined %>
+  box: <= platform.value.molecule.vagrant.box =>
+<% endif %>
+<% if platform.value.molecule.vagrant.memory is defined %>
+  memory: <= platform.value.molecule.vagrant.memory =>
+<% endif %>
+<% if platform.value.molecule.vagrant.cpus is defined %>
+  cpus: <= platform.value.molecule.vagrant.cpus =>
+<% endif %>
+<% if platform.value.molecule.vagrant.interfaces is defined %>
+  interfaces: <= platform.value.molecule.vagrant.interfaces =>
+<% endif %>
+<% elif molecule.driver == 'hetznercloud' %>
+<% if platform.value.molecule.hetznercloud.server_type is defined %>
+  server_type: <= platform.value.molecule.hetznercloud.server_type =>
+<% endif %>
+<% if platform.value.molecule.hetznercloud.image is defined %>
+  image: <= platform.value.molecule.hetznercloud.image =>
+<% endif %>
+<% elif molecule.driver == 'docker' %>
+<% if platform.value.molecule.docker.image is defined %>
+  image: <= platform.value.molecule.docker.image =>
+<% endif %>
+<% if platform.value.molecule.docker.memory is defined %>
+  memory: <= platform.value.molecule.docker.memory | lower =>
+<% endif %>
+<% if platform.value.molecule.docker.kernel_memory is defined %>
+  kernel_memory: <= platform.value.molecule.docker.kernel_memory | lower =>
+<% endif %>
+<% if platform.value.molecule.docker.privileged is defined %>
+  privileged: <= platform.value.molecule.docker.privileged | lower =>
+<% endif %>
+<% if platform.value.molecule.docker.pre_build_image is defined %>
+  pre_build_image: <= platform.value.molecule.docker.pre_build_image | lower =>
+<% endif %>
+<% if platform.value.molecule.docker.cgroupns_mode is defined %>
+  cgroupns_mode: <= platform.value.molecule.docker.cgroupns_mode | lower =>
+<% endif %>
+<% if platform.value.molecule.docker.environment is defined %>
+  environment:
+<% for key, value in platform.value.molecule.docker.environment.items() %>
+<% if value is search('{{') %>
+    <= key =>: "<= value =>"
+<% else %>
+    <= key =>: <= value =>
+<% endif %>
+<% endfor %>
+<% endif %>
+<% if platform.value.molecule.docker.volumes is defined %>
+  volumes:
+<% for volume in platform.value.molecule.docker.volumes %>
+    - <= volume =>
+<% endfor %>
+<% endif %>
+<% if platform.value.molecule.docker.networks is defined %>
+  networks:
+<% for network in platform.value.molecule.docker.networks %>
+    - <= network =>
+<% endfor %>
+<% endif %>
+<% if platform.value.molecule.docker.ports is defined %>
+  ports:
+<% for port in platform.value.molecule.docker.ports %>
+    - <= port =>
+<% endfor %>
+<% endif %>
+<% if platform.value.rhsm is defined %>
+  rhsm: <= platform.value.rhsm | lower =>
+<% endif %>
+<% elif molecule.driver == 'podman' %>
+<% if platform.value.molecule.podman.image is defined %>
+  image: <= platform.value.molecule.podman.image =>
+<% endif %>
+<% if platform.value.molecule.podman.memory is defined %>
+  memory: <= platform.value.molecule.podman.memory | lower =>
+<% endif %>
+<% if platform.value.molecule.podman.kernel_memory is defined %>
+  kernel_memory: <= platform.value.molecule.podman.kernel_memory | lower =>
+<% endif %>
+<% if platform.value.molecule.podman.privileged is defined %>
+  privileged: <= platform.value.molecule.podman.privileged | lower =>
+<% endif %>
+<% if platform.value.molecule.podman.pre_build_image is defined %>
+  pre_build_image: <= platform.value.molecule.podman.pre_build_image | lower =>
+<% endif %>
+<% if platform.value.molecule.podman.environment is defined %>
+  environment:
+<% for key, value in platform.value.molecule.podman.environment.items() %>
+<% if value is search('{{') %>
+    <= key =>: "<= value =>"
+<% else %>
+    <= key =>: <= value =>
+<% endif %>
+<% endfor %>
+<% endif %>
+<% if platform.value.molecule.podman.volumes is defined %>
+  volumes:
+<% for volume in platform.value.molecule.podman.volumes %>
+    - <= volume =>
+<% endfor %>
+<% endif %>
+<% if platform.value.molecule.podman.networks is defined %>
+  networks:
+<% for network in platform.value.molecule.podman.networks %>
+    - <= network =>
+<% endfor %>
+<% endif %>
+<% if platform.value.molecule.podman.ports is defined %>
+  ports:
+<% for port in platform.value.molecule.podman.ports %>
+    - <= port =>
+<% endfor %>
+<% endif %>
+<% if platform.value.rhsm is defined %>
+  rhsm: <= platform.value.rhsm | lower =>
+<% endif %>
+<% endif %>
+<% endif %>
+<% endfor %>

@@ -1,0 +1,14 @@
+---
+
+image:
+  name: my-org/my-image   # name of the image
+  tag: latest             # tag of the image
+  parent: alpine:latest   # image to use as startingpoint for our image
+  registry: docker.io     # docker registry to push image to
+  tags: []                # add additional tags
+container:
+  name: mytest-container  # name of the temporary container
+  priviledged: false      # should the container be started in privileged mode
+  volumes: []             # volumes to provide to the container
+environment:              # dict of key/values to pass as environment variables
+  var1: value1
