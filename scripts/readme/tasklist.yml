@@ -1,0 +1,16 @@
+---
+
+- name: Create md file per tasklist
+  ansible.builtin.template:
+    src: "{{ md_template1 }}"
+    dest: "{{ working_dir }}/{{ tasklist['key'] }}.md"
+    mode: "0644"
+
+- name: Restore all temporary stuff
+  ansible.builtin.include_tasks: replace.yml
+  vars:
+    filepath: "{{ working_dir }}/{{ tasklist['key'] }}.md"
+
+- name: Append tasklist name to list of tasklists
+  ansible.builtin.set_fact:
+    listoftasks: "{{ listoftasks|default([]) + [ tasklist['key'] ] }}"

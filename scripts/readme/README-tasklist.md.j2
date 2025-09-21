@@ -1,0 +1,67 @@
+[![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
+
+# {{ generic.role }}
+
+{{ generic.role_description }}
+
+{% if os_vars is defined %}
+Platform defaults
+--------------
+
+{% for item in os_vars_fields -%}
+<sub>**{{ item.name }}**</sub>{% if not loop.last %} |{% endif %}
+{%- endfor %}
+
+{% for item in os_vars_fields -%}
+:---{% if not loop.last %} |{% endif %}
+{%- endfor %}
+
+{% for item in os_vars %}
+{% for item2 in os_vars_fields -%}
+<sub>{{ item[item2.name] }}</sub>{% if not loop.last %} |{% endif %}
+{%- endfor %}
+
+{% endfor %}
+{% endif %}
+
+
+Role Variables
+--------------
+
+{% for item in role_vars_fields -%}
+<sub>**{{ item.name }}**</sub>{% if not loop.last %} |{% endif %}
+{%- endfor %}
+
+{% for item in role_vars_fields -%}
+:---{% if not loop.last %} |{% endif %}
+{%- endfor %}
+
+{% for item in role_vars %}
+{% for item2 in role_vars_fields -%}
+<sub>{{ item[item2.name] }}</sub>{% if not loop.last %} |{% endif %}
+{%- endfor %}
+
+{% endfor %}
+
+
+
+Example Playbook
+----------------
+
+{% for item in role_examples %}
+{{ item.description }}
+
+<pre><code>
+{{ item.code }}
+</pre></code>
+
+{% endfor %}
+
+
+
+Tasklists
+--------------
+
+{% for item in listoftasks -%}
+[{{ item }}]({{ item }}.md)
+{%- endfor %}

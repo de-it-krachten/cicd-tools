@@ -1,0 +1,100 @@
+---
+
+- name: Post building phase
+  hosts: localhost
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    container_tool: "{{ lookup('env', 'DOCKER_BINARY') }}"
+    docker_push: "{{ lookup('env', 'DOCKER_PUSH') | default(False) }}"
+  tasks:
+
+    - name: Save container to image (docker)
+      when:
+        - container_tool == 'docker'
+        - build_vars.container.name is defined
+      block:
+
+        - name: Load pipeline variable from file
+          ansible.builtin.set_fact:
+            build_vars: "{{ lookup('file', 'docker-settings.yml') | from_yaml }}"
+
+        - name: Retrieve image info
+          community.docker.docker_image_info:
+            name: "{{ build_vars.image.name }}"
+          register: __image_info
+
+        - name: Define settings
+          ansible.builtin.set_fact:
+            entrypoint: '{{ __image_info.images[0].Config.Entrypoint | default([""], true) }}'
+            cmd: '{{ __image_info.images[0].Config.Cmd | default([], true) }}'
+
+        - name: Show image specifics
+          ansible.builtin.debug:
+            msg:
+              entrypoint: '{{ entrypoint }}'
+              cmd: '{{ cmd }}'
+
+        - name: Save running container as image
+          ansible.builtin.command: >-
+            docker container commit
+            -c 'ENTRYPOINT {{ entrypoint | to_json }}'
+            -c 'CMD {{ cmd | to_json }}'
+            {{ build_vars.container.name }}
+            {{ build_vars.image.name }}:{{ build_vars.image.tag }}
+          changed_when: true
+          when: build_vars.container.entrypoint | default('') | length > 0
+
+        - name: Add additional tags
+          ansible.builtin.command: >-
+            docker image tag {{ build_vars.image.name }}:{{ build_vars.image.tag }} {{ build_vars.image.name }}:{{ item }}
+          changed_when: true
+          loop: "{{ build_vars.image.tags | default([]) }}"
+
+        - name: Retrieve image info
+          community.docker.docker_image_info:
+            name: "{{ build_vars.image.name }}:{{ build_vars.image.tag }}"
+          register: __image_info
+
+        - name: Show image specifics
+          ansible.builtin.debug:
+            msg:
+              entrypoint: '{{ __image_info.images[0].Config.Entrypoint | default([""], true) }}'
+              cmd: '{{ __image_info.images[0].Config.Cmd | default([], true) }}'
+
+
+    - name: Save container to image (podman)
+      when:
+        - container_tool == 'podman'
+        - build_vars.container.name is defined
+      block:
+
+        - name: Load pipeline variable from file
+          ansible.builtin.set_fact:
+            build_vars: "{{ lookup('file', 'docker-settings.yml') | from_yaml }}"
+
+        - name: Retrieve image info
+          containers.podman.podman_image_info:
+            name: "{{ build_vars.image.name }}:{{ build_vars.image.tag }}"
+          register: __image_info
+
+        - name: Show image specifics
+          ansible.builtin.debug:
+            msg:
+              entrypoint: '{{ __image_info.images[0].Config.Entrypoint | default([""], true) }}'
+              cmd: '{{ __image_info.images[0].Config.Cmd | default([], true) }}'
+
+        - name: Save running container as image
+          ansible.builtin.command: >-
+            podman container commit
+            -c 'ENTRYPOINT {{ __image_info.images[0].Config.Entrypoint | default([""], true) | to_json }}'
+            -c 'CMD {{ __image_info.images[0].Config.Cmd | default([], true) | to_json }}'
+            {{ build_vars.container.name }}
+            {{ build_vars.image.name }}:{{ build_vars.image.tag }}
+          changed_when: true
+          register: _docker_commit
+
+        - name: Add additional tags
+          ansible.builtin.command: >-
+            podman image tag {{ build_vars.image.name }}:{{ build_vars.image.tag }} {{ build_vars.image.name }}:{{ item }}
+          changed_when: true
+          loop: "{{ build_vars.image.tags | default([]) }}"

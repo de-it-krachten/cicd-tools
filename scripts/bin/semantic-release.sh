@@ -1,0 +1,1 @@
+../semrel/semantic-release.sh

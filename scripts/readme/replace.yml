@@ -1,0 +1,19 @@
+---
+
+- name: Restore all variables - step1
+  ansible.builtin.replace:
+    path: "{{ filepath }}"
+    regexp: "(__)([a-zA-Z0-9_]*)(__)"
+    replace: '{@#@{ \2 }@#@}'
+
+- name: Restore all variables - step2
+  ansible.builtin.replace:
+    path: "{{ filepath }}"
+    regexp: '@#@'
+    replace: ''
+
+- name: Restore line breaks
+  ansible.builtin.replace:
+    path: "{{ filepath }}"
+    regexp: "<br> -"
+    replace: "<br>-"

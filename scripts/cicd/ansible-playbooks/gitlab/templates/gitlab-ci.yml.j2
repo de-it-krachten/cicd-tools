@@ -1,0 +1,48 @@
+---
+
+stages:
+  - info
+  - lint
+<% if molecule.active is defined and molecule.active %>  - molecule<% endif %>
+
+before_script:
+  - test -f requirements.tmpl && envsubst < requirements.tmpl > requirements.yaml
+  - test -f molecule/default/requirements.tmpl && envsubst < molecule/default/requirements.tmpl > molecule/default/requirements.yaml
+
+variables:
+  VENV: /home/gitlab-runner/venv/ansible-current
+  #PY_COLORS: '1'
+  #ANSIBLE_FORCE_COLOR: '1'
+  MOLECULE_PLAYBOOK: converge.yml
+
+info:
+  stage: info
+  script:
+    - hostname -f
+    - source $VENV/bin/activate
+    - ansible --version
+    - molecule --version
+
+yamllint:
+  stage: lint
+  script:
+    - source $VENV/bin/activate
+    - yamllint .
+
+ansible-lint:
+  stage: lint
+  script:
+    - source $VENV/bin/activate
+    - ansible-lint
+<% if molecule.active is defined and molecule.active %>
+<% for platform in molecule.platforms %>
+
+<= platform =>:
+  stage: molecule
+  script:
+    - source $VENV/bin/activate
+    - molecule test
+  variables:
+    MOLECULE_DISTRO: <= platform =>
+<% endfor %>
+<% endif %>

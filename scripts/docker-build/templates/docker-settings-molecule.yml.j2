@@ -1,0 +1,12 @@
+---
+
+image:
+  registry: docker.io     # docker registry to write image to
+  parent: alpine:latest   # image to use as startingpoint for our image
+  name: mytest-image      # name of the image
+  tag: latest             # tag of the image
+container:
+  name: mytest-container  # name of the temporary container
+  priviledged: true       # should the container be started in privileged mode
+  volumes:                # volumes to provide to the container
+    - /sys/fs/cgroup:/sys/fs/cgroup:ro

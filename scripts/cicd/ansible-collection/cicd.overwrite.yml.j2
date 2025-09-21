@@ -1,0 +1,8 @@
+---
+
+# Generic
+generic:
+  namespace: "{{ Name_short | regex_replace('_.*') }}"
+  name: "{{ Name_short | regex_replace('.*_') }}"
+  description: |
+    <basic role description>

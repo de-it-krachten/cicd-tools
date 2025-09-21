@@ -1,0 +1,33 @@
+---
+
+- name: Get playbooks from root directory
+  ansible.builtin.find:
+    path:
+      - "{{ ansible_code_path }}/"
+    patterns: '*.yml,*.yaml'
+    recurse: false
+  register: result1
+
+- name: Get playbooks from playbooks
+  ansible.builtin.find:
+    path:
+      - "{{ ansible_code_path }}/playbooks"
+    patterns: '*.yml,*.yaml'
+    recurse: true
+  register: result2
+
+- name: Get task lists from playbooks
+  ansible.builtin.find:
+    path:
+      - "{{ ansible_code_path }}/tasks"
+      - "{{ ansible_code_path }}/handlers"
+      - "{{ ansible_code_path }}/roles/*/tasks"
+      - "{{ ansible_code_path }}/roles/*/handlers"
+    patterns: '*.yml,*.yaml'
+    recurse: true
+  register: result3
+
+- name: Create list with files
+  ansible.builtin.set_fact:
+    playbook_files: "{{ ((result1.files | json_query('[].path')) + (result2.files | json_query('[].path'))) | reject('search', '/vars/') | list }}"
+    task_files: "{{ result3.files | json_query('[].path') }}"
