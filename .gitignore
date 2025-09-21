@@ -1,2 +1,3 @@
 .git.include
 /tmp/
+/scripts/python/ansible.yml

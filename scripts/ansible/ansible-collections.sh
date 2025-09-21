@@ -87,13 +87,14 @@ Usage : $BASENAME <flags> <arguments>
 
 Flags :
 
-   -d|--debug   : Debug mode (set -x)
-   -D|--dry-run : Dry run mode
-   -h|--help    : Prints this help message
-   -v|--verbose : Verbose output
+   -d|--debug          : Debug mode (set -x)
+   -D|--dry-run        : Dry run mode
+   -h|--help           : Prints this help message
+   -v|--verbose        : Verbose output
 
-   -f|--format  : Output format (default=v2)
-   -r|--roledir : Directory to search for roles
+   -c|--coldir <path>  : Custom collection location to use
+   -f|--format [v1|v2] : Output format (default=v2)
+   -r|--roledir <path> : Directory to search for roles (default=roles)
 
 EOF
 
