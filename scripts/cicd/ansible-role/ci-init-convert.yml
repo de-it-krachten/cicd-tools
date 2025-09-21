@@ -1,0 +1,65 @@
+---
+
+- name: CI-init convert
+  hosts: localhost
+  vars:
+    ci_templates_extra:
+      release.yml:
+        src: github/templates/release.yml
+        dest: .github/workflows/release.yml
+        when: github_runner_cloud
+      releaserc.yml:
+        src: github/templates/releaserc.yml
+        dest: .releaserc.yml
+        when: github_runner_cloud
+      requirements.yml:
+        dest: molecule/default/requirements.yml
+        src: molecule/templates/requirements.yml
+        when: molecule_active
+
+  tasks:
+
+    - name: Read CI/CI variables
+      ansible.builtin.include_vars: "{{ working_dir }}/.cicd"
+
+    - name: End play
+      ansible.builtin.meta: end_play
+      when: generic is defined
+
+    - name: Set some facts  # noqa jinja[spacing]
+      ansible.builtin.set_fact:
+        generic:
+          role: "{{ role }}"
+          role_short: "{{ role_short }}"
+          role_description: "{{ role_description }}"
+        ci_templates: >
+          {
+            {% for item in ci_templates %}
+            "{{ item.src | basename }}":
+            {
+              "src": "{{ item.src }}",
+              "dest": "{{ item.dest }}",
+              {% if item.when is defined %}"when": "{{ item.when }}",{% endif %}
+              {% if item.force is defined %}"force": {{ item.force|default(False)|bool }},{% endif %}
+            },
+            {% endfor %}
+          }
+
+    - name: Set fact ci_templates
+      ansible.builtin.set_fact:
+        ci_templates: "{{ ci_templates | combine(ci_templates_extra) }}"
+
+    - name: Create template
+      ansible.builtin.template:
+        src: ci-init-convert.yml.j2
+        dest: "{{ working_dir }}/.cicd.converted"
+        mode: "0644"
+      vars:
+        items:
+          - generic
+          - platforms
+          - galaxy
+          - github
+          - gitlab
+          - molecule
+          - ci_templates

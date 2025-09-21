@@ -1,0 +1,71 @@
+[![CI](https://github.com/{{ github_owner }}/{{ github_repo }}/workflows/CI/badge.svg?event=push)](https://github.com/{{ github_owner }}/{{ github_repo }}/actions?query=workflow%3ACI)
+
+
+# {{ generic.role }}
+
+{{ generic.role_description }}
+
+
+## Dependencies
+
+#### Roles
+{% if dependencies.roles | default([]) | length > 0 %}
+{% for role in dependencies.roles | default([]) %}
+- {{ role }}
+{% endfor %}
+{% else %}
+None
+{% endif %}
+
+#### Collections
+{% if dependencies.collections | default([]) | length > 0 %}
+{% for collection in dependencies.collections | default([]) %}
+- {{ collection }}
+{% endfor %}
+{% else %}
+None
+{% endif %}
+
+## Platforms
+
+Supported platforms
+
+{% for platform in (platforms|combine(platforms_overwrite, recursive=True)|dict2items) %}
+{% if platform.value.supported|bool %}
+- {{ platform.value.name }}{{ '<sup>1</sup>' if not platform.value.ci|bool else '' }}
+{% endif %}
+{% endfor %}
+
+Note:
+<sup>1</sup> : no automated testing is performed on these platforms
+
+## Role Variables
+### defaults/main.yml
+<pre><code>
+{{ lookup('file', tmpdir+'/defaults/main.yml') }}
+</pre></code>
+
+{% for defaultsfile in defaultsfiles %}
+{% if defaultsfile is not search('defaults/main.yml') %}
+### {{ defaultsfile | dirname | basename }}/{{ defaultsfile | basename }}
+<pre><code>
+{{ lookup('file', defaultsfile) }}
+</pre></code>
+
+{% endif %}
+{% endfor %}
+
+{% for varsfile in varsfiles %}
+### {{ varsfile | dirname | basename }}/{{ varsfile | basename }}
+<pre><code>
+{{ lookup('file', varsfile) }}
+</pre></code>
+
+{% endfor %}
+
+
+## Example Playbook
+### molecule/default/converge.yml
+<pre><code>
+{{ lookup('pipe', 'yq -y . ' + tmpdir + '/molecule/default/converge.yml') }}
+</pre></code>

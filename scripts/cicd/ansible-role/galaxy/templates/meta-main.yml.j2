@@ -1,0 +1,18 @@
+---
+galaxy_info:
+  role_name: <= galaxy.role_name =>
+  namespace: <= galaxy.namespace =>
+  description: <= galaxy.description =>
+  author: <= galaxy.author =>
+  company: <= galaxy.company =>
+  license: <= galaxy.license =>
+  min_ansible_version: "<= galaxy.min_ansible_version =>"
+  platforms:
+<% for platform in galaxy_platforms %>
+    - name: <= platform =>
+      versions:
+<% for version in vars['galaxy_versions_'+platform] %>
+        - "<= version =>"
+<% endfor %>
+<% endfor %>
+dependencies: []

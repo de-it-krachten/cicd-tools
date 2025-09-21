@@ -1,0 +1,53 @@
+---
+
+- name: Show task list to execute
+  ansible.builtin.debug:
+    msg: "Execute task.yml"
+
+- name: Empty list of tasks & keys
+  ansible.builtin.set_fact:
+    lft: []
+    lfk: []
+
+- name: Sort task files
+  ansible.builtin.set_fact:
+    task_files: "{{ task_files | sort }}"
+
+- name: Show tasks files
+  ansible.builtin.debug:
+    var: task_files
+
+- name: Create list of tasks
+  ansible.builtin.set_fact:
+    lft: "{{ lft + lookup('file', item2) | from_yaml }}"
+  loop: "{{ task_files }}"
+  loop_control:
+    loop_var: item2
+
+- name: Get list of keys
+  ansible.builtin.set_fact:
+    lfk: "{{ lfk + item2.keys() | list }}"
+  loop: "{{ lft }}"
+  loop_control:
+    loop_var: item2
+
+- name: Get list of keys from block/rescue/always
+  ansible.builtin.set_fact:
+    lfk: "{{ lfk + item2.keys() | list }}"
+  loop: "{{ lft | json_query('[].[block, rescue, always]') | flatten }}"
+  loop_control:
+    loop_var: item2
+
+- name: Define list of modules
+  ansible.builtin.set_fact:
+    modulest: >-
+      {{ lfk
+         | unique
+         | sort
+         | difference(keywords['block'])
+         | difference(keywords['task'])
+      }}
+
+- name: Define list of collections
+  ansible.builtin.set_fact:
+    collectionst: "{{ modulest | map('regex_replace', '\\.[a-z0-9_]+$') | list | unique }}"

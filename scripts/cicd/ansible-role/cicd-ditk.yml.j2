@@ -1,0 +1,244 @@
+---
+
+# Generic
+generic:
+  org: deitkrachten
+  role: {{ Name }}
+  role_short: {{ Name_short }}
+  role_description: |
+    <put description in .cicd.overwrite>
+
+# Dependencies
+dependencies:
+  roles: []
+  collections: []
+
+# Supported platforms
+{% include 'platforms.yml.j2' %}
+
+# List of platform deviations
+platforms_overwrite: {}
+
+# Ansible galaxy
+galaxy:
+  role_name: {{ Name_short }}
+  namespace: de_it_krachten
+  description: {{ Name_short }}
+  author: Mark van Huijstee
+  company: De IT Krachten BV
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: EL
+      versions:
+        - 8
+        - 9
+        - 10
+    - name: Debian
+      versions:
+        - buster
+        - bullseye
+        - trixie
+    - name: Ubuntu
+      versions:
+        # - 18.04
+        - 20.04
+        - 22.04
+        - 24.04
+    - name: Fedora
+      versions:
+        - all
+  dependencies: []
+
+# Github
+github:
+  active: true
+  molecule: true
+  self_hosted: false
+  fail_fast: false
+  parallel: true
+  owner: de-it-krachten
+  repo: {{ Name }}
+  # https://docs.ansible.com/ansible/latest/reference_appendices/release_and_maintenance.html
+  image: ubuntu2204
+  python: '3.13'
+  lint_matrix:
+    - name: ansible_2.17
+      ansible: "ansible>10,<11"
+      ansible_core: "ansible-core>2.17,<2.18"
+      ansible_lint: "ansible-lint"
+    - name: ansible_2.18
+      ansible: "ansible>11,<12"
+      ansible_core: "ansible-core>2.18,<2.19"
+      ansible_lint: "ansible-lint"
+
+# Gitlab
+gitlab:
+  active: false
+
+# Azure DevOps
+ado:
+  active: false
+
+# molecule
+molecule:
+  active: true
+  dns_server: false
+  drivers:
+    - docker
+    - vagrant
+    - hetznercloud
+    - podman
+  driver: docker
+  ansible:
+   verbosity: 0
+  converge:
+    playbooks: []
+    vars: {}
+  prepare:
+    playbooks: []
+    vars:
+      systemctl_alternative: false
+  requirements:
+    roles:
+      - deitkrachten.docker
+      - deitkrachten.epel
+      - deitkrachten.facts
+      - deitkrachten.firewall
+      - deitkrachten.firewalld
+      - deitkrachten.hosts
+      - deitkrachten.iptables
+      - deitkrachten.python
+      - deitkrachten.reboot
+      - deitkrachten.showinfo
+      - deitkrachten.ufw
+      - deitkrachten.unbound
+  nodes:
+    - name: node1
+      groups: []
+  group_vars:
+    linux:
+      ansible_user: vagrant
+      ansible_password: vagrant
+    windows:
+      ansible_user: vagrant
+      ansible_password: vagrant
+      ansible_become_user: vagrant
+      ansible_become_method: runas
+      ansible_connection: ssh
+      ansible_shell_type: cmd
+
+# templates
+ci_templates:
+  meta-main.yml:
+    src: galaxy/templates/meta-main.yml
+    dest: meta/main.yml
+  meta-requirements.yml:
+    src: galaxy/templates/meta-requirements.yml
+    dest: meta/requirements.yml
+  yamllint:
+    src: yamllint/templates/yamllint
+    dest: .yamllint
+  ci.yml:
+    src: github/templates/ci.yml
+    dest: .github/workflows/ci.yml
+    when: github_runner_cloud
+  ci-self-hosted.yml:
+    src: github/templates/ci-self-hosted.yml
+    dest: .github/workflows/ci.yml
+    when: github_runner_self_hosted
+  release.yml:
+    src: github/templates/release.yml
+    dest: .github/workflows/release.yml
+    when: github_runner_cloud
+  releaserc.yml:
+    src: github/templates/releaserc.yml
+    dest: .releaserc.yml
+    when: github_runner_cloud
+  gitlab-ci.yml:
+    src: gitlab/templates/gitlab-ci.yml
+    dest: .gitlab-ci.yml
+    when: gitlab_active
+  azure-pipelines.yml:
+    src: ado/templates/azure-pipelines.yml
+    dest: azure-pipelines.yml
+    when: ado_active
+  prepare.yml:
+    src: molecule/templates/prepare.yml
+    dest: molecule/default/prepare.yml
+    when: molecule_active
+#  molecule.yml.j2:
+#    src: molecule/templates/molecule.yml.j2
+#    dest: molecule/default/molecule.yml.j2
+#    when: molecule_active
+  molecule-docker.yml.j2:
+    src: molecule/templates/molecule-docker.yml.j2
+    dest: molecule/default/molecule-docker.yml.j2
+    when: molecule_active
+  molecule-hetznercloud.yml.j2:
+    src: molecule/templates/molecule-hetznercloud.yml.j2
+    dest: molecule/default/molecule-hetznercloud.yml.j2
+    when: molecule_active
+  molecule-podman.yml.j2:
+    src: molecule/templates/molecule-podman.yml.j2
+    dest: molecule/default/molecule-podman.yml.j2
+    when: molecule_active
+  molecule-vagrant.yml.j2:
+    src: molecule/templates/molecule-vagrant.yml.j2
+    dest: molecule/default/molecule-vagrant.yml.j2
+    when: molecule_active
+  molecule-test.yml:
+    src: molecule/templates/molecule-test.yml
+    dest: molecule/default/molecule-test.yml
+    when: molecule_active
+  converge.yml:
+    src: molecule/templates/converge.yml
+    dest: molecule/default/converge.yml
+    when: molecule_active
+  verify.yml:
+    src: molecule/templates/verify.yml
+    dest: molecule/default/verify.yml
+    force: false
+    when: molecule_active
+#  requirements.tmpl:
+#    src: molecule/templates/requirements.tmpl
+#    dest: molecule/default/requirements.tmpl
+#    when: molecule_active
+  requirements.yml:
+    src: molecule/templates/requirements.yml
+    dest: molecule/default/requirements.yml
+    when: molecule_active
+  gitignore:
+    src: git/templates/gitignore
+    dest: .gitignore
+    force: false
+  ansible-lint:
+    src: ansible-lint/templates/ansible-lint
+    dest: .ansible-lint
+    # force: no
+#  molecule-platforms.yml:
+#    src: molecule/templates/molecule-platforms.yml
+#    dest: .molecule-platforms.yml
+#    force: true
+  molecule-platforms-docker.yml:
+    src: molecule/templates/molecule-platforms-docker.yml
+    dest: molecule/default/.molecule-platforms-docker.yml
+    force: true
+  molecule-platforms-hetznercloud.yml:
+    src: molecule/templates/molecule-platforms-hetznercloud.yml
+    dest: molecule/default/.molecule-platforms-hetznercloud.yml
+    force: true
+  molecule-platforms-podman.yml:
+    src: molecule/templates/molecule-platforms-podman.yml
+    dest: molecule/default/.molecule-platforms-podman.yml
+    force: true
+  molecule-platforms-vagrant.yml:
+    src: molecule/templates/molecule-platforms-vagrant.yml
+    dest: molecule/default/.molecule-platforms-vagrant.yml
+    force: true
+
+# Ansible-lint
+ansible_lint:
+  exclude_paths:
+    - molecule/
+  skip_list: []

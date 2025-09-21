@@ -1,0 +1,13 @@
+FROM {{ build_vars.image.parent }}
+
+# USER root
+
+RUN export HTTPS_PROXY={{ lookup('env', 'HTTPS_PROXY') | default(build_vars.environment.HTTPS_PROXY) }} && \
+    export HTTP_PROXY={{ lookup('env', 'HTTP_PROXY') | default(build_vars.environment.HTTP_PROXY) }} && \
+    export NO_PROXY={{ lookup('env', 'NO_PROXY') | default(build_vars.environment.NO_PROXY) }} && \
+    export https_proxy={{ lookup('env', 'https_proxy') | default(build_vars.environment.https_proxy) }} && \
+    export http_proxy={{ lookup('env', 'https_proxy') | default(build_vars.environment.http_proxy) }} && \
+    export no_proxy={{ lookup('env', 'no_proxy') | default(build_vars.environment.no_proxy) }} && \
+    apk add --no-cache bash python3
+
+ENTRYPOINT [ "tail", "-f", "/dev/null" ]

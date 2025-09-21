@@ -1,0 +1,44 @@
+---
+
+- name: Show task list to execute
+  ansible.builtin.debug:
+    msg: "Execute play.yml"
+
+- name: Empty list of tasks & keys
+  ansible.builtin.set_fact:
+    lft: []
+    lfk: []
+
+- name: Show list to loop
+  ansible.builtin.debug:
+    var: playbook_files
+
+- name: Create list of tasks
+  ansible.builtin.set_fact:
+    lft: "{{ lft + lookup('file', item) | from_yaml }}"
+  loop: "{{ playbook_files }}"
+
+- name: Get list of keys
+  ansible.builtin.set_fact:
+    lfk: "{{ lfk + item.keys() |list }}"
+  loop: "{{ lft }}"
+
+- name: Get list of keys from block/rescue/always
+  ansible.builtin.set_fact:
+    lfk: "{{ lfk + item.keys() | list }}"
+  loop: "{{ lft | json_query('[].[block, rescue, always]') | flatten }}"
+
+- name: Define list of modules
+  ansible.builtin.set_fact:
+    modulesp: >-
+      {{ lfk
+         | unique
+         | sort
+         | difference(keywords['play'])
+         | difference(keywords['block'])
+         | difference(keywords['task'])
+      }}
+
+- name: Define list of collections
+  ansible.builtin.set_fact:
+    collectionsp: "{{ modulesp | map('regex_replace', '\\.[a-z0-9_]+$') | list | unique }}"

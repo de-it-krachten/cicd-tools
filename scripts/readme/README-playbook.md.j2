@@ -1,0 +1,45 @@
+[![CI](https://github.com/{{ github_owner }}/{{ github_repo }}/workflows/CI/badge.svg?event=push)](https://github.com/{{ github_owner }}/{{ github_repo }}/actions?query=workflow%3ACI)
+
+
+# {{ generic.playbook }}
+
+{{ generic.description }}
+
+
+## Dependencies
+
+#### Roles
+{% if dependencies.roles | default([]) | length > 0 %}
+{% for role in dependencies.roles | default([]) %}
+- {{ role }}
+{% endfor %}
+{% else %}
+None
+{% endif %}
+
+#### Collections
+{% if dependencies.collections | default([]) | length > 0 %}
+{% for collection in dependencies.collections | default([]) %}
+- {{ collection }}
+{% endfor %}
+{% else %}
+None
+{% endif %}
+
+## Platforms
+
+Supported platforms
+
+{% for platform in (platforms|combine(platforms_overwrite, recursive=True)|dict2items) %}
+{% if platform.value.supported|bool %}
+- {{ platform.value.name }}{{ '<sup>1</sup>' if not platform.value.ci|bool else '' }}
+{% endif %}
+{% endfor %}
+
+Note:
+<sup>1</sup> : no automated testing is performed on these platforms
+
+{% set extra_file = working_dir + '/.cicd.text' %}
+{% if extra_file is is_file %}
+{{ lookup('file', extra_file) }}
+{% endif %}
