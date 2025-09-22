@@ -7,6 +7,7 @@ yq:
     - yq
   links:
     - yq
+  requirements: []
 
 e2j2:
   packages:
@@ -14,6 +15,7 @@ e2j2:
     - jinja2-ansible-filters
   links:
     - e2j2
+  requirements: []
 
 {% set ansible_envs = [
   { "name": "ansible9", "version": "ansible>9,<10" },
@@ -57,6 +59,10 @@ e2j2:
     - pypsrp
     - pypsrp[credssp]
   links: []
+  requirements:
+    - azure/azcollection/requirements.txt
+    - azure/azcollection/requirements-azure.txt
+
 {% endfor %}
 
 awxkit:
@@ -65,3 +71,4 @@ awxkit:
     - pysocks
   links:
     - awx
+  requirements: []

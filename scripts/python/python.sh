@@ -182,13 +182,29 @@ echo "$Pip_packages1" | sed "/^#/d" > ${TMPFILE}1
 echo "$Pip_packages2" | sed "/^#/d" > ${TMPFILE}2
 
 # Install pypi packages
-$Venv/bin/pip3 install -r ${TMPFILE}1 || exit 1
-[[ -n $Pip_packages2 ]] && $Venv/bin/pip3 install -r ${TMPFILE}2
-$Venv/bin/pip3 list
+if [[ $Verbse == true ]]
+then
+  $Venv/bin/pip3 install -r ${TMPFILE}1 || exit 1
+  [[ -n $Pip_packages2 ]] && $Venv/bin/pip3 install -r ${TMPFILE}2
+  $Venv/bin/pip3 list
+else
+  $Venv/bin/pip3 install -r ${TMPFILE}1 >/dev/null || exit 1
+  [[ -n $Pip_packages2 ]] && $Venv/bin/pip3 install -r ${TMPFILE}2 >/dev/null
+fi
 
 # Setup symlinks
-Symlinks=$(yq -y .$Profile.links $Configfile | sed '/\.\.\./d;/null/d;/\[\]/d;s/^- //')
-for link in $Symlinks
+symlinks=$(yq -y .$Profile.links $Configfile | sed '/\.\.\./d;/null/d;/\[\]/d;s/^- //')
+for symlink in $symlinks
 do
-  ln -fs $Venv/bin/$link /usr/local/bin/$link
+  ln -fs $Venv/bin/$symlink /usr/local/bin/$symlink
+done
+
+# Install requirements
+reqs=$(yq -y .$Profile.requirements $Configfile | sed '/\.\.\./d;/null/d;/\[\]/d;s/^- //')
+for req in $reqs
+do
+  reqfile=$Venv/lib/$(basename $Python)/site-packages/ansible_collections/$req
+  [[ -f $reqfile && $Verbose == true ]] && $Venv/bin/pip3 install -r $reqfile
+  [[ -f $reqfile && $Verbose == false ]] && $Venv/bin/pip3 install -r $reqfile >/dev/null
+
 done
