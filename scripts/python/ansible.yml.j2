@@ -1,0 +1,67 @@
+---
+
+default: []
+
+yq:
+  packages:
+    - yq
+  links:
+    - yq
+
+e2j2:
+  packages:
+    - e2j2
+    - jinja2-ansible-filters
+  links:
+    - e2j2
+
+{% set ansible_envs = [
+  { "name": "ansible9", "version": "ansible>9,<10" },
+  { "name": "ansible12", "version": "ansible>=12,<13" }, 
+  { "name": "ansiblecore216", "version": "ansible-core>=2.16,<2.17" }, 
+  { "name": "ansiblecore219", "version": "ansible-core>=2.19,<2.20" }
+] %}
+
+{% for env in ansible_envs %}
+{{ env.name }}:
+  packages:
+    # ansible
+    - "{{ env.version }}"
+    # linting  
+    - ansible-lint
+    - ansible-compat
+    - yamllint
+    # Molecule 
+    - molecule
+    - molecule-plugins
+    - molecule-plugins[docker]
+    - molecule-plugins[podman]
+    - molecule-plugins[vagrant]
+    - molecule-hetznercloud
+    - hcloud
+    # generic
+    - lxml
+    - dnspython
+    - jmespath
+    - netaddr
+    - requests
+    - urllib3
+    - passlib
+    # vmware
+    - pyvim
+    - pyvmomi
+    # Windows connectivity
+    - pysocks
+    - pywinrm
+    - pywinrm[credssp]
+    - pypsrp
+    - pypsrp[credssp]
+  links: []
+{% endfor %}
+
+awxkit:
+  packages:
+    - awxkit
+    - pysocks
+  links:
+    - awx

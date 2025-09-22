@@ -67,6 +67,9 @@ ANSIBLE_LIBRARY_TMP=$(mktemp -d)
 ANSIBLE_LINT_IMAGE="ansible-lint-2.11:5.4.0"
 ANSIBLE_LINT="docker run --rm --user ansible --workdir $PWD --volume $PWD:$PWD $ANSIBLE_LINT_IMAGE ansible-lint"
 
+ROLES_PATH=${TMPDIR}/${BASENAME}.${RANDOM}.${RANDOM}
+COLLECTIONS_PATH=${TMPDIR}/${BASENAME}.${RANDOM}.${RANDOM}
+export ROLES_PATH COLLECTIONS_PATH
 
 
 ##############################################################
@@ -210,7 +213,8 @@ function Prepare
 
   # Install all collections
   echo "Installing all collections"
-  ansible-collections.sh
+  ansible-collections.sh -c $COLLECTIONS_PATH
+  export ANSIBLE_COLLECTIONS_PATH=$COLLECTIONS_PATH
 
 #  # Search for custom libraries and add to ANSIBLE_LIBRARY
 #  Libraries=`ls -d roles/*/library 2>/dev/null`
@@ -459,7 +463,7 @@ function Execute
 
 # Make sure temporary files are cleaned at exit
 # trap 'rm -f ${TMPFILE}*' EXIT
-trap 'rm -fr ${TMPFILE}* ${ANSIBLE_LIBRARY_TMP}' EXIT
+trap 'rm -fr ${TMPFILE}* ${ANSIBLE_LIBRARY_TMP} ${COLLECTIONS_PATH}' EXIT
 trap 'exit 1' HUP QUIT KILL TERM INT
 
 # Set the defaults
