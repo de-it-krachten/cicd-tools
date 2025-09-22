@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/de-it-krachten/cicd-tools/compare/v1.1.0...v1.1.1) (2025-09-22)
+
+
+### Bug Fixes
+
+* Add azure requirements for virtual environments ([54aad18](https://github.com/de-it-krachten/cicd-tools/commit/54aad184d102766fdf51f9ec221c0d0639181b8b))
+
 # [1.1.0](https://github.com/de-it-krachten/cicd-tools/compare/v1.0.0...v1.1.0) (2025-09-22)
 
 
