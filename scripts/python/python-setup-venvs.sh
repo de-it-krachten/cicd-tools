@@ -12,7 +12,44 @@ function Print_separator
   printf "%80s\n" | tr ' ' '-'
 }
 
-[[ $1 == --sudo ]] && sudo=sudo && shift
+# parse command line into arguments and check results of parsing
+while getopts :dhsv-: OPT
+do
+
+  # Support long options
+  if [[ $OPT = "-" ]] ; then
+    OPT="${OPTARG%%=*}"       # extract long option name
+    OPTARG="${OPTARG#$OPT}"   # extract long option argument (may be empty)
+    OPTARG="${OPTARG#=}"      # if long option argument, remove assigning `=`
+  fi
+
+  case $OPT in
+    d|debug)
+      Verbose=true
+      set -vx
+      ;;
+    h|help)
+      Usage
+      exit 0
+      ;;
+    s|sudo)
+      sudo=sudo
+      ;;
+    v|verbose)
+      Verbose=true
+      Verbose1="-v"
+      ;;
+    *)
+      echo "Unknown flag -$OPT given!" >&2
+      exit 1
+      ;;
+  esac
+
+  # Set flag to be use by Test_flag
+  eval ${OPT}flag=1
+
+done
+shift $(($OPTIND -1))
 
 root_dir=$1
 
@@ -29,5 +66,5 @@ do
   Print_separator
   echo "$venv"
   Print_separator
-  $sudo ${DIRNAME}/python.sh -c ${DIRNAME}/ansible.yml -p $venv -V $root_dir/$venv
+  $sudo ${DIRNAME}/python.sh $Verbose1 -c ${DIRNAME}/ansible.yml -p $venv -V $root_dir/$venv
 done
