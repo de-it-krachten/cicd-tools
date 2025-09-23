@@ -9,11 +9,7 @@ generic:
   collections: []
 
 # Supported platforms
-{%- if Name | regex_search('_docker') %}
-{%- include 'platforms-overwrite-docker.yml.j2' %}
-{%- else %}
-{%- include 'platforms-overwrite-ci.yml.j2' %}
-{%- endif %}
+{%- include 'platforms-{{ Platforms }}.yml.j2' %}
 
 # Molecule
 molecule:
