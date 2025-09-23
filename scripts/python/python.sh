@@ -163,10 +163,10 @@ Get_executables
 
 # Show settings
 cat <<EOF
+================================================
 virtualenv            : $Venv
 python executable     : $Python
-virtualenv executable : $Virtualenv
-Extra arguments       : $Virtenv_args
+================================================
 EOF
 
 sleep 2
