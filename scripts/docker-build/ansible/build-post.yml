@@ -42,7 +42,7 @@
             {{ build_vars.container.name }}
             {{ build_vars.image.name }}:{{ build_vars.image.tag }}
           changed_when: true
-          when: build_vars.container.entrypoint | default('') | length > 0
+          # when: build_vars.container.entrypoint | default('') | length > 0
 
         - name: Add additional tags
           ansible.builtin.command: >-
@@ -91,7 +91,6 @@
             {{ build_vars.container.name }}
             {{ build_vars.image.name }}:{{ build_vars.image.tag }}
           changed_when: true
-          register: _docker_commit
 
         - name: Add additional tags
           ansible.builtin.command: >-

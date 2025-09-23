@@ -1,6 +1,7 @@
 #!/bin/bash
 
 prefix=/opt/cicd-tools
+[[ $1 == -D ]] && rsync_args="--delete -cn" && shift
 
 # Check if sudo should be used
 [[ $(id -un) != root ]] && sudo=sudo
