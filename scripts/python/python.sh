@@ -55,10 +55,6 @@ function Get_executables
   Python=${Python:-`readlink -f /usr/bin/python3`}
   Python_version=`$Python --version | awk '{print $2}' | cut -f1,2 -d.`
   
-  Virtualenv=`command -v virtualenv-${Python_version}`
-  Virtualenv=${Virtualenv:-`command -v virtualenv-3`}
-  Virtualenv=${Virtualenv:-`command -v virtualenv`}
-
 }
 
 function Setup_venv
@@ -163,10 +159,10 @@ Get_executables
 
 # Show settings
 cat <<EOF
+===============================================
 virtualenv            : $Venv
 python executable     : $Python
-virtualenv executable : $Virtualenv
-Extra arguments       : $Virtenv_args
+===============================================
 EOF
 
 sleep 2

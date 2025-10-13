@@ -1,1 +1,0 @@
-../cicd/ci-init.sh
