@@ -96,10 +96,17 @@ jobs:
       - name: Retrieve & install wrapper scripts
         run: |
           set -e
-          sudo apt install curl
-          curl -s -o /tmp/install.sh \
-            https://raw.githubusercontent.com/de-it-krachten/ansible-role-molecule/dev/files/install.sh
-          bash /tmp/install.sh
+
+          # Install requirements
+          sudo apt install curl jq -y
+
+          # Get latest release download URL for .deb asset
+          api_url="https://api.github.com/repos/de-it-krachten/cicd-tools/releases/latest"
+          url=$(curl -s $api_url | jq -r '.assets[] | select(.name | endswith(".deb")) | .browser_download_url')
+          file=$(basename $url)
+          curl -s -L -o $file -s $url
+          echo "Install package '$file'"
+          sudo dpkg -i $file
 
       - name: Install required galaxy collections
         run: |
@@ -136,7 +143,7 @@ jobs:
           set -e
           source ~/.venv/bin/activate
           yamllint .
-          ansible-lint.sh
+          /usr/local/bin/ansible-lint.sh
 
 <% if github.molecule|bool %>
   molecule:
@@ -258,10 +265,17 @@ jobs:
       - name: Retrieve & install wrapper scripts
         run: |
           set -e
-          sudo apt install curl
-          curl -s -o /tmp/install.sh \
-            https://raw.githubusercontent.com/de-it-krachten/ansible-role-molecule/dev/files/install.sh
-          bash /tmp/install.sh
+
+          # Install requirements
+          sudo apt install curl jq -y
+
+          # Get latest release download URL for .deb asset
+          api_url="https://api.github.com/repos/de-it-krachten/cicd-tools/releases/latest"
+          url=$(curl -s $api_url | jq -r '.assets[] | select(.name | endswith(".deb")) | .browser_download_url')
+          file=$(basename $url)
+          curl -s -L -o $file -s $url
+          echo "Install package '$file'"
+          sudo dpkg -i $file
 
       - name: Install required galaxy collections
         run: |
@@ -301,7 +315,7 @@ jobs:
       - name: Run Molecule tests.
         run: |
           source ~/.venv/bin/activate
-          molecule-test.sh -A
+          /usr/local/bin/molecule-test.sh -A
         env:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'
