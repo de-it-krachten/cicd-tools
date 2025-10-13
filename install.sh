@@ -1,6 +1,7 @@
 #!/bin/bash
 
 prefix=/opt/cicd-tools
+[[ $1 == -D ]] && rsync_args="--delete -cn" && shift
 
 # Check if sudo should be used
 [[ $(id -un) != root ]] && sudo=sudo
@@ -11,7 +12,7 @@ prefix=/opt/cicd-tools
 # Copy files
 if [[ $(which rsync 2>/dev/null) != "" ]]
 then
-  $sudo rsync -av scripts/* ${prefix}/ | grep -v "/$"
+  $sudo rsync $rsync_args -av scripts/* ${prefix}/ | grep -v "/$"
 else
   $sudo cp -pr scripts/* ${prefix}/
 fi

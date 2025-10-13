@@ -95,18 +95,20 @@ Usage : $BASENAME <flags> <arguments>
 
 Flags :
 
-   -d|--debug       : Debug mode (set -x)
-   -D|--dry-run     : Dry run mode
-   -h|--help        : Prints this help message
-   -v|--verbose     : Verbose output
+   -d|--debug         : Debug mode (set -x)
+   -D|--dry-run       : Dry run mode
+   -h|--help          : Prints this help message
+   -v|--verbose       : Verbose output
 
-   -c|--customer    : Customers (ditk, ga etc)
-#   -f|--fedora      : Support Fedora
-   -F|--force       : Force updating existing files
-   -i|--initialize  : Initialize repository
-   -m|--mode <mode> : Mode to operate in (collection/role/playbook)
-   -s|--self-hosted : Use self-hosted runners
-   -u|--upload      : Upload collection to galaxy
+   -c|--customer      : Customers (ditk, ga etc)
+#   -f|--fedora        : Support Fedora
+   -F|--force         : Force updating existing files
+   -i|--initialize    : Initialize repository
+   -p|--platforms <f> : Platforms template (default=default)
+                        Chhose from: default, docker, no-ci, windows
+   -m|--mode <mode>   : Mode to operate in (collection/role/playbook)
+   -s|--self-hosted   : Use self-hosted runners
+   -u|--upload        : Upload collection to galaxy
 
 EOF
 
@@ -189,10 +191,11 @@ Initialize=false
 Fedora=false
 
 Collection_upload=false
-
+Platforms=default
+export Platforms
 
 # parse command line into arguments and check results of parsing
-while getopts :c:dDfFhim:suv-: OPT
+while getopts :c:dDfFhim:p:suv-: OPT
 do
 
   # Support long options
@@ -236,6 +239,9 @@ do
     m|mode)
       Mode=$OPTARG
       ;;
+    p|platforms)
+      Platforms=$OPTARG
+      ;;
     s|self-hosted)
       Github_self_hosted=true
       ;;
@@ -246,6 +252,9 @@ do
       Verbose=true
       Verbose_level=$(($Verbose_level+1))
       Verbose1="$Verbose1 -v"
+      ;;
+    docker)
+      export docker=true
       ;;
     *)
       echo "Unknown flag -$OPT given!" >&2
