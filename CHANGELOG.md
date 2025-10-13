@@ -1,3 +1,10 @@
+## [1.1.3](https://github.com/de-it-krachten/cicd-tools/compare/v1.1.2...v1.1.3) (2025-10-13)
+
+
+### Bug Fixes
+
+* Update ansible-role CI workflow to download the debian package ([0cdfb20](https://github.com/de-it-krachten/cicd-tools/commit/0cdfb2026bcd8fceadff3780bc9aed7f31b3c6a1))
+
 ## [1.1.2](https://github.com/de-it-krachten/cicd-tools/compare/v1.1.1...v1.1.2) (2025-10-13)
 
 
