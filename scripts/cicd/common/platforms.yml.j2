@@ -1,8 +1,8 @@
 platforms:
   rhel7:
     name: Red Hat Enterprise Linux 7
-    ci: false
-    supported: false
+    ci: {{ platform_defaults.rhel7.ci | lower }}
+    supported: {{ platform_defaults.rhel7.supported | lower }}
     galaxy:
       name: EL
       version: 7
@@ -19,8 +19,8 @@ platforms:
         pre_build_image: false
   rhel8:
     name: Red Hat Enterprise Linux 8
-    ci: false
-    supported: true
+    ci: {{ platform_defaults.rhel8.ci | lower }}
+    supported: {{ platform_defaults.rhel8.supported | lower }}
     galaxy:
       name: EL
       version: 8
@@ -37,8 +37,8 @@ platforms:
         pre_build_image: false
   rhel9:
     name: Red Hat Enterprise Linux 9
-    ci: false
-    supported: true
+    ci: {{ platform_defaults.rhel9.ci | lower }}
+    supported: {{ platform_defaults.rhel9.supported | lower }}
     galaxy:
       name: EL
       version: 9
@@ -55,8 +55,8 @@ platforms:
         pre_build_image: false
   rhel10:
     name: Red Hat Enterprise Linux 10
-    ci: false
-    supported: true
+    ci: {{ platform_defaults.rhel10.ci | lower }}
+    supported: {{ platform_defaults.rhel10.supported | lower }}
     galaxy:
       name: EL
       version: 10
@@ -73,8 +73,8 @@ platforms:
         pre_build_image: false
   centos7:
     name: CentOS 7
-    ci: false
-    supported: false
+    ci: {{ platform_defaults.centos7.ci | lower }}
+    supported: {{ platform_defaults.centos7.supported | lower }}
     galaxy:
       name: EL
       version: 7
@@ -103,8 +103,8 @@ platforms:
         server_type: cx22
   centos8:
     name: CentOS 8
-    ci: false
-    supported: false
+    ci: {{ platform_defaults.centos8.ci | lower }}
+    supported: {{ platform_defaults.centos8.supported | lower }}
     galaxy:
       name: EL
       version: 8
@@ -126,8 +126,8 @@ platforms:
             auto_config: true
   centos8s:
     name: CentOS Stream 8
-    ci: false
-    supported: false
+    ci: {{ platform_defaults.centos8s.ci | lower }}
+    supported: {{ platform_defaults.centos8s.supported | lower }}
     galaxy:
       name: EL
       version: 8
@@ -152,8 +152,8 @@ platforms:
         server_type: cx22
   centos9s:
     name: CentOS Stream 9
-    ci: false
-    supported: false
+    ci: {{ platform_defaults.centos9s.ci | lower }}
+    supported: {{ platform_defaults.centos9s.supported | lower }}
     galaxy:
       name: EL
       version: 9
@@ -178,8 +178,8 @@ platforms:
         server_type: cx22
   centos10s:
     name: CentOS Stream 10
-    ci: false
-    supported: false
+    ci: {{ platform_defaults.centos10s.ci | lower }}
+    supported: {{ platform_defaults.centos10s.supported | lower }}
     galaxy:
       name: EL
       version: 10
@@ -204,8 +204,8 @@ platforms:
         server_type: cx22
   rockylinux8:
     name: RockyLinux 8
-    ci: true
-    supported: true
+    ci: {{ platform_defaults.rockylinux8.ci | lower }}
+    supported: {{ platform_defaults.rockylinux8.supported | lower }}
     galaxy:
       name: EL
       version: 8
@@ -234,8 +234,8 @@ platforms:
         server_type: cx22
   rockylinux9:
     name: RockyLinux 9
-    ci: true
-    supported: true
+    ci: {{ platform_defaults.rockylinux9.ci | lower }}
+    supported: {{ platform_defaults.rockylinux9.supported | lower }}
     galaxy:
       name: EL
       version: 9
@@ -260,8 +260,8 @@ platforms:
         server_type: cx22
   rockylinux10:
     name: RockyLinux 10
-    ci: true
-    supported: true
+    ci: {{ platform_defaults.rockylinux10.ci | lower }}
+    supported: {{ platform_defaults.rockylinux10.supported | lower }}
     galaxy:
       name: EL
       version: 10
@@ -286,8 +286,8 @@ platforms:
         server_type: cx22
   oraclelinux8:
     name: OracleLinux 8
-    ci: true
-    supported: true
+    ci: {{ platform_defaults.oraclelinux8.ci | lower }}
+    supported: {{ platform_defaults.oraclelinux8.supported | lower }}
     galaxy:
       name: EL
       version: 8
@@ -309,8 +309,8 @@ platforms:
             auto_config: true
   oraclelinux9:
     name: OracleLinux 9
-    ci: true
-    supported: true
+    ci: {{ platform_defaults.oraclelinux9.ci | lower }}
+    supported: {{ platform_defaults.oraclelinux9.supported | lower }}
     galaxy:
       name: EL
       version: 9
@@ -332,8 +332,8 @@ platforms:
             auto_config: true
   oraclelinux10:
     name: OracleLinux 10
-    ci: true
-    supported: true
+    ci: {{ platform_defaults.oraclelinux10.ci | lower }}
+    supported: {{ platform_defaults.oraclelinux10.supported | lower }}
     galaxy:
       name: EL
       version: 10
@@ -355,8 +355,8 @@ platforms:
             auto_config: true
   almalinux8:
     name: AlmaLinux 8
-    ci: true
-    supported: true
+    ci: {{ platform_defaults.almalinux8.ci | lower }}
+    supported: {{ platform_defaults.almalinux8.supported | lower }}
     galaxy:
       name: EL
       version: 8
@@ -378,8 +378,8 @@ platforms:
             auto_config: true
   almalinux9:
     name: AlmaLinux 9
-    ci: true
-    supported: true
+    ci: {{ platform_defaults.almalinux9.ci | lower }}
+    supported: {{ platform_defaults.almalinux9.supported | lower }}
     galaxy:
       name: EL
       version: 9
@@ -401,8 +401,8 @@ platforms:
             auto_config: true
   almalinux10:
     name: AlmaLinux 10
-    ci: true
-    supported: true
+    ci: {{ platform_defaults.almalinux10.ci | lower }}
+    supported: {{ platform_defaults.almalinux10.supported | lower }}
     galaxy:
       name: EL
       version: 10
@@ -424,8 +424,8 @@ platforms:
             auto_config: true
   sles15:
     name: SUSE Linux Enterprise 15
-    ci: false
-    supported: true
+    ci: {{ platform_defaults.sles15.ci | lower }}
+    supported: {{ platform_defaults.sles15.supported | lower }}
     galaxy:
       name: opensuse
       version: all
@@ -447,8 +447,8 @@ platforms:
 #            auto_config: true
   opensuse15:
     name: openSUSE Leap 15
-    ci: true
-    supported: true
+    ci: {{ platform_defaults.opensuse15.ci | lower }}
+    supported: {{ platform_defaults.opensuse15.supported | lower }}
     galaxy:
       name: opensuse
       version: all
@@ -470,8 +470,8 @@ platforms:
             auto_config: true
   opensusetumbleweed15:
     name: openSUSE Tumbleweed 15
-    ci: false
-    supported: false
+    ci: {{ platform_defaults.opensusetumbleweed15.ci | lower }}
+    supported: {{ platform_defaults.opensusetumbleweed15.supported | lower }}
     galaxy:
       name: opensuse
       version: all
@@ -493,8 +493,8 @@ platforms:
             auto_config: true
   debian10:
     name: Debian 10 (Buster)
-    ci: false
-    supported: false
+    ci: {{ platform_defaults.debian10.ci | lower }}
+    supported: {{ platform_defaults.debian10.supported | lower }}
     galaxy:
       name: Debian
       version: buster
@@ -519,8 +519,8 @@ platforms:
         server_type: cx22
   debian11:
     name: Debian 11 (Bullseye)
-    ci: true
-    supported: true
+    ci: {{ platform_defaults.debian11.ci | lower }}
+    supported: {{ platform_defaults.debian11.supported | lower }}
     galaxy:
       name: Debian
       version: bullseye
@@ -545,8 +545,8 @@ platforms:
         server_type: cx22
   debian12:
     name: Debian 12 (Bookworm)
-    ci: true
-    supported: true
+    ci: {{ platform_defaults.debian12.ci | lower }}
+    supported: {{ platform_defaults.debian12.supported | lower }}
     galaxy:
       name: Debian
       version: bookworm
@@ -571,8 +571,8 @@ platforms:
         server_type: cx22
   debian13:
     name: Debian 13 (Trixie)
-    ci: true
-    supported: true
+    ci: {{ platform_defaults.debian13.ci | lower }}
+    supported: {{ platform_defaults.debian13.supported | lower }}
     galaxy:
       name: Debian
       version: trixie
@@ -597,8 +597,8 @@ platforms:
         server_type: cx22
   ubuntu1804:
     name: Ubuntu 18.04 LTS
-    ci: false
-    supported: false
+    ci: {{ platform_defaults.ubuntu1804.ci | lower }}
+    supported: {{ platform_defaults.ubuntu1804.supported | lower }}
     galaxy:
       name: Ubuntu
       version: bionic
@@ -623,8 +623,8 @@ platforms:
         server_type: cx22
   ubuntu2004:
     name: Ubuntu 20.04 LTS
-    ci: false
-    supported: false
+    ci: {{ platform_defaults.ubuntu2004.ci | lower }}
+    supported: {{ platform_defaults.ubuntu2004.supported | lower }}
     galaxy:
       name: Ubuntu
       version: focal
@@ -653,8 +653,8 @@ platforms:
         server_type: cx22
   ubuntu2204:
     name: Ubuntu 22.04 LTS
-    ci: true
-    supported: true
+    ci: {{ platform_defaults.ubuntu2204.ci | lower }}
+    supported: {{ platform_defaults.ubuntu2204.supported | lower }}
     galaxy:
       name: Ubuntu
       version: jammy
@@ -678,8 +678,8 @@ platforms:
         server_type: cx22
   ubuntu2404:
     name: Ubuntu 24.04 LTS
-    ci: true
-    supported: true
+    ci: {{ platform_defaults.ubuntu2404.ci | lower }}
+    supported: {{ platform_defaults.ubuntu2404.supported | lower }}
     galaxy:
       name: Ubuntu
       version: jammy
@@ -703,8 +703,8 @@ platforms:
         server_type: cx22
   fedora37:
     name: Fedora 37
-    ci: false
-    supported: false
+    ci: {{ platform_defaults.fedora37.ci | lower }}
+    supported: {{ platform_defaults.fedora37.supported | lower }}
     galaxy:
       name: Fedora
       version: all
@@ -728,8 +728,8 @@ platforms:
         server_type: cx22
   fedora38:
     name: Fedora 38
-    ci: false
-    supported: false
+    ci: {{ platform_defaults.fedora38.ci | lower }}
+    supported: {{ platform_defaults.fedora38.supported | lower }}
     galaxy:
       name: Fedora
       version: all
@@ -753,8 +753,8 @@ platforms:
         server_type: cx22
   fedora39:
     name: Fedora 39
-    ci: false
-    supported: false
+    ci: {{ platform_defaults.fedora39.ci | lower }}
+    supported: {{ platform_defaults.fedora39.supported | lower }}
     galaxy:
       name: Fedora
       version: all
@@ -778,8 +778,8 @@ platforms:
         server_type: cx22
   fedora40:
     name: Fedora 40
-    ci: false
-    supported: false
+    ci: {{ platform_defaults.fedora40.ci | lower }}
+    supported: {{ platform_defaults.fedora40.supported | lower }}
     galaxy:
       name: Fedora
       version: all
@@ -803,8 +803,8 @@ platforms:
         server_type: cx22
   fedora41:
     name: Fedora 41
-    ci: true
-    supported: true
+    ci: {{ platform_defaults.fedora41.ci | lower }}
+    supported: {{ platform_defaults.fedora41.supported | lower }}
     galaxy:
       name: Fedora
       version: all
@@ -828,8 +828,8 @@ platforms:
         server_type: cx22
   fedora42:
     name: Fedora 42
-    ci: true
-    supported: true
+    ci: {{ platform_defaults.fedora42.ci | lower }}
+    supported: {{ platform_defaults.fedora42.supported | lower }}
     galaxy:
       name: Fedora
       version: all
@@ -844,17 +844,42 @@ platforms:
       podman:
         image: "docker.io/geerlingguy/docker-fedora42-ansible:latest"
       vagrant:
-        box: "generic/fedora41"
+        box: "generic/fedora42"
         interfaces:
           - network_name: private_network
             type: dhcp
       hetznercloud:
         image: fedora-42
         server_type: cx22
+  fedora43:
+    name: Fedora 43
+    ci: {{ platform_defaults.fedora43.ci | lower }}
+    supported: {{ platform_defaults.fedora43.supported | lower }}
+    galaxy:
+      name: Fedora
+      version: all
+    molecule:
+      docker:
+        image: "docker.io/geerlingguy/docker-fedora43-ansible:latest"
+        pre_build_image: true
+        privileged: true
+        volumes:
+          - /sys/fs/cgroup:/sys/fs/cgroup:rw
+        cgroupns_mode: host
+      podman:
+        image: "docker.io/geerlingguy/docker-fedora43-ansible:latest"
+      vagrant:
+        box: "generic/fedora43"
+        interfaces:
+          - network_name: private_network
+            type: dhcp
+      hetznercloud:
+        image: fedora-43
+        server_type: cx22
   alpine3:
     name: Alpine 3
-    ci: false
-    supported: false
+    ci: {{ platform_defaults.alpine3.ci | lower }}
+    supported: {{ platform_defaults.alpine3.supported | lower }}
     galaxy:
       name: Alpine
       version: all
@@ -876,13 +901,13 @@ platforms:
             type: dhcp
   docker:
     name: Docker dind (CI only)
-    ci: false
-    supported: false
+    ci: {{ platform_defaults.docker.ci | lower }}
+    supported: {{ platform_defaults.docker.supported | lower }}
     molecule:
       docker:
         image: "docker.io/dropveter/docker-dind-ansible:latest"
         cgroupns_mode: host
-        pre_build_image: false
+        pre_build_image: true
         privileged: true
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:rw
@@ -894,8 +919,8 @@ platforms:
           DOCKER_TLS_CERTDIR: /certs
   win2012r2:
     name: Windows Server 2012 R2
-    ci: false
-    supported: false
+    ci: {{ platform_defaults.win2012r2.ci | lower }}
+    supported: {{ platform_defaults.win2012r2.supported | lower }}
     galaxy:
       name: Windows
       version: all
@@ -909,8 +934,8 @@ platforms:
             type: dhcp
   win2016:
     name: Windows Server 2016
-    ci: false
-    supported: false
+    ci: {{ platform_defaults.win2016.ci | lower }}
+    supported: {{ platform_defaults.win2016.supported | lower }}
     galaxy:
       name: Windows
       version: all
@@ -924,8 +949,8 @@ platforms:
             type: dhcp
   win2019:
     name: Windows Server 2019
-    ci: false
-    supported: false
+    ci: {{ platform_defaults.win2019.ci | lower }}
+    supported: {{ platform_defaults.win2019.supported | lower }}
     galaxy:
       name: Windows
       version: all
@@ -939,8 +964,8 @@ platforms:
             type: dhcp
   win2022:
     name: Windows Server 2022
-    ci: false
-    supported: false
+    ci: {{ platform_defaults.win2022.ci | lower }}
+    supported: {{ platform_defaults.win2022.supported | lower }}
     galaxy:
       name: Windows
       version: all
@@ -954,8 +979,8 @@ platforms:
             type: dhcp
   win2025:
     name: Windows Server 2025
-    ci: false
-    supported: false
+    ci: {{ platform_defaults.win2025.ci | lower }}
+    supported: {{ platform_defaults.win2025.supported | lower }}
     galaxy:
       name: Windows
       version: all

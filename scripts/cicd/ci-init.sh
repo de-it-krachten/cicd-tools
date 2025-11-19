@@ -142,6 +142,10 @@ function Format_yaml
 function Update_from_template
 {
 
+  # Read platform defaults
+  platform_defaults=json:$(yq -jc .platform_defaults $DIRNAME/ci-platforms-${CICD_ORGANIZATION}.yml)
+  export platform_defaults
+
   Source=$1
   Target=$2
 
@@ -161,6 +165,7 @@ function Update_from_template
   then
     cp /tmp/${Source} ${Target}
   else
+    cat /tmp/${Source}.err
     echo "Error occurred!" >&2
     exit 1
   fi

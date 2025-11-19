@@ -9,7 +9,7 @@ generic:
   collections: []
 
 # Supported platforms
-{%- include 'platforms-{{ Platforms }}.yml.j2' %}
+{%- include 'platforms-' + Platforms + '.yml.j2' %}
 
 # Molecule
 molecule:
