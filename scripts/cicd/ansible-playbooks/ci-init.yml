@@ -38,6 +38,7 @@
         - github
         - gitlab
         - ci_templates
+        - yamllint
 
     - name: Define platforms
       ansible.builtin.set_fact:

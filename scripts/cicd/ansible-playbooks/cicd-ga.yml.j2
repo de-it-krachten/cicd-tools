@@ -25,7 +25,7 @@ github:
   self_hosted: false
   fail_fast: false
   parallel: true
-  owner: de-it-krachten
+  owner: Automation-Erfpacht
   repo: {{ Name }}
   # https://docs.ansible.com/ansible/latest/reference_appendices/release_and_maintenance.html
   image: ubuntu2204
@@ -80,5 +80,12 @@ ci_templates:
     dest: .gitignore
     force: false
 
+# Ansible-lint
+ansible_lint:
+  exclude_paths:
+    - molecule/
+  skip_list: []
+
 # yamllint
 yamllint: {}
+

@@ -135,10 +135,10 @@ function Init_ci
 
   case $(basename $WORKINGDIR) in
     ansible-role-*)
-      $DIRNAME1/ci-init-ansible-role.sh -i
+      $DIRNAME1/ci-init.sh -m role -i
       ;;
     ansible-playbooks-*)
-      $DIRNAME1/ci-init-ansible-playbooks.sh -i
+      $DIRNAME1/ci-init.sh -m playbook -i
       ;;
   esac
 
@@ -149,12 +149,12 @@ function Update
 
   case $(basename $WORKINGDIR) in
     ansible-role-*)
-      $DIRNAME1/ci-init-ansible-role.sh -iF
-      $DIRNAME1/ci-init-ansible-role.sh
+      $DIRNAME1/ci-init.sh -m role -iF
+      $DIRNAME1/ci-init.sh -m role
       $DIRNAME1/readme.sh
       ;;
     ansible-playbook-*)
-      /$DIRNAME1/ci-init-ansible-playbooks.sh -i
+      /$DIRNAME1/ci-init.sh -m playbook -i
       ;;
   esac
 

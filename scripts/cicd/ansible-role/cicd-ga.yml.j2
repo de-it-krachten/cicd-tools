@@ -2,9 +2,9 @@
 
 # Generic
 generic:
-  org: deitkrachten
-  role: {{ Name }}
-  role_short: {{ Name_short }}
+  org: automation
+  role: {{ Role }}
+  role_short: {{ Role_short }}
   role_description: |
     <put description in .cicd.overwrite>
 
@@ -21,30 +21,26 @@ platforms_overwrite: {}
 
 # Ansible galaxy
 galaxy:
-  role_name: {{ Name_short }}
-  namespace: de_it_krachten
-  description: {{ Name_short }}
-  author: Mark van Huijstee
-  company: De IT Krachten BV
+  role_name: {{ Role_short }}
+  namespace: ga_automation
+  description: {{ Role_short }}
+  author: Automation team
+  company: Gemeente Amsterdam
   license: MIT
   min_ansible_version: 2.9
   platforms:
     - name: EL
       versions:
+        - 7
         - 8
-        - 9
-        - 10
     - name: Debian
       versions:
         - buster
         - bullseye
-        - trixie
     - name: Ubuntu
       versions:
-        # - 18.04
         - 20.04
         - 22.04
-        - 24.04
     - name: Fedora
       versions:
         - all
@@ -57,16 +53,14 @@ github:
   self_hosted: false
   fail_fast: false
   parallel: true
-  owner: de-it-krachten
-  repo: {{ Name }}
-  # https://docs.ansible.com/ansible/latest/reference_appendices/release_and_maintenance.html
-  image: ubuntu2204
+  owner: Automation-Erfpacht
+  repo: {{ Role }}
   lint_matrix:
-    - name: ansible_2.17
-      ansible: "ansible>10,<11"
-      ansible_core: "ansible-core>2.17,<2.18"
+    - name: ansible_2.16 # latest version to supports python3.6 (rhel8)
+      ansible: "ansible>9,<10"
+      ansible_core: "ansible-core>2.16,<2.17"
       ansible_lint: "ansible-lint"
-      python: "3.13"
+      python: "3.12"
     - name: ansible_2.18
       ansible: "ansible>11,<12"
       ansible_core: "ansible-core>2.18,<2.19"
@@ -77,7 +71,7 @@ github:
 gitlab:
   active: false
 
-# Azure DevOps
+# Azure Devops
 ado:
   active: false
 
@@ -91,8 +85,6 @@ molecule:
     - hetznercloud
     - podman
   driver: docker
-  ansible:
-   verbosity: 0
   converge:
     playbooks: []
     vars: {}
@@ -102,32 +94,33 @@ molecule:
       systemctl_alternative: false
   requirements:
     roles:
-      - deitkrachten.docker
-      - deitkrachten.epel
-      - deitkrachten.facts
-      - deitkrachten.firewall
-      - deitkrachten.firewalld
-      - deitkrachten.hosts
-      - deitkrachten.iptables
-      - deitkrachten.python
-      - deitkrachten.reboot
-      - deitkrachten.showinfo
-      - deitkrachten.ufw
-      - deitkrachten.unbound
+      - name: deitkrachten.docker
+        src: https://github.com/de-it-krachten/ansible-role-docker
+      - name: deitkrachten.epel
+        src: https://github.com/de-it-krachten/ansible-role-epel
+      - name: deitkrachten.facts
+        src: https://github.com/de-it-krachten/ansible-role-facts
+      - name: deitkrachten.firewall
+        src: https://github.com/de-it-krachten/ansible-role-firewall
+      - name: deitkrachten.firewalld
+        src: https://github.com/de-it-krachten/ansible-role-firewalld
+      - name: deitkrachten.hosts
+        src: https://github.com/de-it-krachten/ansible-role-hosts
+      - name: deitkrachten.iptables
+        src: https://github.com/de-it-krachten/ansible-role-iptables
+      - name: deitkrachten.python
+        src: https://github.com/de-it-krachten/ansible-role-python
+      - name: deitkrachten.reboot
+        src: https://github.com/de-it-krachten/ansible-role-reboot
+      - name: deitkrachten.showinfo
+        src: https://github.com/de-it-krachten/ansible-role-showinfo
+      - name: deitkrachten.ufw
+        src: https://github.com/de-it-krachten/ansible-role-ufw
+      - name: deitkrachten.unbound
+        src: https://github.com/de-it-krachten/ansible-role-unbound
   nodes:
     - name: node1
       groups: []
-  group_vars:
-    linux:
-      ansible_user: vagrant
-      ansible_password: vagrant
-    windows:
-      ansible_user: vagrant
-      ansible_password: vagrant
-      ansible_become_user: vagrant
-      ansible_become_method: runas
-      ansible_connection: ssh
-      ansible_shell_type: cmd
 
 # templates
 ci_templates:
@@ -176,18 +169,18 @@ ci_templates:
     src: molecule/templates/molecule-docker.yml.j2
     dest: molecule/default/molecule-docker.yml.j2
     when: molecule_active
-  molecule-hetznercloud.yml.j2:
-    src: molecule/templates/molecule-hetznercloud.yml.j2
-    dest: molecule/default/molecule-hetznercloud.yml.j2
-    when: molecule_active
-  molecule-podman.yml.j2:
-    src: molecule/templates/molecule-podman.yml.j2
-    dest: molecule/default/molecule-podman.yml.j2
-    when: molecule_active
-  molecule-vagrant.yml.j2:
-    src: molecule/templates/molecule-vagrant.yml.j2
-    dest: molecule/default/molecule-vagrant.yml.j2
-    when: molecule_active
+#  molecule-hetznercloud.yml.j2:
+#    src: molecule/templates/molecule-hetznercloud.yml.j2
+#    dest: molecule/default/molecule-hetznercloud.yml.j2
+#    when: molecule_active
+#  molecule-podman.yml.j2:
+#    src: molecule/templates/molecule-podman.yml.j2
+#    dest: molecule/default/molecule-podman.yml.j2
+#    when: molecule_active
+#  molecule-vagrant.yml.j2:
+#    src: molecule/templates/molecule-vagrant.yml.j2
+#    dest: molecule/default/molecule-vagrant.yml.j2
+#    when: molecule_active
   molecule-test.yml:
     src: molecule/templates/molecule-test.yml
     dest: molecule/default/molecule-test.yml
@@ -225,18 +218,18 @@ ci_templates:
     src: molecule/templates/molecule-platforms-docker.yml
     dest: molecule/default/.molecule-platforms-docker.yml
     force: true
-  molecule-platforms-hetznercloud.yml:
-    src: molecule/templates/molecule-platforms-hetznercloud.yml
-    dest: molecule/default/.molecule-platforms-hetznercloud.yml
-    force: true
-  molecule-platforms-podman.yml:
-    src: molecule/templates/molecule-platforms-podman.yml
-    dest: molecule/default/.molecule-platforms-podman.yml
-    force: true
-  molecule-platforms-vagrant.yml:
-    src: molecule/templates/molecule-platforms-vagrant.yml
-    dest: molecule/default/.molecule-platforms-vagrant.yml
-    force: true
+#  molecule-platforms-hetznercloud.yml:
+#    src: molecule/templates/molecule-platforms-hetznercloud.yml
+#    dest: molecule/default/.molecule-platforms-hetznercloud.yml
+#    force: true
+#  molecule-platforms-podman.yml:
+#    src: molecule/templates/molecule-platforms-podman.yml
+#    dest: molecule/default/.molecule-platforms-podman.yml
+#    force: true
+#  molecule-platforms-vagrant.yml:
+#    src: molecule/templates/molecule-platforms-vagrant.yml
+#    dest: molecule/default/.molecule-platforms-vagrant.yml
+#    force: true
 
 # Ansible-lint
 ansible_lint:

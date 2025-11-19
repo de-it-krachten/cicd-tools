@@ -36,3 +36,9 @@ rules:
     forbid-explicit-octal: true
   # trailing-spaces: disable
   truthy: disable
+
+<% if yamllint.ignore is defined %>
+yamllint:
+  ignore: |
+<= yamllint.ignore | indent(4, true) =>
+<% endif %>

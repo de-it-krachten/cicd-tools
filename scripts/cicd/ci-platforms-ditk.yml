@@ -1,0 +1,133 @@
+---
+
+platform_defaults:
+  rhel7:
+    ci: false
+    supported: false
+  rhel8:
+    ci: false
+    supported: true
+  rhel9:
+    ci: false
+    supported: true
+  rhel10:
+    ci: false
+    supported: true
+  centos7:
+    ci: false
+    supported: false
+  centos8:
+    ci: false
+    supported: false
+  centos8s:
+    ci: false
+    supported: false
+  centos9s:
+    ci: false
+    supported: false
+  centos10s:
+    ci: false
+    supported: false
+  rockylinux8:
+    ci: true
+    supported: true
+  rockylinux9:
+    ci: true
+    supported: true
+  rockylinux10:
+    ci: true
+    supported: true
+  oraclelinux8:
+    ci: true
+    supported: true
+  oraclelinux9:
+    ci: true
+    supported: true
+  oraclelinux10:
+    ci: true
+    supported: true
+  almalinux8:
+    ci: true
+    supported: true
+  almalinux9:
+    ci: true
+    supported: true
+  almalinux10:
+    ci: true
+    supported: true
+  sles15:
+    ci: false
+    supported: true
+  opensuse15:
+    ci: true
+    supported: true
+  opensusetumbleweed15:
+    ci: false
+    supported: false
+  debian10:
+    ci: false
+    supported: false
+  debian11:
+    ci: true
+    supported: true
+  debian12:
+    ci: true
+    supported: true
+  debian13:
+    ci: true
+    supported: true
+  ubuntu1804:
+    ci: false
+    supported: false
+  ubuntu2004:
+    ci: false
+    supported: false
+  ubuntu2204:
+    ci: true
+    supported: true
+  ubuntu2404:
+    ci: true
+    supported: true
+  fedora37:
+    ci: false
+    supported: false
+  fedora38:
+    ci: false
+    supported: false
+  fedora39:
+    ci: false
+    supported: false
+  fedora40:
+    ci: false
+    supported: false
+  fedora41:
+    ci: false
+    supported: false
+  fedora42:
+    ci: true
+    supported: true
+  fedora43:
+    ci: true
+    supported: true
+  alpine3:
+    ci: false
+    supported: false
+  docker:
+    ci: false
+    supported: false
+  win2012r2:
+    ci: false
+    supported: false
+  win2016:
+    ci: false
+    supported: false
+  win2019:
+    ci: false
+    supported: false
+  win2022:
+    ci: false
+    supported: false
+  win2025:
+    ci: false
+    supported: false
+

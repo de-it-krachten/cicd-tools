@@ -1,7 +1,11 @@
 #!/bin/bash -e
 
-case $(basename $PWD) in
+repo=$(basename $PWD)
+
+case $repo in
   ansible-role-*)
+    echo "Ansible role repo '$repo'"
+    [[ ! -s .gitignore ]] && touch .gitignore
     sed -i -r "s|^(molecule/default/molecule.yml)$|#\\1|" .gitignore
     /opt/cicd-tools/bin/ci-init.sh -m role -iF
     /opt/cicd-tools/bin/ci-init.sh -m role
@@ -10,6 +14,7 @@ case $(basename $PWD) in
     gh workflow enable CI
     ;;
   ansible-playbooks-*)
+    echo "Ansible playbook repo '$repo'"
     /opt/cicd-tools/bin/ci-init.sh -m playbook -iF
     /opt/cicd-tools/bin/ci-init.sh -m playbook
     /opt/cicd-tools/bin/readme.sh

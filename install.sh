@@ -9,6 +9,8 @@ prefix=/opt/cicd-tools
 # Use a custom prefix
 [[ $1 == --prefix ]] && prefix=$2 && shift 2
 
+[[ ! -d $prefix ]] && $Sudo mkdir $prefix
+
 # Copy files
 if [[ $(which rsync 2>/dev/null) != "" ]]
 then

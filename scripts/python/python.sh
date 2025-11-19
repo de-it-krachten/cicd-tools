@@ -68,6 +68,15 @@ function Setup_venv
 
 }
 
+function Get_key
+{
+
+  local key=$1
+
+  yq -y $key $Configfile | sed '/\.\.\./d;/null/d;/\[\]/d;s/^- //'
+
+}
+
 
 trap 'rm -f ${TMPFILE}*' EXIT
 
@@ -150,9 +159,16 @@ then
   fi
 fi
 
+
+# Check that profile exists
+profile=$(Get_key .$Profile)
+[[ -z $profile ]] && echo "Profile '$Profile' does not exist" >&2 && exit 1
+
 # Get list of packages
-Pip_packages1=$(yq -y .generic.packages $Configfile | sed '/\.\.\./d;/null/d;/\[\]/d;s/^- //')
-Pip_packages2=$(yq -y .$Profile.packages $Configfile | sed '/\.\.\./d;/null/d;/\[\]/d;s/^- //')
+Pip_packages1=$(Get_key .generic.packages)
+Pip_packages2=$(Get_key .$Profile.packages)
+Python=$(Get_key .$Profile.python)
+Python=${Python:-`readlink -f /usr/bin/python3`}
 
 # Find the python & virtualenv to use
 Get_executables
