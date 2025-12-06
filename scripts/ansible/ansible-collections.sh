@@ -148,16 +148,20 @@ EOF
 function Collections_custom
 {
 
+  # Create emty first file
+  touch ${TMPFILE}-col1
+
   # Get all collection files
   Collection_files=$(ls .collections ${Roledir}/*/.collections 2>/dev/null)
 
   # Convert each files
-  touch ${TMPFILE}-col1
   for Collection_file in $Collection_files
   do
     count=$((count+1))
     export collections=json:$(yq -jc .collections $Collection_file)
-    cat <<EOF >${TMPFILE}.j2
+
+    cat <<EOF >${TMPFILE}-col${count}.j2
+---
 {%- if collections | length > 0 %}
 collections:
   {%- for collection in collections %}
@@ -172,9 +176,8 @@ collections:
 collections: []
 {%- endif %}
 EOF
-
     Template ${TMPFILE}-col${count}.j2
-    
+
   done
 
 }
@@ -183,13 +186,13 @@ function Collections_merge
 {
 
   # Get all files to merge
-  Collection_files=$(ls ${TMPFILE}-col* | grep -v ".j2")
+  Collection_files=$(ls ${TMPFILE}base ${TMPFILE}-col* | grep -v ".j2")
 
   # Merge all files on key 'name'
-  yq -n '[inputs] | reduce .[] as $item ({}; . * $item)' ${TMPFILE}-col* ${TMPFILE}base > ${TMPFILE}.yml
+  yq -ys '{"collections": map(.collections[]) | unique_by(.name)}' $Collection_files > ${TMPFILE}.yml
 
   # Show list of merged collections
-  yq -y . ${TMPFILE}.yml
+  cat ${TMPFILE}.yml
 
 }
 
