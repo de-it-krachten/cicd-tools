@@ -186,10 +186,10 @@ function Collections_merge
 {
 
   # Get all files to merge
-  Collection_files=$(ls ${TMPFILE}base ${TMPFILE}-col* | grep -v ".j2")
+  Collection_files=$(ls ${TMPFILE}-col* 2>/dev/null | grep -v ".j2")
 
   # Merge all files on key 'name'
-  yq -ys '{"collections": map(.collections[]) | unique_by(.name)}' $Collection_files > ${TMPFILE}.yml
+  yq -ys '{"collections": map(.collections[]) | unique_by(.name)}' ${TMPFILE}base $Collection_files > ${TMPFILE}.yml
 
   # Show list of merged collections
   cat ${TMPFILE}.yml
@@ -216,7 +216,7 @@ Format=v2
 Roledir=roles
 
 # parse command line into arguments and check results of parsing
-while getopts :c:dDf:hr:v-: OPT
+while getopts :a:c:dDf:hr:v-: OPT
 do
 
   # Support long options
@@ -227,6 +227,9 @@ do
   fi
 
   case $OPT in
+    a|ansible-version)
+      ansible_version_overwrite=$OPTARG
+      ;;
     c|coldir)
       Coldir=$OPTARG
       ;;
@@ -271,7 +274,7 @@ Galaxy_legacy
 # Get ansible version
 ansible_version_full=$(ansible --version | grep ^ansible | sed -r "s/.*core //;s/\]//")
 ansible_version_minor=$(echo $ansible_version_full | cut -f1,2 -d.)
-export ansible_version=$ansible_version_minor
+export ansible_version=${ansible_version_overwrite:-$ansible_version_minor}
 
 echo "ansible version = $ansible_version_full"
 
