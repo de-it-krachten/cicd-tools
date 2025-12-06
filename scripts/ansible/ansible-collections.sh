@@ -172,16 +172,34 @@ shift $(($OPTIND -1))
 # For specific ansible versions, fallback onto old Galaxy
 Galaxy_legacy
 
+ansible_version=$(ansible --version | grep ^ansible | sed -r "s/.*core //;s/\]//" | cut -f1,2 -d".")
+ansible_version=2.16
+export ansible_version
+
 # Write all generic requirements
-cat <<EOF >${TMPFILE}base
+cat <<EOF >${TMPFILE}base.j2
 ---
 collections:
   - ansible.posix
   - ansible.windows
-  - community.docker
-  - community.general
+  - name: community.docker
+{%- if ansible_version | regex_search('2.16') %}
+    version: "<5.0.0"
+{%- else %}
+    version: "*"
+{%- endif %}
+  - name: community.general
+{%- if ansible_version == '2.15' %}
+    version: ">10,<11"
+{%- elif ansible_version == '2.16' %}
+    version: ">11,<12"
+{%- else %}
+    version: "*"
+{%- endif %}
   - community.windows
 EOF
+
+e2j2 -f ${TMPFILE}base.j2
 
 # Get all collection files
 Collection_files=$(ls .collections ${Roledir}/*/.collections ${TMPFILE}base 2>/dev/null)

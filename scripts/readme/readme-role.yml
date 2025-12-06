@@ -11,7 +11,7 @@
     github_owner: de-it-krachten
     github_repo: "{{ name }}"
     readme_file: README.md
-    md_template1: README.md.j2
+    md_template1: README-role.md.j2
     md_template2: README-tasklist.md.j2
     md_template3: tasklist.md.j2
     tasklists: {}

@@ -49,6 +49,11 @@
         - molecule
         - ci_templates
         - tasklists
+        - readme
+
+    - name: Nothing to do
+      ansible.builtin.meta: end_play
+      when: readme is defined and readme.skip | bool
 
     - name: Get all external roles
       ansible.builtin.command:
@@ -82,22 +87,16 @@
 
     - name: Get all colllection & role dependency files
       ansible.builtin.set_fact:
-        collection_files: >-
-          [
-            {%- for item in lookup('filetree', working_dir, wantlist=True) -%}
-            {%- if item.path is search('/.collections$') -%}
-            "{{ item.path }}",
-            {%- endif -%}
-            {%- endfor -%}
-          ]
+        collection_files: >
+          {{ lookup('filetree', working_dir, wantlist=True)
+           | selectattr('path', 'search', '/.collections$')
+           | map(attribute='path')
+           | list }}
         roles_files: >-
-          [
-            {%- for item in lookup('filetree', working_dir, wantlist=True) -%}
-            {%- if item.path is search('/.roles$') -%}
-            "{{ item.path }}",
-            {%- endif -%}
-            {%- endfor -%}
-          ]
+          {{ lookup('filetree', working_dir, wantlist=True)
+           | selectattr('path', 'search', '/.roles$')
+           | map(attribute='path')
+           | list }}
 
     - name: Create list of collections
       ansible.builtin.set_fact:
@@ -115,61 +114,6 @@
           roles: "{{ (dependencies.roles | default([])) + dep_roles | sort | unique }}"
           collections: "{{ (dependencies.collections | default([])) + dep_collections | sort | unique }}"
 
-#    - name: Create directories beneath $TMPDIR
-#      file:
-#        path: "{{ tmpdir }}/{{ item }}"
-#        state: directory
-#        mode: "0700"
-#      loop:
-#        - defaults
-#        - vars
-#        - molecule/default
-#
-#    - name: Get all variable files below defaults + vars
-#      find:
-#        paths:
-#          - "{{ working_dir }}/defaults"
-#          - "{{ working_dir }}/vars"
-#        patterns: "*.yml"
-#        follow: true
-#        file_type: any
-#      register: _varfiles
-#
-#    - name: Copy all variable files into $TMPDIR
-#      copy:
-#        src: "{{ item.path }}"
-#        dest: "{{ tmpdir }}/{{ item.path | dirname | basename }}/{{ item.path | basename }}"
-#        remote_src: true
-#      loop: "{{ _varfiles.files }}"
-#      loop_control:
-#        label: "{{ item.path }}"
-#
-#    - name: Strip all variable files
-#      shell: |
-#        varfile={{ tmpdir }}/{{ item.path | dirname | basename }}/{{ item.path | basename }}
-#        sed -i "/^---$/d" $varfile
-#        sed -i -n '/./,$p' $varfile
-#      loop: "{{ _varfiles.files }}"
-#      loop_control:
-#        label: "{{ item.path }}"
-#
-#    - name: molecule/defaults/converge.yml | create temporary file and remove unwanted lines
-#      shell: |
-#        converge_file={{ tmpdir }}/molecule/default/converge.yml
-#        cp {{ working_dir }}/molecule/default/converge.yml $converge_file
-#        sed -i "s/name: Converge/name: sample playbook for role '{{ generic.playbook_short }}'/" $converge_file
-#        sed -i "/^---$/d" $converge_file
-#        sed -i "s/ansible-role-//" $converge_file
-#        sed -i -n '/./,$p' $converge_file
-#
-#    - name: Get list of all vars files
-#      set_fact:
-#        varsfiles: "{{ lookup('fileglob', tmpdir+'/vars/*.yml', wantlist=True) | sort }}"
-#
-#    - name: Get list of all platform specific defaults
-#      set_fact:
-#        defaultsfiles: "{{ lookup('fileglob', tmpdir+'/defaults/*.yml', wantlist=True) | sort }}"
-
     # basic README w/out task lists
     - name: Create README.md from template '{{ md_template1 }}' (w/out taskslists)  # noqa name[template]
       ansible.builtin.template:
@@ -183,33 +127,3 @@
       args:
         chdir: "{{ working_dir }}"
       changed_when: true
-
-#    # basic README w/ task lists
-#    - block:
-#
-#        - name: Create documentation on all tasklists
-#          include_tasks: tasklist.yml
-#          loop: "{{ tasklists|dict2items }}"
-#          loop_control:
-#            loop_var: tasklist
-#
-#        - name: Create README.md from template '{{ md_template2 }}' (w/ taskslists)
-#          template:
-#            src: "{{ md_template2 }}"
-#            dest: "{{ working_dir }}/{{ readme_file }}"
-#
-#      when: tasklists is defined and tasklists|length > 0
-#
-#    - name: Restore all temporary stuff
-#      include_tasks: replace.yml
-#      vars:
-#        filepath: "{{ working_dir }}/{{ readme_file }}"
-#
-#    - name: Create md file per tasklist
-#      template:
-#        src: "{{ md_template3 }}"
-#        dest: "{{ working_dir }}/{{ tasklist['key'] }}.md"
-#      loop: "{{ tasklists|dict2items }}"
-#      loop_control:
-#        loop_var: tasklist
-#      when: tasklists is defined
