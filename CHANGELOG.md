@@ -1,3 +1,10 @@
+## [1.1.7](https://github.com/de-it-krachten/cicd-tools/compare/v1.1.6...v1.1.7) (2025-12-06)
+
+
+### Bug Fixes
+
+* Refactor 'ansible-collections.sh' for proper output ([dbbfcff](https://github.com/de-it-krachten/cicd-tools/commit/dbbfcffa052524d720fc8f2436add39f664e62df))
+
 ## [1.1.6](https://github.com/de-it-krachten/cicd-tools/compare/v1.1.5...v1.1.6) (2025-12-06)
 
 
