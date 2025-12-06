@@ -1,3 +1,10 @@
+## [1.1.5](https://github.com/de-it-krachten/cicd-tools/compare/v1.1.4...v1.1.5) (2025-12-06)
+
+
+### Bug Fixes
+
+* Delete faulty code ([a30b2e0](https://github.com/de-it-krachten/cicd-tools/commit/a30b2e00d6e5bb4f08aa392d9b005f8eac49085a))
+
 ## [1.1.4](https://github.com/de-it-krachten/cicd-tools/compare/v1.1.3...v1.1.4) (2025-12-06)
 
 
