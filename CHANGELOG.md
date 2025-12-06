@@ -1,3 +1,10 @@
+## [1.1.8](https://github.com/de-it-krachten/cicd-tools/compare/v1.1.7...v1.1.8) (2025-12-06)
+
+
+### Bug Fixes
+
+* Final fix for 'ansible-collections.sh' ([9ad0fd0](https://github.com/de-it-krachten/cicd-tools/commit/9ad0fd0e7e4977a1325d6c686a8a4af2f6057e0e))
+
 ## [1.1.7](https://github.com/de-it-krachten/cicd-tools/compare/v1.1.6...v1.1.7) (2025-12-06)
 
 
