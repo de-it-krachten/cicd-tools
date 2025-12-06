@@ -1,3 +1,10 @@
+## [1.1.4](https://github.com/de-it-krachten/cicd-tools/compare/v1.1.3...v1.1.4) (2025-12-06)
+
+
+### Bug Fixes
+
+* Fix support for ansible 2.16 / python 3.6 ([ab31be5](https://github.com/de-it-krachten/cicd-tools/commit/ab31be5f2d261deb992c679359b9e83dbbd985c8))
+
 ## [1.1.3](https://github.com/de-it-krachten/cicd-tools/compare/v1.1.2...v1.1.3) (2025-10-13)
 
 
