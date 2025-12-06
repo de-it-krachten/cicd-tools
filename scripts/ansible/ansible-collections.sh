@@ -172,9 +172,12 @@ shift $(($OPTIND -1))
 # For specific ansible versions, fallback onto old Galaxy
 Galaxy_legacy
 
-ansible_version=$(ansible --version | grep ^ansible | sed -r "s/.*core //;s/\]//" | cut -f1,2 -d".")
-ansible_version=2.16
-export ansible_version
+# Get ansible version
+ansible_version_full=$(ansible --version | grep ^ansible | sed -r "s/.*core //;s/\]//")
+ansible_version_minor=$(echo $ansible_version_full | cut -f1,2 -d.)
+export ansible_version=$ansible_version_minor
+
+echo "ansible version = $ansible_version_full"
 
 # Write all generic requirements
 cat <<EOF >${TMPFILE}base.j2
@@ -199,7 +202,8 @@ collections:
   - community.windows
 EOF
 
-e2j2 -f ${TMPFILE}base.j2
+# Create basic collections from template
+e2j2 -f ${TMPFILE}base.j2 >/dev/null 2>&1
 
 # Get all collection files
 Collection_files=$(ls .collections ${Roledir}/*/.collections ${TMPFILE}base 2>/dev/null)
