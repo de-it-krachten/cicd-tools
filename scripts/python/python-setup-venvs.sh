@@ -55,13 +55,13 @@ root_dir=$1
 
 if [[ -z $root_dir ]]
 then
-  echo "Usage   : $0 <proot-dir>" >&2
-  echo "Example : $0 /data/venv" >&2
+  echo "Usage   : $0 <venv-root-dir>" >&2
+  echo "Example : $0 /usr/local/venv" >&2
   exit 1
 fi
 
 # Setup ansible
-for venv in yq e2j2 ansible9 ansible12 ansiblecore216 ansiblecore219
+for venv in yq e2j2 ansible9 ansible11 ansible12 ansiblecore216 ansiblecore218 ansiblecore219 awxkit
 do
   Print_separator
   echo "$venv"
