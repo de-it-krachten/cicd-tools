@@ -100,6 +100,99 @@ EOF
 
 }
 
+function Template
+{
+
+  local Template=$1
+  local File=${Template%%.j2}
+
+  if ! $E2J2 -f $Template >/dev/null 2>&1
+  then
+    cat ${File}.err >&2
+    exit 1
+  fi
+
+}
+
+function Collections_default
+{
+
+  # Write all generic requirements
+  cat <<EOF >${TMPFILE}base.j2
+---
+collections:
+  - name: ansible.posix
+  - name: ansible.windows
+  - name: community.docker
+{%- if ansible_version | regex_search('2.16') %}
+    version: "<5.0.0"
+{%- endif %}
+  - name: community.general
+{%- if ansible_version == '2.15' %}
+    version: ">10,<11"
+{%- elif ansible_version == '2.16' %}
+    version: ">11,<12"
+{%- endif %}
+  - name: community.windows
+EOF
+
+  # Create default collection list from template
+  Template ${TMPFILE}base.j2
+
+  # Create a simplified list with name only
+  collections_default="json:$(yq -jc '[.collections[].name]' ${TMPFILE}base)"
+  export collections_default
+
+}
+
+function Collections_custom
+{
+
+  # Get all collection files
+  Collection_files=$(ls .collections ${Roledir}/*/.collections 2>/dev/null)
+
+  # Convert each files
+  touch ${TMPFILE}-col1
+  for Collection_file in $Collection_files
+  do
+    count=$((count+1))
+    export collections=json:$(yq -jc .collections $Collection_file)
+    cat <<EOF >${TMPFILE}.j2
+{%- if collections | length > 0 %}
+collections:
+  {%- for collection in collections %}
+    {%- set name = collection.name | default(collection) %}
+    {%- set version = collection.version | default('*') %}
+  - name: '{{ name }}'
+    {%- if version != '*' %}
+    version: '{{ version }}'
+    {%- endif %}
+  {%- endfor %}
+{%- else %}
+collections: []
+{%- endif %}
+EOF
+
+    Template ${TMPFILE}-col${count}.j2
+    
+  done
+
+}
+
+function Collections_merge
+{
+
+  # Get all files to merge
+  Collection_files=$(ls ${TMPFILE}-col* | grep -v ".j2")
+
+  # Merge all files on key 'name'
+  yq -n '[inputs] | reduce .[] as $item ({}; . * $item)' ${TMPFILE}-col* ${TMPFILE}base > ${TMPFILE}.yml
+
+  # Show list of merged collections
+  yq -y . ${TMPFILE}.yml
+
+}
+
 
 ##############################################################
 #
@@ -179,105 +272,10 @@ export ansible_version=$ansible_version_minor
 
 echo "ansible version = $ansible_version_full"
 
-# Write all generic requirements
-cat <<EOF >${TMPFILE}base.j2
----
-collections:
-  - ansible.posix
-  - ansible.windows
-  - name: community.docker
-{%- if ansible_version | regex_search('2.16') %}
-    version: "<5.0.0"
-{%- else %}
-    version: "*"
-{%- endif %}
-  - name: community.general
-{%- if ansible_version == '2.15' %}
-    version: ">10,<11"
-{%- elif ansible_version == '2.16' %}
-    version: ">11,<12"
-{%- else %}
-    version: "*"
-{%- endif %}
-  - community.windows
-EOF
-
-# Create basic collections from template
-e2j2 -f ${TMPFILE}base.j2 >/dev/null 2>&1
-
-# Get all collection files
-Collection_files=$(ls .collections ${Roledir}/*/.collections ${TMPFILE}base 2>/dev/null)
-
-# Get all collections
-Collections=$($YQ .collections $Collection_files | jq -s 'add|sort|unique' | jq -jc 'del(.[] | nulls)')
-export collections="json:$Collections"
-
-# Create collection using jinja2 template
-if [[ $Format == v1 ]]
-then
-  echo "Creating jinja template (v1)"
-  cat <<EOF > ${TMPFILE}.j2
----
-{% if collections | length > 0 %}
-collections:
-{% for collection in collections %}
-{% if collection | type_debug == 'dict' %}
-{% if collection.version is defined %}
-- {{ collection.name }}:{{ collection.version }}
-{% else %}
-- {{ collection.name }}
-{% endif %}
-{% else %}
-- {{ collection }}
-{% endif %}
-{% endfor %}
-{% else %}
-collections: []
-{% endif %}
-EOF
-else
-  echo "Creating jinja template (v2)"
-  export collections="json:$Collections"
-  export ansible_version=$__ansible_version
-  cat <<EOF > ${TMPFILE}.j2
----
-{% if collections | length > 0 %}
-collections:
-{% for collection in collections %}
-{% if collection != 'ansible.builtin' %}
-{% if collection | type_debug == 'dict' %}
-{% if not ansible_version | regex_search('^(2\.9)$') %}
-- {{ collection }}
-{% endif %}
-{% else %}
-{% set name = (collection | regex_replace(':.*')) %}
-{% set version = (collection | regex_replace('.*:')) %}
-- name: {{ name }}
-{% if version != collection %}
-  version: {{ version }}
-{% endif %}
-{% endif %}
-{% endif %}
-{% endfor %}
-{% else %}
-collections: []
-{% endif %}
-EOF
-fi
-
-# Exit if templating fails
-echo "Creating collections file from template"
-if $E2J2 -f ${TMPFILE}.j2 >/dev/null 2>&1
-then
-  yq -y . ${TMPFILE} > ${TMPFILE}.yml
-else
-  cat ${TMPFILE}.err >&2
-  exit 1
-fi
-
-# Display list of collections
-echo "Showing collections to install"
-cat ${TMPFILE}.yml
+# Define list of collections
+Collections_default
+Collections_custom
+Collections_merge
 
 # Activate custom collections location
 if [[ -n $Coldir ]]
