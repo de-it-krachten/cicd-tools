@@ -1,6 +1,14 @@
 ---
 
-default: []
+default:
+  python: >-
+    {%- if '/usr/bin/python3.13' is is_file %}
+    /usr/bin/python3.13
+    {%- elif '/usr/bin/python3.12' is is_file %}
+    /usr/bin/python3.12
+    {%- else %}
+    /usr/bin/python3.11
+    {% endif %}
 
 yq:
   packages:
@@ -17,13 +25,29 @@ e2j2:
     - e2j2
   requirements: []
 
+jinjanator:
+  packages:
+    - jinjanator
+    - jinjanator-plugin-ansible
+  links:
+    - jinjanate
+  requirements: []
+
+pproxy:
+  packages:
+    - pproxy
+    - python-daemon
+  links:
+    - pproxy
+  requirements: []
+
 {% set ansible_envs = [
-  { "name": "ansible9",  "version": "ansible>=9,<10",  "python": "/usr/bin/python3" },
-  { "name": "ansible11", "version": "ansible>=11,<12", "python": "/usr/bin/python3.13" },
-  { "name": "ansible12", "version": "ansible>=12,<13", "python": "/usr/bin/python3.13" },
-  { "name": "ansiblecore216", "version": "ansible-core>=2.16,<2.17", "python": "/usr/bin/python3" },
-  { "name": "ansiblecore218", "version": "ansible-core>=2.18,<2.19", "python": "/usr/bin/python3.13" },
-  { "name": "ansiblecore219", "version": "ansible-core>=2.19,<2.20", "python": "/usr/bin/python3.13" }
+  { "name": "ansible9",  "version": "ansible>=9,<10" },
+  { "name": "ansible11", "version": "ansible>=11,<12" },
+  { "name": "ansible12", "version": "ansible>=12,<13" },
+  { "name": "ansiblecore216", "version": "ansible-core>=2.16,<2.17" },
+  { "name": "ansiblecore218", "version": "ansible-core>=2.18,<2.19" },
+  { "name": "ansiblecore219", "version": "ansible-core>=2.19,<2.20" }
 ] %}
 
 {% for env in ansible_envs %}
