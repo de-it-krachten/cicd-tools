@@ -82,6 +82,7 @@ function Setup_venv
 
   $sudo $python -m venv $venv || exit 1
   $sudo $venv/bin/pip3 install pip wheel setuptools setuptools_rust --upgrade || exit 1
+  $sudo $venv/bin/pip3 list
 
 }
 

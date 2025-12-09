@@ -77,4 +77,6 @@ do
   echo "$venv"
   Print_separator
   $sudo ${DIRNAME}/python.sh $Verbose1 -c ${DIRNAME}/ansible.yml -p $venv -V $root_dir/$venv
+  $sudo rm -fr $root_dir/$venv/lib/python3.*/site-packages/selinux
+
 done
