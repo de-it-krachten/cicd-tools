@@ -60,8 +60,18 @@ then
   exit 1
 fi
 
+# Setup generic
+for venv in yq e2j2 jinjanator pproxy
+do
+  Print_separator
+  echo "$venv"
+  Print_separator
+  $sudo ${DIRNAME}/python.sh $Verbose1 -c ${DIRNAME}/ansible.yml -p $venv -V $root_dir/$venv
+done
+
+
 # Setup ansible
-for venv in yq e2j2 ansible9 ansible11 ansible12 ansiblecore216 ansiblecore218 ansiblecore219 awxkit
+for venv in ansible9 ansible11 ansible12 ansiblecore216 ansiblecore218 ansiblecore219 awxkit
 do
   Print_separator
   echo "$venv"
