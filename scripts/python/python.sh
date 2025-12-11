@@ -57,6 +57,23 @@ function Get_executables
   
 }
 
+function Setup
+{
+
+  yq=$(which yq 2>/dev/null)
+  jinjanate=$(which jinjanate 2>/dev/null)
+
+  if [[ $yq == "" || $jinjanate == "" ]]
+  then
+    venv_tmp=/tmp/venv_tmp
+    rm -fr $venv_tmp
+    python3 -m venv $venv_tmp >/dev/null
+    $venv_tmp/bin/pip3 install yq jinjanator jinjanator-plugin-ansible >/dev/null
+    export PATH=$PATH:$venv_tmp/bin
+  fi
+
+}
+
 function Setup_venv
 {
 
@@ -65,6 +82,7 @@ function Setup_venv
 
   $sudo $python -m venv $venv || exit 1
   $sudo $venv/bin/pip3 install pip wheel setuptools setuptools_rust --upgrade || exit 1
+  $sudo $venv/bin/pip3 list
 
 }
 
@@ -74,6 +92,23 @@ function Get_key
   local key=$1
 
   yq -y $key $Configfile | sed '/\.\.\./d;/null/d;/\[\]/d;s/^- //'
+
+}
+
+function Template
+{
+
+  local Template File
+  Template=$1
+  File=${Template%%.j2}
+
+  if [[ -f $Template ]]
+  then
+    if ! jinjanate $Template > $File
+    then
+      exit 1
+    fi
+  fi
 
 }
 
@@ -137,28 +172,14 @@ then
   exit 1
 fi
 
-yq=$(which yq 2>/dev/null)
-e2j2=$(which e2j2 2>/dev/null)
-
-if [[ $yq == "" || $e2j2 == "" ]]
-then
-  venv_tmp=/tmp/venv_tmp
-  rm -fr $venv_tmp
-  python3 -m venv $venv_tmp >/dev/null
-  source $venv_tmp/bin/activate
-  pip3 install yq e2j2 >/dev/null
-fi
-
 Configfile=${Configfile:-$CONFIGFILE}
-if [[ -f ${Configfile}.j2 ]]
-then
-  if ! e2j2 -f ${Configfile}.j2
-  then
-    cat ${Configfile}.err >&2
-    exit 1
-  fi
-fi
 
+Setup
+
+Template ${Configfile}.j2
+
+# Get defaults
+Python_default=$(Get_key .default.python)
 
 # Check that profile exists
 profile=$(Get_key .$Profile)
@@ -168,6 +189,7 @@ profile=$(Get_key .$Profile)
 Pip_packages1=$(Get_key .generic.packages)
 Pip_packages2=$(Get_key .$Profile.packages)
 Python=$(Get_key .$Profile.python)
+Python=${Python:-$Python_default}
 Python=${Python:-`readlink -f /usr/bin/python3`}
 
 # Find the python & virtualenv to use
