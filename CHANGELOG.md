@@ -1,3 +1,15 @@
+# [1.2.0](https://github.com/de-it-krachten/cicd-tools/compare/v1.1.8...v1.2.0) (2025-12-11)
+
+
+### Bug Fixes
+
+* Make ansible9 work (SELinux issue solved) ([ec8f4cb](https://github.com/de-it-krachten/cicd-tools/commit/ec8f4cb44045323aeb1ae2acb4c2ec4f07468874))
+
+
+### Features
+
+* Add jinjanator in venv ([d0ce439](https://github.com/de-it-krachten/cicd-tools/commit/d0ce4397bed0b36c20e63dcd3cd7a7aee3500bdd))
+
 ## [1.1.8](https://github.com/de-it-krachten/cicd-tools/compare/v1.1.7...v1.1.8) (2025-12-06)
 
 
