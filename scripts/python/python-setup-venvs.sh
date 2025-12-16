@@ -71,7 +71,7 @@ done
 
 
 # Setup ansible
-for venv in ansible9 ansible11 ansible12 ansiblecore216 ansiblecore218 ansiblecore219 awxkit
+for venv in ansible-navigator ansible9 ansible11 ansible12 ansiblecore216 ansiblecore218 ansiblecore219 awxkit
 do
   Print_separator
   echo "$venv"

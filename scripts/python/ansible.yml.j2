@@ -41,6 +41,14 @@ pproxy:
     - pproxy
   requirements: []
 
+'ansible-navigator':
+  packages:
+    - ansible-navigator
+  links:
+    - ansible-navigator
+    - ansible-builder
+  requirements: []
+
 {% set ansible_envs = [
   { "name": "ansible9",  "version": "ansible>=9,<10" },
   { "name": "ansible11", "version": "ansible>=11,<12" },
