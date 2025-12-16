@@ -1,5 +1,15 @@
 ---
-
+{% if ansible_navigator | default(false) | bool %}
+ansible:
+  executor:
+    backend: ansible-navigator
+    args:
+      ansible_navigator:
+        - --execution-environment-image=docker.io/dropveter/ee_rocky9_py311_ac216:latest
+  env:
+    ANSIBLE_INVENTORY: inventory/
+    ANSIBLE_COLLECTIONS_PATH: $COLLECTIONS_PATH
+{% endif %}
 dependency:
   name: galaxy
 driver:
