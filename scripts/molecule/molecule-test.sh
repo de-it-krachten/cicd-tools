@@ -214,7 +214,7 @@ function Setup
 
   # Get all collections needed by molecule
   ${DIRNAME1}/ansible-collections.sh -c $COLLECTIONS_PATH -r $ROLES_PATH || exit 1
-  export ANSIBLE_COLLECTIONS_PATH=$COLLECTIONS_PATH
+  export ANSIBLE_COLLECTIONS_PATH=/usr/share/ansible/collections:$COLLECTIONS_PATH
 
   # Make this step not run a second time
   export Setup_executed=true
@@ -641,7 +641,7 @@ Use_old_galaxy=false
 [[ `id -un` != root ]] && Sudo=sudo
 
 # parse command line into arguments and check results of parsing
-while getopts :Ac:Cde:DhGkKLm:pPr:R:s:SvWxXyYzZ:-: OPT
+while getopts :Ac:Cde:DhGkKLm:npPr:R:s:SvWxXyYzZ:-: OPT
 do
 
   # Support long options
@@ -680,6 +680,8 @@ do
      L) Log=false
         ;;
      m) Modes=$OPTARG
+        ;;
+     n) export ansible_navigator=true
         ;;
      p) Pre_dependency=true
         ;;
