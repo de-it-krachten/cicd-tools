@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/de-it-krachten/cicd-tools/compare/v1.3.0...v1.3.1) (2026-01-28)
+
+
+### Bug Fixes
+
+* Make python.sh exit cleanly ([9a39d5e](https://github.com/de-it-krachten/cicd-tools/commit/9a39d5e3cb4f52e30e7633c9250ed2748530b8f0))
+
 # [1.3.0](https://github.com/de-it-krachten/cicd-tools/compare/v1.2.0...v1.3.0) (2026-01-28)
 
 
