@@ -49,6 +49,7 @@ pproxy:
     - ansible-builder
   requirements: []
 
+{% if ansible_envs is undefined %}
 {% set ansible_envs = [
   { "name": "ansible9",  "version": "ansible>=9,<10" },
   { "name": "ansible11", "version": "ansible>=11,<12" },
@@ -57,6 +58,7 @@ pproxy:
   { "name": "ansiblecore218", "version": "ansible-core>=2.18,<2.19" },
   { "name": "ansiblecore219", "version": "ansible-core>=2.19,<2.20" }
 ] %}
+{% endif %}
 
 {% for env in ansible_envs %}
 {{ env.name }}:

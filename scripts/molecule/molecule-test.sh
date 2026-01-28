@@ -214,7 +214,7 @@ function Setup
 
   # Get all collections needed by molecule
   ${DIRNAME1}/ansible-collections.sh -c $COLLECTIONS_PATH -r $ROLES_PATH || exit 1
-  export ANSIBLE_COLLECTIONS_PATH=/usr/share/ansible/collections:$COLLECTIONS_PATH
+  [[ $ansible_navigator != true ]] && export ANSIBLE_COLLECTIONS_PATH=$COLLECTIONS_PATH
 
   # Make this step not run a second time
   export Setup_executed=true
