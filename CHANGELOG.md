@@ -1,3 +1,15 @@
+# [1.3.0](https://github.com/de-it-krachten/cicd-tools/compare/v1.2.0...v1.3.0) (2026-01-28)
+
+
+### Bug Fixes
+
+* Support custom ansible venvs ([3863368](https://github.com/de-it-krachten/cicd-tools/commit/38633684e89564ceb2884c8fda22597a72d46f3e))
+
+
+### Features
+
+* Add ansible-navigator (in venv) ([ce54448](https://github.com/de-it-krachten/cicd-tools/commit/ce54448a0f63b28ecac635588443fd02e23ba529))
+
 # [1.2.0](https://github.com/de-it-krachten/cicd-tools/compare/v1.1.8...v1.2.0) (2025-12-11)
 
 
