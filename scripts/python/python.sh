@@ -249,3 +249,6 @@ done
 
 # Show result
 [[ $Verbose == true ]] && $Venv/bin/pip3 list
+
+# Exit cleanly
+exit 0
