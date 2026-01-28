@@ -217,10 +217,10 @@ shift $(($OPTIND -1))
 if [[ $Delete_containers == true ]]
 then
   echo "Show all running containers"
-  $Sudo $Docker container ls
+  $Sudo $Docker container ls --format table
 
   echo "Stop all running containers"
-  Containers=$($Sudo $Docker container ls -a | awk 'NR>1' | grep -E "$Filter" | grep -E -v "$DOCKER_PROTECT" | awk '{print $1}')
+  Containers=$($Sudo $Docker container ls -a --format table | awk 'NR>1' | grep -E "$Filter" | grep -E -v "$DOCKER_PROTECT" | awk '{print $1}')
   [[ -n $Containers ]] && echo "$Containers" | xargs $Echo $Sudo $Docker container kill
 
   echo "Delete all containers"
@@ -233,10 +233,10 @@ fi
 if [[ $Delete_external_containers == true ]]
 then
   echo "Show all running containers"
-  $Sudo $Docker container ls --exernal
+  $Sudo $Docker container ls --exernal --format table
 
   echo "Stop all running containers"
-  Containers=$($Sudo $Docker container ls -a --external | awk 'NR>1' | grep -E "$Filter" | grep -E -v "$DOCKER_PROTECT" | awk '{print $1}') 
+  Containers=$($Sudo $Docker container ls -a --external --format table | awk 'NR>1' | grep -E "$Filter" | grep -E -v "$DOCKER_PROTECT" | awk '{print $1}')
   [[ -n $Containers ]] && echo "$Containers" | xargs $Echo $Sudo $Docker container kill
 
   echo "Delete all containers"
@@ -252,7 +252,7 @@ then
   while [[ $Try -le $Tries ]]
   do
     echo "Delete all dockers images (attempt $Try)"
-    Images=$($Sudo $Docker image ls -a | awk 'NR>1 {print $3}')
+    Images=$($Sudo $Docker image ls -a --format json | jq -r .ID)
     [[ -n $Images ]] && echo "$Images" | xargs $Echo $Sudo $Docker image rm
     Try=$(($Try+1))
   done
@@ -267,7 +267,7 @@ then
   while [[ $Try -le $Tries ]]
   do
     echo "Delete all dockers volumes (attempt $Try)"
-    Volumes=$($Sudo $Docker volume ls | awk 'NR>1 {print $2}')
+    Volumes=$($Sudo $Docker volume ls --format json | jq -r .ID)
     [[ -n $Volumes ]] && echo "$Volumes" | xargs $Echo $Sudo $Docker volume rm
     Try=$(($Try+1))
   done
@@ -292,16 +292,16 @@ if [[ $Verbose == true ]]
 then
   echo "Current situtation:"
   echo "=== Containers"
-  $Sudo $Docker container ls -a
+  $Sudo $Docker container ls -a --format table
   echo
   echo "=== Images"
-  $Sudo $Docker image ls -a
+  $Sudo $Docker image ls -a --format table
   echo
   echo "=== Volumes"
-  $Sudo $Docker volume ls
+  $Sudo $Docker volume ls --format table
   echo
   echo "=== Networks"
-  $Sudo $Docker network ls
+  $Sudo $Docker network ls --format table
 fi
 
 # Now exit
