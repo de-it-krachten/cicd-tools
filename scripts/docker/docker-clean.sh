@@ -217,30 +217,32 @@ shift $(($OPTIND -1))
 if [[ $Delete_containers == true ]]
 then
   echo "Show all running containers"
-  $Sudo $Docker container ls --format table
+  $Sudo $Docker container ls -a
 
   echo "Stop all running containers"
-  Containers=$($Sudo $Docker container ls -a --format table | awk 'NR>1' | grep -E "$Filter" | grep -E -v "$DOCKER_PROTECT" | awk '{print $1}')
-  [[ -n $Containers ]] && echo "$Containers" | xargs $Echo $Sudo $Docker container kill
+  Containers=$($Sudo $Docker container ls -a | awk 'NR>1' | grep -E "$Filter" | grep -E -v "$DOCKER_PROTECT" | awk '{print $1}')
+  echo "$Containers" | xargs -r $Echo $Sudo $Docker container kill
 
   echo "Delete all containers"
-  [[ -n $Containers ]] && echo "$Containers" | xargs $Echo $Sudo $Docker container rm
+  echo "$Containers" | xargs -r $Echo $Sudo $Docker container rm
 else
   echo "Skipping containers"
 fi
 
-# Containers
+# External Containers
 if [[ $Delete_external_containers == true ]]
 then
+
   echo "Show all running containers"
-  $Sudo $Docker container ls --exernal --format table
+  $Sudo $Docker container ls -a --external
 
   echo "Stop all running containers"
-  Containers=$($Sudo $Docker container ls -a --external --format table | awk 'NR>1' | grep -E "$Filter" | grep -E -v "$DOCKER_PROTECT" | awk '{print $1}')
-  [[ -n $Containers ]] && echo "$Containers" | xargs $Echo $Sudo $Docker container kill
+  Containers=$($Sudo $Docker container ls -a --external | awk 'NR>1' | grep -E "$Filter" | grep -E -v "$DOCKER_PROTECT" | awk '{print $1}')
+  echo "$Containers" | xargs -r $Echo $Sudo $Docker container kill
 
   echo "Delete all containers"
-  [[ -n $Containers ]] && echo "$Containers" | xargs $Echo $Sudo $Docker container rm
+  [[ $Docker == docker ]] && echo "$Containers" | xargs -r $Echo $Sudo $Docker container rm
+  [[ $Docker == podman ]] && echo "$Containers" | xargs -r $Echo $Sudo $Docker container rm --force
 else
   echo "Skipping containers"
 fi
@@ -252,8 +254,10 @@ then
   while [[ $Try -le $Tries ]]
   do
     echo "Delete all dockers images (attempt $Try)"
-    Images=$($Sudo $Docker image ls -a --format json | jq -r .ID)
-    [[ -n $Images ]] && echo "$Images" | xargs $Echo $Sudo $Docker image rm
+    [[ $Docker == docker ]] && Images=$($Sudo $Docker image ls -a --format json | jq -r .ID)
+    [[ $Docker == podman ]] && Images=$($Sudo $Docker image ls -a --format json | jq -r '.[].Id')
+    [[ $Docker == docker ]] && echo "$Images" | xargs -r $Echo $Sudo $Docker image rm
+    [[ $Docker == podman ]] && echo "$Images" | xargs -r $Echo $Sudo $Docker image rm --force
     Try=$(($Try+1))
   done
 else
@@ -267,8 +271,10 @@ then
   while [[ $Try -le $Tries ]]
   do
     echo "Delete all dockers volumes (attempt $Try)"
-    Volumes=$($Sudo $Docker volume ls --format json | jq -r .ID)
-    [[ -n $Volumes ]] && echo "$Volumes" | xargs $Echo $Sudo $Docker volume rm
+    [[ $Docker == docker ]] && Volumes=$($Sudo $Docker volume ls --format json | jq -r .ID)
+    [[ $Docker == podman ]] && Volumes=$($Sudo $Docker volume ls --format json | jq -r '.[].Id')
+    [[ $Docker == docker ]] && echo "$Volumes" | xargs -r $Echo $Sudo $Docker volume rm
+    [[ $Docker == podman ]] && echo "$Volumes" | xargs -r $Echo $Sudo $Docker volume rm
     Try=$(($Try+1))
   done
 else
@@ -292,16 +298,20 @@ if [[ $Verbose == true ]]
 then
   echo "Current situtation:"
   echo "=== Containers"
-  $Sudo $Docker container ls -a --format table
+  [[ $Docker == docker ]] && $Sudo $Docker container ls -a --format table
+  [[ $Docker == podman ]] && $Sudo $Docker container ls -a
   echo
   echo "=== Images"
-  $Sudo $Docker image ls -a --format table
+  [[ $Docker == docker ]] && $Sudo $Docker image ls -a --format table
+  [[ $Docker == podman ]] && $Sudo $Docker image ls -a
   echo
   echo "=== Volumes"
-  $Sudo $Docker volume ls --format table
+  [[ $Docker == docker ]] && $Sudo $Docker volume ls --format table
+  [[ $Docker == podman ]] && $Sudo $Docker volume ls
   echo
   echo "=== Networks"
-  $Sudo $Docker network ls --format table
+  [[ $Docker == docker ]] && $Sudo $Docker network ls --format table
+  [[ $Docker == podman ]] && $Sudo $Docker network ls
 fi
 
 # Now exit
