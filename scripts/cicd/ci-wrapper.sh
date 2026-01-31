@@ -1,5 +1,37 @@
 #!/bin/bash -e
 
+Phase=all
+
+# parse command line into arguments and check results of parsing
+while getopts :-: OPT
+do
+
+  # Support long options
+  if [[ $OPT = "-" ]] ; then
+    OPT="${OPTARG%%=*}"       # extract long option name
+    OPTARG="${OPTARG#$OPT}"   # extract long option argument (may be empty)
+    OPTARG="${OPTARG#=}"      # if long option argument, remove assigning `=`
+  fi
+
+  case $OPT in
+    phase)
+      Phase=$OPTARG
+      ;;
+    windows)
+      Args="--platforms=windows"
+      ;;
+    *)
+      echo "Unknown flag -$OPT given!" >&2
+      exit 1
+      ;;
+  esac
+
+  # Set flag to be use by Test_flag
+  eval ${OPT}flag=1
+
+done
+shift $(($OPTIND -1))
+
 repo=$(basename $PWD)
 
 if [[ -z $GH_TOKEN ]]
@@ -13,28 +45,41 @@ case $repo in
     echo "Ansible role repo '$repo'"
     [[ ! -s .gitignore ]] && touch .gitignore
     sed -i -r "s|^(molecule/default/molecule.yml)$|#\\1|" .gitignore
-    /opt/cicd-tools/bin/ci-init.sh -m role -iF
-    /opt/cicd-tools/bin/ci-init.sh -m role
+    /opt/cicd-tools/bin/ci-init.sh $Args -m role -iF
+    [[ $Phase == 1 ]] && exit 0
+    /opt/cicd-tools/bin/ci-init.sh $Args -m role
     /opt/cicd-tools/bin/ansible-get-collections.sh > .collections
-    /opt/cicd-tools/bin/readme.sh
     ;;
   ansible-playbooks-*)
     echo "Ansible playbook repo '$repo'"
-    /opt/cicd-tools/bin/ci-init.sh -m playbook -iF
-    /opt/cicd-tools/bin/ci-init.sh -m playbook
-    /opt/cicd-tools/bin/readme.sh
+    /opt/cicd-tools/bin/ci-init.sh $Args -m playbook -iF
+    [[ $Phase == 1 ]] && exit 0
+    /opt/cicd-tools/bin/ci-init.sh $Args -m playbook
     ;;
   ansible-collection-*)
     echo "Ansible collection repo '$repo'"
-    /opt/cicd-tools/bin/ci-init.sh -m collection -iF
-    /opt/cicd-tools/bin/ci-init.sh -m collection
-    /opt/cicd-tools/bin/readme.sh
+    /opt/cicd-tools/bin/ci-init.sh $Args -m collection -iF
+    [[ $Phase == 1 ]] && exit 0
+    /opt/cicd-tools/bin/ci-init.sh $Args -m collection
     ;;
   *)
     echo "Unable to figure out what we are dealing with!" >&2
     exit 1
     ;;
 esac
+
+# README.md
+if [[ -f README.md ]] ; then
+  if grep -q "^## Platforms" README.md ; then
+    echo "Updating generic README"
+    /opt/cicd-tools/bin/readme.sh
+  else
+    echo "Found a custom README.md ... leaving it as it is"
+  fi
+else
+  echo "Creating new README.md (none present)"
+  /opt/cicd-tools/bin/readme.sh
+fi
 
 # Enable Github CI
 set +e
