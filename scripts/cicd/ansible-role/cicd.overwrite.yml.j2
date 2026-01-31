@@ -8,10 +8,15 @@ generic:
     <basic role description>
   collections: []
 
-# Supported platforms
-{%- include 'platforms-' + Platforms + '.yml.j2' %}
+{% include 'platforms-' + Platforms + '.yml.j2' %}
 
 # Molecule
 molecule:
   requirements:
     roles_extra: []
+
+{% if Platforms == 'windows' %}
+# Github
+github:
+  molecule: false
+{% endif %}
