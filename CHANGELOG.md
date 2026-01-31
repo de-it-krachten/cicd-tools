@@ -1,3 +1,10 @@
+## [1.3.3](https://github.com/de-it-krachten/cicd-tools/compare/v1.3.2...v1.3.3) (2026-01-31)
+
+
+### Bug Fixes
+
+* Update code to allign with customer setup ([61d1711](https://github.com/de-it-krachten/cicd-tools/commit/61d1711be6cc783da71c59b10b82db2e4964de73))
+
 ## [1.3.2](https://github.com/de-it-krachten/cicd-tools/compare/v1.3.1...v1.3.2) (2026-01-29)
 
 
