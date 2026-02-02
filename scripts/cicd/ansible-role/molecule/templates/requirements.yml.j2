@@ -1,12 +1,41 @@
 ---
 
-roles:
 <% set org = generic.org %>
-<% set roles = (molecule.requirements.roles + (molecule.requirements.roles_extra | default([]))) | unique %>
-<% for role in roles %>
-<% set src = 'https://github.com/de-it-krachten/ansible-role-' + (role.name | default(role) | regex_replace(org + '.')) + '.git' %>
-  - name: <= (role.name|default(role)) =>
-    src: <= role.src if role.src is defined else src =>
-    version: <= role.version | default('main') =>
+<% set roles = ((molecule.requirements.roles | default([])) + (molecule.requirements.roles_extra | default([]))) | unique %>
+<% set collections = ((molecule.requirements.collections | default([])) + (molecule.requirements.collections_extra | default([]))) | unique %>
+
+<% if roles | length > 0 %>
+roles:
+<% for r in roles %>
+<% set r1 = role.name | default(r) | regex_replace(org + '.') %>
+<% if r.protocol | default('https') == 'ssh' %>
+<% set src = 'ssh://git@github.com/' + github.owner + '/ansible-role-' + r1 + '.git' %>
+<% else %>
+<% set src = 'https://github.com/' + github.owner + '/ansible-role-' + r1 + '.git' %>
+<% endif %>
+  - name: <= (r.name | default(r)) =>
+    src: <= r.src if r.src is defined else src =>
+    version: <= r.version | default('main') =>
     scm: git
 <% endfor %>
+<% else %>
+roles: []
+<% endif %>
+
+<% if collections | length > 0 %>
+collections:
+<% for c in collections %>
+<% set c1 = c1.name | default(c) | regex_replace(org + '.') %>
+<% if c.protocol | default('https') == 'ssh' %>
+<% set src = 'ssh://git@github.com/' + github.owner + '/ansible-collection-' + c1 + '.git' %>
+<% else %>
+<% set src = 'https://github.com/' + github.owner + '/ansible-collection-' + c1 + '.git' %>
+<% endif %>
+  - name: <= (c.name | default(c)) =>
+    src: <= c.src if c.src is defined else src =>
+    version: <= c.version | default('main') =>
+    scm: git
+<% endfor %>
+<% else %>
+collections: []
+<% endif %>
