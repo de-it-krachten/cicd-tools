@@ -89,7 +89,9 @@ if [[ -f README.md ]] ; then
     echo "Updating generic README"
     /opt/cicd-tools/bin/readme.sh
   else
-    echo "Found a custom README.md ... leaving it as it is"
+    echo "Renaming custom README.md -> README-original.md"
+    mv README.md README-original.md
+    /opt/cicd-tools/bin/readme.sh
   fi
 else
   echo "Creating new README.md (none present)"
