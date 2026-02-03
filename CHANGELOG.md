@@ -1,3 +1,16 @@
+# [1.4.0](https://github.com/de-it-krachten/cicd-tools/compare/v1.3.3...v1.4.0) (2026-02-03)
+
+
+### Bug Fixes
+
+* Fix molecule requirements for other orgs ([4b72362](https://github.com/de-it-krachten/cicd-tools/commit/4b723622647fed3bd1c3db3169e729d9f6763cb9))
+* Fix workflow links in README files ([679c6d4](https://github.com/de-it-krachten/cicd-tools/commit/679c6d4225ab94a01f1565c15fb490ffe57ae44d))
+
+
+### Features
+
+* Molecule | Add support for collections ([c7028c4](https://github.com/de-it-krachten/cicd-tools/commit/c7028c4e7fed5429c642dfc0e0d469014e009279))
+
 ## [1.3.3](https://github.com/de-it-krachten/cicd-tools/compare/v1.3.2...v1.3.3) (2026-01-31)
 
 
