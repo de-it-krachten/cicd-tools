@@ -78,8 +78,14 @@ case $repo in
 esac
 
 # README.md
+echo "** README"
 if [[ -f README.md ]] ; then
+  lines=$(cat README.md | wc -l)
   if grep -q "^## Platforms" README.md ; then
+    echo "Updating generic README"
+    /opt/cicd-tools/bin/readme.sh
+  elif [[ $lines == 1 ]]
+  then
     echo "Updating generic README"
     /opt/cicd-tools/bin/readme.sh
   else
