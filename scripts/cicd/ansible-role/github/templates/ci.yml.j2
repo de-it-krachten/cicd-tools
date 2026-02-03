@@ -48,7 +48,7 @@ jobs:
         with:
           path: "${{ github.repository }}"
 
-      - name: Set up Python 3.
+      - name: Set up Python3.
         uses: actions/setup-python@v5
         with:
           python-version: "${{ matrix.python }}"
@@ -203,7 +203,7 @@ jobs:
           # limit-access-to-users: mark-it-kracht
 <% endif %>
 
-      - name: Set up Python 3.
+      - name: Set up Python3.
         uses: actions/setup-python@v5
         with:
           python-version: "${{ matrix.python }}"
@@ -217,6 +217,14 @@ jobs:
             ${{ secrets.<= key => }}
 <% endfor %>
 <% endif %>
+
+      - name: Configure deployment key
+        run: |
+          [[ ! -d ~/.ssh ]] && mkdir -m 700 ~/.ssh
+          echo "$DEPLOYMENT_KEY" | base64 -d > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+        env:
+          DEPLOYMENT_KEY: ${{ secrets.DEPLOYMENT_KEY }}
 
       - name: Show runner info
         run: |

@@ -1,9 +1,10 @@
 #!/bin/bash -e
 
 Phase=all
+Silent=false
 
 # parse command line into arguments and check results of parsing
-while getopts :-: OPT
+while getopts :dp:sw-: OPT
 do
 
   # Support long options
@@ -14,11 +15,17 @@ do
   fi
 
   case $OPT in
-    phase)
+    d|debug)
+      set -vx
+      ;;
+    p|phase)
       Phase=$OPTARG
       ;;
-    windows)
+    w|windows)
       Args="--platforms=windows"
+      ;;
+    s|silent)
+      Silent=true
       ;;
     *)
       echo "Unknown flag -$OPT given!" >&2
@@ -39,6 +46,8 @@ then
   echo "Variable 'GH_TOKEN' not defined!" >&2
   exit 1
 fi
+
+[[ $Silent == true ]] && exec >/dev/null
 
 case $repo in
   ansible-role-*)
@@ -69,8 +78,14 @@ case $repo in
 esac
 
 # README.md
+echo "** README"
 if [[ -f README.md ]] ; then
+  lines=$(cat README.md | wc -l)
   if grep -q "^## Platforms" README.md ; then
+    echo "Updating generic README"
+    /opt/cicd-tools/bin/readme.sh
+  elif [[ $lines == 1 ]]
+  then
     echo "Updating generic README"
     /opt/cicd-tools/bin/readme.sh
   else
