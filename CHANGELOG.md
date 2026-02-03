@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/de-it-krachten/cicd-tools/compare/v1.4.0...v1.4.1) (2026-02-03)
+
+
+### Bug Fixes
+
+* Make github releases work on protected branch ([068d377](https://github.com/de-it-krachten/cicd-tools/commit/068d37764982f96e3d2471f588b7ab76e561cbbd))
+
 # [1.4.0](https://github.com/de-it-krachten/cicd-tools/compare/v1.3.3...v1.4.0) (2026-02-03)
 
 
