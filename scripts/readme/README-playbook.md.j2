@@ -43,3 +43,10 @@ Note:
 {% if extra_file is is_file %}
 {{ lookup('file', extra_file) }}
 {% endif %}
+
+{% if 'README-original.md' is is_file %}
+## Other documentation
+
+[README-original.md](README-original.md)
+
+{% endif %}
