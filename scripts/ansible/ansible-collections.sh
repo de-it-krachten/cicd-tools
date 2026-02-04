@@ -165,12 +165,23 @@ function Collections_custom
 {%- if collections | length > 0 %}
 collections:
   {%- for collection in collections %}
+
     {%- set name = collection.name | default(collection) %}
     {%- set version = collection.version | default('*') %}
+    {%- set source = collection.source | default('') %}
+
+    {%- if source | length == 0 %}
+
   - name: '{{ name }}'
-    {%- if version != '*' %}
     version: '{{ version }}'
+
+    {%- else %}
+
+  - name: '{{ source }}'
+    version: '{{ version }}'
+
     {%- endif %}
+
   {%- endfor %}
 {%- else %}
 collections: []
