@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/de-it-krachten/cicd-tools/compare/v1.4.1...v1.5.0) (2026-02-04)
+
+
+### Features
+
+* Support self-hosted collections (git) ([96ee2cb](https://github.com/de-it-krachten/cicd-tools/commit/96ee2cbf2c5611438e6c1179928ffb20e6d58198))
+
 ## [1.4.1](https://github.com/de-it-krachten/cicd-tools/compare/v1.4.0...v1.4.1) (2026-02-03)
 
 
