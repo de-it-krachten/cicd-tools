@@ -1,3 +1,10 @@
+## [1.5.1](https://github.com/de-it-krachten/cicd-tools/compare/v1.5.0...v1.5.1) (2026-02-04)
+
+
+### Bug Fixes
+
+* Fix collections merge ([5ed6d63](https://github.com/de-it-krachten/cicd-tools/commit/5ed6d630dc90c862289c10d4fe488c663ad077f6))
+
 # [1.5.0](https://github.com/de-it-krachten/cicd-tools/compare/v1.4.1...v1.5.0) (2026-02-04)
 
 
