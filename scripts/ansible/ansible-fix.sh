@@ -65,7 +65,7 @@ Trailing_whitespace            Y Y Y
 Missing_whitespace_variables   Y Y N
 Missing_starting_whitespace    Y Y N
 Comment_whitespacing           Y Y N
-Jinja2_tests                   Y Y N
+Jinja2_tests                   N N N
 Line_ending                    Y Y Y
 File_ending                    Y Y Y
 Truthy                         Y Y Y
