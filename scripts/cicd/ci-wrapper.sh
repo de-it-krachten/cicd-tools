@@ -57,7 +57,9 @@ case $repo in
     /opt/cicd-tools/bin/ci-init.sh $Args -m role -iF
     [[ $Phase == 1 ]] && exit 0
     /opt/cicd-tools/bin/ci-init.sh $Args -m role
-    /opt/cicd-tools/bin/ansible-get-collections.sh > .collections
+    /opt/cicd-tools/bin/ansible-get-collections.sh > .collections1
+    cp .collections1 .collections
+    rm -f .collections1
     ;;
   ansible-playbooks-*)
     echo "Ansible playbook repo '$repo'"
