@@ -1,3 +1,10 @@
+## [1.5.2](https://github.com/de-it-krachten/cicd-tools/compare/v1.5.1...v1.5.2) (2026-02-07)
+
+
+### Bug Fixes
+
+* Multiple fixes for GA ([60cee9a](https://github.com/de-it-krachten/cicd-tools/commit/60cee9a6664f8127e426edf945a449f19c8cb7f7))
+
 ## [1.5.1](https://github.com/de-it-krachten/cicd-tools/compare/v1.5.0...v1.5.1) (2026-02-04)
 
 
