@@ -9,6 +9,12 @@ trap 'rm -f ${TMPFILE}*' EXIT
 files=$(find $paths -type f -name \*.yml 2>/dev/null)
 modules=$(yq -y . $files | grep -E "^  *[a-z0-9]*\.[a-z0-9]*\.[a-z0-9_]*:$" | sed "s/^  *//" | cut -f1-2 -d. | sort -u | grep -v ansible.builtin)
 
+# Restore .collections
+if [[ -s .collections && $(yq -j . .collections) == null ]]
+then
+  echo -e "---\ncolllections: []" > .collections
+fi
+
 # Get collections present
 if [[ -s .collections ]]
 then
@@ -27,7 +33,23 @@ else
   yq -j . ${TMPFILE}3 > ${TMPFILE}2
 fi
 
+# Debug info
+if [[ $Debug == true ]]
+then
+  ls -l ${TMPFILE}1
+  ls -l ${TMPFILE}2
+  cat ${TMPFILE}1
+  cat ${TMPFILE}2
+fi
+
+# Merge files
+jq -s '
+  {collections: (
+    [.[].collections // [] | .[]?]
+    | group_by(.name)
+    | map(first)
+  )}' ${TMPFILE}1 ${TMPFILE}2 > ${TMPFILE}3
+
 # Merge old & new collections
 echo "---"
-jq -s '{collections: ( [.[].collections[]] | group_by(.name) | map(last))}' ${TMPFILE}2 ${TMPFILE}1 | \
-yq -y | sed -r "s/version: (.*)/version: \"\\1\"/"
+yq -y . ${TMPFILE}3 | sed -r "s/version: (.*)/version: \"\\1\"/"

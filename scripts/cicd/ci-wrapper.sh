@@ -3,6 +3,8 @@
 Phase=all
 Silent=false
 
+Platforms=${CICD_ORGANIZATION}
+
 # parse command line into arguments and check results of parsing
 while getopts :dp:sw-: OPT
 do
@@ -22,7 +24,7 @@ do
       Phase=$OPTARG
       ;;
     w|windows)
-      Args="--platforms=windows"
+      Platforms=windows
       ;;
     s|silent)
       Silent=true
@@ -49,17 +51,20 @@ fi
 
 [[ $Silent == true ]] && exec >/dev/null
 
+Args="--platforms=$Platforms"
+
 case $repo in
   ansible-role-*)
+
+    /opt/cicd-tools/bin/ansible-get-collections.sh > .collections1
+    cp .collections1 .collections
+    rm -f .collections1
     echo "Ansible role repo '$repo'"
     [[ ! -s .gitignore ]] && touch .gitignore
     sed -i -r "s|^(molecule/default/molecule.yml)$|#\\1|" .gitignore
     /opt/cicd-tools/bin/ci-init.sh $Args -m role -iF
     [[ $Phase == 1 ]] && exit 0
     /opt/cicd-tools/bin/ci-init.sh $Args -m role
-    /opt/cicd-tools/bin/ansible-get-collections.sh > .collections1
-    cp .collections1 .collections
-    rm -f .collections1
     ;;
   ansible-playbooks-*)
     echo "Ansible playbook repo '$repo'"

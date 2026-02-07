@@ -41,6 +41,16 @@
       - ubuntu2004
       - ubuntu2204
 
+    # GA specifics
+    rhel8: "{{ lookup('env', 'rhel8') | default(true, true) }}"
+    rhel9: "{{ lookup('env', 'rhel9') | default(false, true) }}"
+    rhel10: "{{ lookup('env', 'rhel10') | default(false, true) }}"
+    win2012r2: "{{ lookup('env', 'win2012r2') | default(false, true) }}"
+    win2016: "{{ lookup('env', 'win2016') | default(false, true) }}"
+    win2019: "{{ lookup('env', 'win2019') | default(false, true) }}"
+    win2022: "{{ lookup('env', 'win2022') | default(false, true) }}"
+    win2025: "{{ lookup('env', 'win2022') | default(false, true) }}"
+
   tasks:
 
     # ---------------------------------------------------------------------
@@ -145,7 +155,6 @@
       vars:
         query1: "[?value.supported]"
         query2: "[?value.galaxy.name==`{{ item }}`].value.galaxy.version"
-
 
     # ---------------------------------------------------------------------
     # Start initialization
