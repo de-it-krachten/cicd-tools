@@ -22,28 +22,16 @@ platforms_overwrite: {}
 # Ansible galaxy
 galaxy:
   role_name: {{ Role_short }}
-  namespace: ga_automation
+  namespace: automation
   description: {{ Role_short }}
   author: Automation team
   company: Gemeente Amsterdam
-  license: MIT
-  min_ansible_version: 2.9
+  license: EUPL-1.2
+  min_ansible_version: 2.16
   platforms:
     - name: EL
       versions:
-        - 7
         - 8
-    - name: Debian
-      versions:
-        - buster
-        - bullseye
-    - name: Ubuntu
-      versions:
-        - 20.04
-        - 22.04
-    - name: Fedora
-      versions:
-        - all
   dependencies: []
 
 # Github

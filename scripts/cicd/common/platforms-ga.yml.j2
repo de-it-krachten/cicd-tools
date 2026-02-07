@@ -1,0 +1,35 @@
+# Supported platforms
+platforms:
+  rhel8:
+    ci: false
+    supported: {{ 'true' if rhel8 | default(true) | bool else 'false' }}
+  rhel9:
+    ci: false
+    supported: {{ 'true' if rhel9 | default(false) | bool else 'false' }}
+  rhel10:
+    ci: false
+    supported: {{ 'true' if rhel10 | default(false) | bool else 'false' }}
+  rockylinux8:
+    ci: {{ 'true' if rhel8 | default(true) | bool else 'false' }}
+    supported: false
+  rockylinux9:
+    ci: {{ 'true' if rhel9 | default(false) | bool else 'false' }}
+    supported: false
+  rockylinux10:
+    ci: {{ 'true' if rhel10 | default(false) | bool else 'false' }}
+    supported: false
+  win2012r2:
+    ci: false
+    supported: {{ 'true' if win2012r2 | default(false) | bool else 'false' }}
+  win2016:
+    ci: false
+    supported: {{ 'true' if win2016 | default(false) | bool else 'false' }}
+  win2019:
+    ci: false
+    supported: {{ 'true' if win2019 | default(false) | bool else 'false' }}
+  win2022:
+    ci: false
+    supported: {{ 'true' if win2022 | default(false) | bool else 'false' }}
+  win2025:
+    ci: false
+    supported: {{ 'true' if win2025 | default(false) | bool else 'false' }}
