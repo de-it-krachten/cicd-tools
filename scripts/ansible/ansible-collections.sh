@@ -151,6 +151,12 @@ function Collections_custom
   # Create emty first file
   touch ${TMPFILE}-col1
 
+  # Create .collections from template
+  if [[ -f .collections.j2 ]]
+  then
+    Template .collections.j2
+  fi
+
   # Get all collection files
   Collection_files=$(ls .collections ${Roledir}/*/.collections 2>/dev/null)
 
