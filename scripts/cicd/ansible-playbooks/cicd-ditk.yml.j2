@@ -79,6 +79,10 @@ ci_templates:
     src: git/templates/gitignore
     dest: .gitignore
     force: false
+  ansible-lint:
+    src: ansible-lint/templates/ansible-lint
+    dest: .ansible-lint
+    # force: no
 
 # yamllint
 yamllint: {}
