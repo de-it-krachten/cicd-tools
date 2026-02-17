@@ -15,8 +15,56 @@ jobs:
       repository-projects: write
     runs-on: ubuntu-latest
     steps:
+
+<% set github_branch_protection = github.branch_protection | default(false) %>
+<% if github_branch_protection | bool %>
+
+      - uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ secrets.<= github.app_id | default('dummy') => }}
+          private-key: ${{ secrets.<= github.private_key | default('dummy') => }}
+
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Update requirements due to main
+        run: |
+          set -e
+
+          # Define Git settings
+          git config --global user.email "<= github.git_email =>"
+          git config --global user.name "<= github.git_name =>"
+
+          # Checkout main branch
+          git pull
+          git checkout main
+
+          # Link to the correct requirements.yml
+          file=roles/requirements-main.yml
+          link=roles/requirements.yml
+          if [[ -f $file && ! $(readlink -f $link) =~ $file ]]
+          then
+            cd roles
+            ln -fs ${file##*/} ${link##*/}
+            cd - >/dev/null
+          fi
+
+          # Commit update
+          if [[ $(git status -s) != "" ]]
+          then
+            git commit -am "Update roles/requirements.yml due to merge to 'main'"
+            git push origin main
+          fi
+          exit 0
+
+<% else %>
+
       - name: Checkout
         uses: actions/checkout@v4
+
+<% endif %>
 
       - name: Use Node.js 20
         uses: actions/setup-node@v4

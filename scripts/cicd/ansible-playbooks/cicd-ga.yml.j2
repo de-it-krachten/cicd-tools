@@ -27,13 +27,19 @@ github:
   parallel: true
   owner: Automation-Erfpacht
   repo: {{ Name }}
+  # For Github with branch protection, we need a Github App that has write permissions
+  branch_protection: true
+  app_id: APP_BRANCH_BYPASS_ID  # Github secret that holds the app id
+  private_key: APP_BRANCH_BYPASS_PRIVATE_KEY  # Github secret that holds app private key
+  git_email: automation.erfpacht@amsterdam.nl
+  git_name: Automation Erfpacht Bot
   # https://docs.ansible.com/ansible/latest/reference_appendices/release_and_maintenance.html
   image: ubuntu2204
   python: '3.13'
   lint_matrix:
-    - name: ansible_2.17
-      ansible: "ansible>10,<11"
-      ansible_core: "ansible-core>2.17,<2.18"
+    - name: ansible_2.16
+      ansible: "ansible9>,<10"
+      ansible_core: "ansible-core>2.16,<2.17"
       ansible_lint: "ansible-lint"
       python: "3.13"
     - name: ansible_2.18
@@ -79,6 +85,10 @@ ci_templates:
     src: git/templates/gitignore
     dest: .gitignore
     force: false
+  ansible-lint:
+    src: ansible-lint/templates/ansible-lint
+    dest: .ansible-lint
+    force: no
 
 # Ansible-lint
 ansible_lint:
