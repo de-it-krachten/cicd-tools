@@ -84,7 +84,9 @@
       - almalinux8
       - almalinux9
       - sles15
+      - sles16
       - opensuse15
+      - opensuse16
 
 <% for key, value in molecule['prepare']['vars'].items() %>
 <% if value is search('{{') %>
@@ -232,9 +234,8 @@
         - name: Install default packages
           ansible.builtin.package:
             name:
-              - lsb
+              - lsb-release
               - iproute
-              - python-xml
               - python3-xml
               - python3-rpm
               - unzip
