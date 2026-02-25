@@ -79,6 +79,16 @@ ci_templates:
     src: git/templates/gitignore
     dest: .gitignore
     force: false
+  ansible-lint:
+    src: ansible-lint/templates/ansible-lint
+    dest: .ansible-lint
+    force: no
+
+# Ansible-lint
+ansible_lint:
+  exclude_paths:
+    - molecule/
+  skip_list: []
 
 # yamllint
 yamllint: {}

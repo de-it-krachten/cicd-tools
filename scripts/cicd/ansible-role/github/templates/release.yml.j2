@@ -15,8 +15,26 @@ jobs:
       repository-projects: write
     runs-on: ubuntu-latest
     steps:
+
+<% set github_branch_protection = github.branch_protection | default(false) %>
+<% if github_branch_protection | bool %>
+
+      - uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ secrets.<= github.app_id | default('dummy') => }}
+          private-key: ${{ secrets.<= github.private_key | default('dummy') => }}
+
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+
+<% else %>
+
       - name: Checkout
         uses: actions/checkout@v4
+
+<% endif %>
 
       - name: Use Node.js 20
         uses: actions/setup-node@v4
