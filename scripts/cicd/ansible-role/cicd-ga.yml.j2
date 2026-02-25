@@ -43,7 +43,12 @@ github:
   parallel: true
   owner: Automation-Erfpacht
   repo: {{ Role }}
+  # For Github with branch protection, we need a Github App that has write permissions
   branch_protection: true
+  app_id: APP_BRANCH_BYPASS_ID  # Github secret that holds the app id
+  private_key: APP_BRANCH_BYPASS_PRIVATE_KEY  # Github secret that holds app private key
+  git_email: automation.erfpacht@amsterdam.nl
+  git_name: Automation Erfpacht Bot
   lint_matrix:
     - name: ansible_2.16 # latest version to supports python3.6 (rhel8)
       ansible: "ansible>9,<10"

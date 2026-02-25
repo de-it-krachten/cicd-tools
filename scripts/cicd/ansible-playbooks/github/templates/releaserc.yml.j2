@@ -14,15 +14,12 @@ plugins:
   # Generate release notes
   - "@semantic-release/release-notes-generator"
 
-<% if not github.branch_protection | default(false) | bool %>
   # Update CHANGELOG.md
   - - "@semantic-release/changelog"
 
-<% endif %>
   # Update Github release
   - - "@semantic-release/github"
 
-<% if not github.branch_protection | default(false) | bool %>
   # Commit galaxy.yml + changelog changes
   - - "@semantic-release/git"
     - assets:
@@ -31,4 +28,3 @@ plugins:
 
 
         ${nextRelease.notes}'
-<% endif %>

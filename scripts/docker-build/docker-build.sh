@@ -150,8 +150,19 @@ function Setup
   [[ -f build-custom.yml ]] && cp build-custom.yml ${TMPDIR}/ansible
   [[ -d additional_files ]] && rsync -av additional_files/ ${TMPDIR}/ansible
 
+  # Get ansible executable
+  ansible=$(which ansible 2>/dev/null)
+  if [[ -z $ansible ]]
+  then
+    echo "No ansible found!" >&2
+    exit 1
+  fi
+ 
+  # Get python used by ansible
+  python_interpreter=$(echo $ansible | sed "s/ansible$/python3/")
+
   cd ${TMPDIR}/ansible
-  Ansible_args="-i localhost, -c local $Verbose1"
+  Ansible_args="-i localhost, -c local $Verbose1 -e ansible_python_interpreter=$python_interpreter"
   ansible-galaxy install -r ${TMPDIR}/ansible/roles/requirements.yml -p ${TMPDIR}/ansible/roles/ --ignore-errors
 
 }
@@ -311,7 +322,6 @@ then
   exit 1
 fi
 
-
 #----------------------------------------------------------
 # set-up required structure
 #----------------------------------------------------------
@@ -346,7 +356,7 @@ fi
   echo "Executing build phase"
   echo "================================================================="
 
-  ansible-playbook ${TMPDIR}/ansible/build.yml $Ansible_args
+  ansible-playbook ${TMPDIR}/ansible/build.yml $Ansible_args -e ansible_python_interpreter=$(which python3)
 
 #fi
 
