@@ -1,3 +1,15 @@
+# [1.6.0](https://github.com/de-it-krachten/cicd-tools/compare/v1.5.2...v1.6.0) (2026-02-25)
+
+
+### Bug Fixes
+
+* Update CI templates ([27b0b65](https://github.com/de-it-krachten/cicd-tools/commit/27b0b6500431496d0a028209dce1c87d45be108a))
+
+
+### Features
+
+* Add support for OpenSUSE/SLES 16 ([29e655a](https://github.com/de-it-krachten/cicd-tools/commit/29e655a89d1318947efb3540579f7d5f6a3de25b))
+
 ## [1.5.2](https://github.com/de-it-krachten/cicd-tools/compare/v1.5.1...v1.5.2) (2026-02-07)
 
 
