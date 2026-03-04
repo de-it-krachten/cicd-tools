@@ -37,7 +37,7 @@
 
     - name: Define some sub-keys as top-level
       ansible.builtin.set_fact:
-        "{{ item }}": "{{ vars['cicd'][item] }}"
+        "{{ item }}": "{{ cicd[item] }}"
       when: cicd[item] is defined
       loop:
         - generic

@@ -74,7 +74,7 @@
 
     - name: Define some sub-keys as top-level
       ansible.builtin.set_fact:
-        "{{ item }}": "{{ vars['cicd'][item] }}"
+        "{{ item }}": "{{ cicd[item] }}"
       loop:
         - generic
         - dependencies
@@ -248,7 +248,7 @@
         block_start_string: "<%"
         block_end_string: "%>"
         mode: "0644"
-      when: item.value.when is undefined or vars[item.value.when]|bool
+      when: item.value.when is undefined or lookup('vars', item.value.when) | bool
       loop: "{{ cicd.ci_templates|dict2items }}"
 
     - name: Delete all files no longer needed
