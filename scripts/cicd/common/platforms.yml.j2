@@ -514,10 +514,10 @@ platforms:
           - network_name: private_network
             type: dhcp
             auto_config: true
-  opensusetumbleweed15:
-    name: openSUSE Tumbleweed 15
-    ci: {{ platform_defaults.opensusetumbleweed15.ci | lower }}
-    supported: {{ platform_defaults.opensusetumbleweed15.supported | lower }}
+  opensusetumbleweed:
+    name: openSUSE Tumbleweed
+    ci: {{ platform_defaults.opensusetumbleweed.ci | lower }}
+    supported: {{ platform_defaults.opensusetumbleweed.supported | lower }}
     galaxy:
       name: opensuse
       version: all

@@ -10,7 +10,7 @@
     bindir: "{{ lookup('env', 'BINDIR') }}"
     tmpdir: "{{ lookup('env', 'TMPDIR') }}"
     github_owner: de-it-krachten
-    github_repo: "{{ name }}"
+    github_repo: "{{ r_name }}"
     readme_file: README.md
     md_template1: README-playbook.md.j2
     tasklists: {}

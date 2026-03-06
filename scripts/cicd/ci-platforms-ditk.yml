@@ -57,20 +57,17 @@ platform_defaults:
     supported: true
   sles15:
     ci: false
-    supported: true
+    supported: false
   sles16:
     ci: false
-    supported: true
+    supported: false
   opensuse15:
-    ci: true
-    supported: true
-  opensuse16:
-    ci: true
-    supported: true
-  opensusetumbleweed15:
     ci: false
     supported: false
-  opensusetumbleweed16:
+  opensuse16:
+    ci: false
+    supported: false
+  opensusetumbleweed:
     ci: false
     supported: false
   debian10:

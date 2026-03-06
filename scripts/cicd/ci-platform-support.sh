@@ -189,10 +189,18 @@ EOF
 function Snapshot
 {
 
+  local Phase=$1
+
+  [[ $Phase == pre ]] && File=.snapshot1
+  [[ $Phase == post ]] && File=.snapshot2
+
+  # Skip if snapshot file already exists
+  [[ $Phase == pre && -s $File ]] && return 0
+
   yq -s '.[0] * .[1]' .cicd .cicd.overwrite | \
   yq -r '.platforms | to_entries | .[] | [.key, .value.name, .value.ci, .value.supported] | @csv' | \
   sed "s/,/|/g" | \
-  sed "s/\"//g"
+  sed "s/\"//g" > $File
 
 }
 
@@ -211,16 +219,34 @@ function Commit
   for Distro in $Headers
   do
 
-    Pre=$(awk -F'|' '$1=="'$Distro'" {print $4}' ${TMPFILE}snapshot1)
-    Post=$(awk -F'|' '$1=="'$Distro'" {print $4}' ${TMPFILE}snapshot2)
+    # Translate some older distro identifiers
+    Pre=$(awk -F'|' '$1 ~ "'$Distro'" {print $4}' ${TMPFILE}snapshot1)
+    Post=$(awk -F'|' '$1 ~ "'$Distro'" {print $4}' ${TMPFILE}snapshot2)
+
     if [[ $Pre != $Post ]]
     then
-      Os=$(awk -F'|' '$1=="'$Distro'" {print $2}' ${TMPFILE}snapshot2)
+
+      Os1=$(awk -F'|' '$1 ~ "'$Distro'" {print $2}' ${TMPFILE}snapshot1)
+      Os2=$(awk -F'|' '$1 ~ "'$Distro'" {print $2}' ${TMPFILE}snapshot2)
+
+#      if [[ $Os1 == "" ]]
+#      then
+#        echo "Unable to find existing distribution '$Distro" >&2
+#        exit 1
+#      fi
+
+      if [[ $Os2 == "" ]]
+      then
+        echo "Unable to find distribution '$Distro" >&2
+        exit 1
+      fi
+
       if [[ $Post == true ]]
       then
-        git commit -am "feat: Added support for $Os" --allow-empty
-      else
-        git commit -am "feat: Removed support for $Os" --allow-empty
+        git commit -am "feat: Added support for $Os2" --allow-empty
+      elif [[ $Pre == true && $Post == false ]]
+      then
+        git commit -am "feat: Drop support for $Os2" --allow-empty
       fi
     fi
 
@@ -246,7 +272,7 @@ Dry_run=false
 Echo=
 
 # parse command line into arguments and check results of parsing
-while getopts :cdDhosv-: OPT
+while getopts :cdDhos:v-: OPT
 do
 
   # Support long options
@@ -279,6 +305,7 @@ do
       ;;
     s|snapshot)
       Mode=snapshot
+      Phase=$OPTARG
       ;;
     v|verbose)
       Verbose=true
@@ -299,7 +326,7 @@ shift $(($OPTIND -1))
 if [[ ! -f $CSVFILE ]]
 then
   echo "Role support matrix '$CSVFILE' could not be found!" >&2
-  exit 1
+  exit 0
 fi
 
 case $Mode in
@@ -308,7 +335,7 @@ case $Mode in
     Commit
     ;;
   snapshot)
-    Snapshot
+    Snapshot $Phase
     ;;
   cicd-overwrite)
     Get_headers
