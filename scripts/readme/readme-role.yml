@@ -9,7 +9,7 @@
   vars:
     tmpdir: "{{ lookup('env', 'TMPDIR') }}"
     github_owner: de-it-krachten
-    github_repo: "{{ name }}"
+    github_repo: "{{ r_name }}"
     readme_file: README.md
     md_template1: README-role.md.j2
     md_template2: README-tasklist.md.j2
@@ -26,10 +26,22 @@
           tmpdir: "{{ tmpdir }}"
           working_dir: "{{ working_dir }}"
 
-    - name: Load .cicd and .cicd.overwrite files
+    - name: Load configuration files
       ansible.builtin.set_fact:
-        cicd_vars: "{{ lookup('file', working_dir+'/.cicd') | from_yaml }}"
-        cicd_vars_overwrite: "{{ lookup('file', working_dir+'/.cicd.overwrite') | from_yaml }}"
+        cicd_vars: "{{ lookup('file', working_dir + '/.cicd') | from_yaml }}"
+        cicd_vars_overwrite: "{{ lookup('file', working_dir + '/.cicd.overwrite') | from_yaml }}"
+        dep_roles: >-
+          {{
+            (lookup('file', working_dir + '/.roles') | from_yaml).roles 
+              | map(attribute='name')
+              | list
+          }}
+        dep_collections: >-
+          {{
+            (lookup('file', working_dir + '/.collections') | from_yaml).collections
+              | map(attribute='name')
+              | list
+          }}
 
     - name: Merge dicts
       ansible.builtin.set_fact:
@@ -74,16 +86,11 @@
       ansible.builtin.set_fact:
         platforms: "{{ platforms|combine(platforms_overwrite, recursive=True) }}"
 
-    - name: Read extra dependencies from file
-      ansible.builtin.set_fact:
-        dep_roles: "{{ lookup('file', working_dir+'/.roles') | from_yaml | json_query('roles') }}"
-        dep_collections: "{{ lookup('file', working_dir+'/.collections') | from_yaml | json_query('collections[].name') }}"
-
     - name: Define dependencies
       ansible.builtin.set_fact:
         dependencies:
-          roles: "{{ (dependencies.roles | default([])) + dep_roles | sort | unique }}"
-          collections: "{{ (dependencies.collections | default([])) + dep_collections | sort | unique }}"
+          roles: "{{ ((dependencies.roles | default([])) + dep_roles) | sort | unique }}"
+          collections: "{{ ((dependencies.collections | default([])) + dep_collections) | sort | unique }}"
 
     - name: Create directories beneath $TMPDIR
       ansible.builtin.file:
@@ -98,32 +105,36 @@
     - name: Get all variable files below defaults + vars
       ansible.builtin.find:
         paths:
-          - "{{ working_dir }}/defaults"
-          - "{{ working_dir }}/vars"
+          - "{{ working_dir }}"
         patterns: "*.yml"
+        recurse: true
         follow: true
-        file_type: any
       register: _varfiles
+
+    - name: Narrow down list of files
+      ansible.builtin.set_fact:
+        variable_files: >-
+          {{ _varfiles.files
+             | selectattr('path', 'search', '/(vars|defaults)/')
+             | map(attribute='path')
+             | list
+          }}
 
     - name: Copy all variable files into $TMPDIR
       ansible.builtin.copy:
-        src: "{{ item.path }}"
-        dest: "{{ tmpdir }}/{{ item.path | dirname | basename }}/{{ item.path | basename }}"
+        src: "{{ item }}"
+        dest: "{{ tmpdir }}/{{ item | dirname | basename }}/{{ item | basename }}"
         remote_src: true
         mode: "0644"
-      loop: "{{ _varfiles.files }}"
-      loop_control:
-        label: "{{ item.path }}"
+      loop: "{{ variable_files }}"
 
     - name: Strip all variable files
       ansible.builtin.shell: |
-        varfile={{ tmpdir }}/{{ item.path | dirname | basename }}/{{ item.path | basename }}
+        varfile={{ tmpdir }}/{{ item | dirname | basename }}/{{ item | basename }}
         sed -i "/^---$/d" $varfile
         sed -i -n '/./,$p' $varfile
       changed_when: true
-      loop: "{{ _varfiles.files }}"
-      loop_control:
-        label: "{{ item.path }}"
+      loop: "{{ variable_files }}"
 
     - name: Molecule/defaults/converge.yml | create temporary file and remove unwanted lines
       ansible.builtin.shell: |
@@ -143,6 +154,7 @@
       ansible.builtin.set_fact:
         defaultsfiles: "{{ lookup('fileglob', tmpdir+'/defaults/*.yml', wantlist=True) | sort }}"
 
+    # Basic README w/out task lists
     - name: README w/out task lists
       when: tasklists | default([]) | length == 0
       block:
@@ -153,7 +165,7 @@
             dest: "{{ working_dir }}/{{ readme_file }}"
             mode: "0644"
 
-
+    # Basic README w/ task lists
     - name: README w/ task lists
       when: tasklists | default([]) | length > 0
       block:

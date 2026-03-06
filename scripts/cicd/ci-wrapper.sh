@@ -50,6 +50,8 @@ HOSTNAME=$(hostname -s)
 #
 ##############################################################
 
+CICD_ROOT=/opt/cicd-tools
+
 
 ##############################################################
 #
@@ -102,19 +104,19 @@ function Readme
     lines=$(cat README.md | wc -l)
     if grep -q "^## Platforms" README.md ; then
       echo "Updating generic README"
-      /opt/cicd-tools/bin/readme.sh
+      ${CICD_ROOT}/bin/readme.sh
     elif [[ $lines == 1 ]]
     then
       echo "Updating generic README"
-      /opt/cicd-tools/bin/readme.sh
+      ${CICD_ROOT}/bin/readme.sh
     else
       echo "Renaming custom README.md -> README-original.md"
       mv README.md README-original.md
-      /opt/cicd-tools/bin/readme.sh
+      ${CICD_ROOT}/bin/readme.sh
     fi
   else
     echo "Creating new README.md (none present)"
-    /opt/cicd-tools/bin/readme.sh
+    ${CICD_ROOT}/bin/readme.sh
   fi
 
 }
@@ -196,48 +198,64 @@ Args="--platforms=$Platforms"
 case $repo in
   ansible-role-*)
 
-    /opt/cicd-tools/bin/ansible-get-collections.sh > .collections1
+    # Generate collections
+    ${CICD_ROOT}/bin/ansible-get-collections.sh > .collections1
     cp .collections1 .collections
     rm -f .collections1
+
+    # Generate .gitignore
     echo "Ansible role repo '$repo'"
     [[ ! -s .gitignore ]] && touch .gitignore
     sed -i -r "s|^(molecule/default/molecule.yml)$|#\\1|" .gitignore
 
     # Create support snapshot @start
-    [[ ! -s .snapshot1 ]] && ${DIRNAME}/ci-platform-support.sh --snapshot > .snapshot1
+    ${CICD_ROOT}/bin/ci-platform-support.sh --snapshot=pre
 
     # Update .cicd file
-    /opt/cicd-tools/bin/ci-init.sh $Args -m role -iF
+    ${CICD_ROOT}/bin/ci-init.sh $Args -m role -iF
     [[ $Phase == 1 ]] && exit 0
 
     # Update .cicd.overwrite file
-    ${DIRNAME}/ci-platform-support.sh --cicd-overwrite 
+    ${CICD_ROOT}/bin/ci-platform-support.sh --cicd-overwrite 
 
     # Update all CI code
-    /opt/cicd-tools/bin/ci-init.sh $Args -m role
+    ${CICD_ROOT}/bin/ci-init.sh $Args -m role || exit 1
 
     # Create support snapshot @end
-    ${DIRNAME}/ci-platform-support.sh --snapshot > .snapshot2
+    ${CICD_ROOT}/bin/ci-platform-support.sh --snapshot=post
 
     # Update README
     Readme
 
     # Commit all support changes
-    ${DIRNAME}/ci-platform-support.sh --commit
+    ${CICD_ROOT}/bin/ci-platform-support.sh --commit
 
     ;;
   ansible-playbooks-*)
+
+    # Update .cicd file
     echo "Ansible playbook repo '$repo'"
-    /opt/cicd-tools/bin/ci-init.sh $Args -m playbook -iF
+    ${DIRNAME}/bin/ci-init.sh $Args -m playbook -iF
     [[ $Phase == 1 ]] && exit 0
-    /opt/cicd-tools/bin/ci-init.sh $Args -m playbook
+
+    # Update all CI code
+    ${DIRNAME}/bin/ci-init.sh $Args -m playbook
+
+    # Update README
     Readme
     ;;
+
   ansible-collection-*)
+
+    # Update .cicd file
     echo "Ansible collection repo '$repo'"
-    /opt/cicd-tools/bin/ci-init.sh $Args -m collection -iF
+    ${DIRNAME}/bin/ci-init.sh $Args -m collection -iF
     [[ $Phase == 1 ]] && exit 0
-    /opt/cicd-tools/bin/ci-init.sh $Args -m collection
+
+    # Update all CI code
+    ${DIRNAME}/bin/ci-init.sh $Args -m collection
+
+    # Update README
     Readme
     ;;
   *)
