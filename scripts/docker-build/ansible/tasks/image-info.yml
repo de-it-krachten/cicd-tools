@@ -1,0 +1,25 @@
+---
+
+- name: Retrieve image info (docker)
+  community.docker.docker_image_info:
+    name: "{{ image_name }}"
+  when: container_tool == 'docker'
+  register: __image_info
+
+# - name: Retrieve image info (podman)
+#   containers.podman.podman_image_info:
+#     name: "{{ image_name }}"
+#   when: container_tool == 'podman'
+#   register: __image_info
+
+- name: Save entrypoint / cmd
+  ansible.builtin.set_fact:
+    "{{ cmd }}": "{{ __image_info.images[0]['Config']['Cmd'] | default(None) }}"
+    "{{ entrypoint }}": "{{ __image_info.images[0]['Config']['Entrypoint'] | default(None) }}"
+
+- name: Show image specifics
+  ansible.builtin.debug:
+    msg:
+      image_name: "{{ image_name }}"
+      Cmd: "{{ vars[cmd] }}"
+      Entrypoint: "{{ vars[entrypoint] }}"
