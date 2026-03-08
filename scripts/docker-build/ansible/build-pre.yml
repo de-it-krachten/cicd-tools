@@ -69,20 +69,17 @@
                 name: "{{ build_vars.image.parent }}"
                 source: pull
 
-            - name: Retrieve parent image info
-              community.docker.docker_image_info:
-                name: "{{ build_vars.image.parent }}"
-              register: __image_info
-
-            - name: Show parent image specifics
-              ansible.builtin.debug:
-                msg:
-                  Cmd: "{{ __image_info.images[0]['Config']['Cmd'] | default(None) }}"
-                  Entrypoint: "{{ __image_info.images[0]['Config']['Entrypoint'] | default(None) }}"
+            - name: Get parent image info
+              ansible.builtin.include_tasks:
+                file: tasks/image-info.yml
+              vars:
+                image_name: "{{ build_vars.image.parent }}"
+                cmd: Cmd_p
+                entrypoint: Entrypoint_p
 
             - name: Create image from Dockerfile (docker)
               community.docker.docker_image:
-                name: "{{ build_vars.image.name }}"
+                name: "{{ build_vars.image.name }}:tmp"
                 source: build
                 build:
                   path: "{{ buildpath }}"
@@ -95,25 +92,36 @@
                 msg: "{{ _build.stdout_lines }}"
               when: _build.stdout is defined
 
-            - name: Retrieve image info
-              community.docker.docker_image_info:
-                name: "{{ build_vars.image.name }}"
-              register: __image_info
+            - name: Get new image info
+              ansible.builtin.include_tasks:
+                file: tasks/image-info.yml
+              vars:
+                image_name: "{{ build_vars.image.name }}:tmp"
+                cmd: Cmd
+                entrypoint: Entrypoint
 
-            - name: Show image specifics
+            - name: Show container settings
               ansible.builtin.debug:
                 msg:
-                  Cmd: "{{ __image_info.images[0]['Config']['Cmd'] | default(None) }}"
-                  Entrypoint: "{{ __image_info.images[0]['Config']['Entrypoint'] | default(None) }}"
+                  name: "{{ build_vars.container.name }}"
+                  image: "{{ build_vars.image.name }}:tmp"
+                  container_default_behavior: no_defaults
+                  privileged: "{{ build_vars.container.priviledged | default(False) }}"
+                  volumes: "{{ build_vars.container.volumes | default(omit) }}"
+                  entrypoint: "{{ build_vars.container.entrypoint | default(omit) }}"
+                  cgroupns_mode: "{{ build_vars.container.cgroupns_mode | default(omit) }}"
+              when:
+                - build_vars.container.name is defined
 
             - name: Deploy container from new image
               community.docker.docker_container:
                 name: "{{ build_vars.container.name }}"
-                image: "{{ build_vars.image.name }}"
+                image: "{{ build_vars.image.name }}:tmp"
                 container_default_behavior: no_defaults
                 privileged: "{{ build_vars.container.priviledged | default(False) }}"
                 volumes: "{{ build_vars.container.volumes | default(omit) }}"
                 entrypoint: "{{ build_vars.container.entrypoint | default(omit) }}"
+                cgroupns_mode: "{{ build_vars.container.cgroupns_mode | default(omit) }}"
               when:
                 - build_vars.container.name is defined
 
@@ -127,20 +135,17 @@
               containers.podman.podman_image:
                 name: "{{ build_vars.image.parent }}"
 
-            - name: Retrieve image info
-              containers.podman.podman_image_info:
-                name: "{{ build_vars.image.parent }}"
-              register: __image_info
-
-            - name: Show image specifics
-              ansible.builtin.debug:
-                msg:
-                  Cmd: "{{ __image_info.images[0]['Config']['Cmd'] | default(None) }}"
-                  Entrypoint: "{{ __image_info.images[0]['Config']['Entrypoint'] | default(None) }}"
+            - name: Get image info
+              ansible.builtin.include_tasks:
+                file: tasks/image-info.yml
+              vars:
+                image_name: "{{ build_vars.image.parent }}"
+                cmd: Cmd_p
+                entrypoint: Entrypoint_p
 
             - name: Create image from Dockerfile (podman)
               containers.podman.podman_image:
-                name: "{{ build_vars.image.name }}"
+                name: "{{ build_vars.image.name }}:{{ build_vars.image.tag }}"
                 path: "{{ buildpath }}"
                 build:
                   format: docker
@@ -152,10 +157,18 @@
                 msg: "{{ _build.stdout_lines }}"
               when: _build.stdout is defined
 
-            - name: Run container
+            - name: Get image info
+              ansible.builtin.include_tasks:
+                file: tasks/image-info.yml
+              vars:
+                image_name: "{{ build_vars.image.parent }}"
+                cmd: Cmd
+                entrypoint: Entrypoint
+
+            - name: Deploy container from new image
               containers.podman.podman_container:
                 name: "{{ build_vars.container.name }}"
-                image: "{{ build_vars.image.name }}"
+                image: "{{ build_vars.image.name }}:{{ build_vars.image.tag }}"
                 privileged: "{{ build_vars.container.priviledged | default(False) }}"
                 volumes: "{{ build_vars.container.volumes | default(omit) }}"
                 entrypoint: "{{ build_vars.container.entrypoint | default(omit) }}"
@@ -167,7 +180,6 @@
 - name: Add container to inventory
   hosts: localhost
   vars:
-    ansible_python_interpreter: /usr/bin/python3
     docker_build_refresh: "{{ lookup('env', 'DOCKER_BUILD_REFRESH') | bool }}"
     container_tool: "{{ lookup('env', 'DOCKER_BINARY') }}"
   tasks:
@@ -186,4 +198,6 @@
         #   -H tcp://127.0.0.1:2375
         groups:
           - containers
+      vars:
+        ansible_python_interpreter: /usr/bin/python3
       when: build_vars.container.name is defined
