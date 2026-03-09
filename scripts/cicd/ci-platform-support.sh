@@ -151,6 +151,10 @@ function Cicd_overwrite
         support=false
         ci=false
         ;;
+      C|c)
+        support=false
+        ci=true
+        ;;
       x)
         echo "Warning: $Header is not defined!" >&2
         ;;
@@ -212,9 +216,9 @@ function Commit
   mv .snapshot2 ${TMPFILE}snapshot2
 
   # Commit all files
-  git status
-  git add .
-  git commit -m "Update CI"
+#  git status
+#  git add .
+#  git commit -m "Update CI"
 
   for Distro in $Headers
   do
@@ -243,10 +247,30 @@ function Commit
 
       if [[ $Post == true ]]
       then
-        git commit -am "feat: Added support for $Os2" --allow-empty
+        git commit -m "feat: Added support for $Os2" --allow-empty
       elif [[ $Pre == true && $Post == false ]]
       then
-        git commit -am "feat: Drop support for $Os2" --allow-empty
+
+        if [[ $Distro =~ (sles|opensuse) ]]
+        then
+          
+          # Remove obsolete commit message
+          id=$(git log --oneline main..dev | grep "Added support for ${Os2}" | awk '{print $1}')
+          if [[ -z $id ]]
+          then
+            git commit -m "feat: Drop support for $Os2" --allow-empty
+          else
+            if [[ $(git status -s) != "" ]]
+            then
+              git add .
+              git commit -m "Update CI"
+            fi
+            git rebase --onto ${id}^ ${id}
+          fi
+        else
+          git commit -m "feat: Drop support for $Os2" --allow-empty
+        fi
+
       fi
     fi
 
