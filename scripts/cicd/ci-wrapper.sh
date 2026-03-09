@@ -140,11 +140,12 @@ Echo=
 
 Phase=all
 Silent=false
+Initial=false
 
 Platforms=${CICD_ORGANIZATION}
 
 # parse command line into arguments and check results of parsing
-while getopts :dp:sw-: OPT
+while getopts :dip:sw-: OPT
 do
 
   # Support long options
@@ -161,6 +162,9 @@ do
     h|help)
       Usage
       exit 0
+      ;;
+    i|initial)
+      Initial=true
       ;;
     p|phase)
       Phase=$OPTARG
@@ -209,7 +213,7 @@ case $repo in
     sed -i -r "s|^(molecule/default/molecule.yml)$|#\\1|" .gitignore
 
     # Create support snapshot @start
-    ${CICD_ROOT}/bin/ci-platform-support.sh --snapshot=pre
+    [[ $Initial == false ]] && ${CICD_ROOT}/bin/ci-platform-support.sh --snapshot=pre
 
     # Update .cicd file
     ${CICD_ROOT}/bin/ci-init.sh $Args -m role -iF
@@ -222,13 +226,13 @@ case $repo in
     ${CICD_ROOT}/bin/ci-init.sh $Args -m role || exit 1
 
     # Create support snapshot @end
-    ${CICD_ROOT}/bin/ci-platform-support.sh --snapshot=post
+    [[ $Initial == false ]] && ${CICD_ROOT}/bin/ci-platform-support.sh --snapshot=post
 
     # Update README
     Readme
 
     # Commit all support changes
-    ${CICD_ROOT}/bin/ci-platform-support.sh --commit
+    [[ $Initial == false ]] && ${CICD_ROOT}/bin/ci-platform-support.sh --commit
 
     ;;
   ansible-playbooks-*)
@@ -266,7 +270,7 @@ esac
 
 # Enable Github CI
 set +e
-gh workflow enable CI
+gh workflow enable CI 2>/dev/null
 
 # Exit cleanly
 exit 0
