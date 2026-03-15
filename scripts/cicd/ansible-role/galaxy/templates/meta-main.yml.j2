@@ -11,7 +11,7 @@ galaxy_info:
 <% for platform in galaxy_platforms %>
     - name: <= platform =>
       versions:
-<% for version in vars['galaxy_versions_'+platform] %>
+<% for version in lookup('vars', 'galaxy_versions_' + platform) %>
         - "<= version =>"
 <% endfor %>
 <% endfor %>

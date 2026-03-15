@@ -67,9 +67,7 @@ platform_defaults:
   opensuse16:
     ci: false
     supported: false
-  opensusetumbleweed15:
-    ci: false
-  opensusetumbleweed16:
+  opensusetumbleweed:
     ci: false
     supported: false
   debian10:

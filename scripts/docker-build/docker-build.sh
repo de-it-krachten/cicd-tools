@@ -162,7 +162,7 @@ function Setup
   python_interpreter=$(echo $ansible | sed "s/ansible$/python3/")
 
   cd ${TMPDIR}/ansible
-  Ansible_args="-i localhost, -c local $Verbose1 -e ansible_python_interpreter=$python_interpreter"
+  Ansible_args="-i localhost, -c local $Verbose1"
   ansible-galaxy install -r ${TMPDIR}/ansible/roles/requirements.yml -p ${TMPDIR}/ansible/roles/ --ignore-errors
 
 }
@@ -356,7 +356,7 @@ fi
   echo "Executing build phase"
   echo "================================================================="
 
-  ansible-playbook ${TMPDIR}/ansible/build.yml $Ansible_args -e ansible_python_interpreter=$(which python3)
+  ansible-playbook ${TMPDIR}/ansible/build.yml $Ansible_args --skip-tags molecule-notest
 
 #fi
 

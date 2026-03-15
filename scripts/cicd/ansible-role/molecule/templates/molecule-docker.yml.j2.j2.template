@@ -46,6 +46,12 @@ platforms:
   <% for node in molecule.nodes|default([]) %>
   - name: <= generic.role_short =>-{{ platform.name }}-<= node.name =>
     image: "{{ platform.image }}"
+{% if platform.cap_add is defined %}
+    cap_add:
+{% for cap in platform.cap_add %}
+      - {{ cap }}
+{% endfor %}
+{% endif %}
 {% if platform.kernel_memory is defined %}
     kernel_memory: {{ platform.kernel_memory }}
 {% endif %}

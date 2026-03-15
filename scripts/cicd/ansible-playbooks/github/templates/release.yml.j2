@@ -25,7 +25,7 @@ jobs:
           app-id: ${{ secrets.<= github.app_id | default('dummy') => }}
           private-key: ${{ secrets.<= github.private_key | default('dummy') => }}
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           token: ${{ steps.app-token.outputs.token }}
 
@@ -62,14 +62,14 @@ jobs:
 <% else %>
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
 <% endif %>
 
-      - name: Use Node.js 20
-        uses: actions/setup-node@v4
+      - name: Use Node.js 24
+        uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 24
 
       - name: Install package dependencies
         run: |

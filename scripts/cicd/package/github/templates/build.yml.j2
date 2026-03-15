@@ -47,7 +47,7 @@ jobs:
       PACKAGE_NAME: ${{ github.event.inputs.package_name || '<= package.name =>' }}
       VERSION: ${{ needs.get-version.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install build tools
         run: |
@@ -107,7 +107,7 @@ jobs:
 
       # Upload artifact
       - name: Upload DEB artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: built-package-deb
           path: ${PACKAGE_NAME}_*.deb
@@ -178,7 +178,7 @@ jobs:
 
       # Upload artifact
       - name: Upload RPM artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: built-package-rpm
           path: ~/rpmbuild/RPMS/noarch/*.rpm

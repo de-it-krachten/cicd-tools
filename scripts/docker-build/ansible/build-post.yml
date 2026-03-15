@@ -18,49 +18,77 @@
           ansible.builtin.set_fact:
             build_vars: "{{ lookup('file', 'docker-settings.yml') | from_yaml }}"
 
-        - name: Retrieve image info
-          community.docker.docker_image_info:
-            name: "{{ build_vars.image.name }}"
-          register: __image_info
-
-        - name: Define settings
-          ansible.builtin.set_fact:
-            entrypoint: '{{ __image_info.images[0].Config.Entrypoint | default([""], true) }}'
-            cmd: '{{ __image_info.images[0].Config.Cmd | default([], true) }}'
-
-        - name: Show image specifics
-          ansible.builtin.debug:
-            msg:
-              entrypoint: '{{ entrypoint }}'
-              cmd: '{{ cmd }}'
+        - name: Get image info
+          ansible.builtin.include_tasks:
+            file: tasks/image-info.yml
+          vars:
+            image_name: "{{ build_vars.image.name }}:tmp"
+            cmd: Cmd
+            entrypoint: Entrypoint
 
         - name: Save running container as image
-          ansible.builtin.command: >-
-            docker container commit
-            -c 'ENTRYPOINT {{ entrypoint | to_json }}'
-            -c 'CMD {{ cmd | to_json }}'
+          ansible.builtin.command: >
+            docker commit
             {{ build_vars.container.name }}
-            {{ build_vars.image.name }}:{{ build_vars.image.tag }}
-          changed_when: true
-          # when: build_vars.container.entrypoint | default('') | length > 0
+            {{ build_vars.image.name }}:tmp
+
+        - name: Show Dockerfile for entrypoint restore
+          ansible.builtin.debug:
+            msg: |
+              FROM {{ build_vars.image.name }}:tmp
+              {% if Entrypoint | length > 0 %}
+              ENTRYPOINT {{ Entrypoint | to_json }}
+              {% else %}
+              ENTRYPOINT []
+              {% endif %}
+              {% if Cmd | length > 0 %}
+              CMD {{ Cmd | to_json }}
+              {% endif %}
+
+        - name: Create Dockerfile for entrypoint restore
+          ansible.builtin.copy:
+            content: |
+              FROM {{ build_vars.image.name }}:tmp
+              {% if Entrypoint | length > 0 %}
+              ENTRYPOINT {{ Entrypoint | to_json }}
+              {% else %}
+              ENTRYPOINT []
+              {% endif %}
+              {% if Cmd | length > 0 %}
+              CMD {{ Cmd | to_json }}
+              {% endif %}
+            dest: "{{ buildpath }}/Dockerfile.restore"
+            mode: "0640"
+
+        - name: Rebuild with original entrypoint and cmd
+          community.docker.docker_image:
+            name: "{{ build_vars.image.name }}:{{ build_vars.image.tag }}"
+            source: build
+            build:
+              path: "{{ buildpath }}"
+              dockerfile: Dockerfile.restore
 
         - name: Add additional tags
           ansible.builtin.command: >-
-            docker image tag {{ build_vars.image.name }}:{{ build_vars.image.tag }} {{ build_vars.image.name }}:{{ item }}
+            docker image tag
+            {{ build_vars.image.name }}:{{ build_vars.image.tag }}
+            {{ build_vars.image.name }}:{{ item }}
           changed_when: true
           loop: "{{ build_vars.image.tags | default([]) }}"
 
-        - name: Retrieve image info
-          community.docker.docker_image_info:
-            name: "{{ build_vars.image.name }}:{{ build_vars.image.tag }}"
-          register: __image_info
+        - name: Get image info
+          ansible.builtin.include_tasks:
+            file: tasks/image-info.yml
+          vars:
+            image_name: "{{ build_vars.image.name }}:{{ build_vars.image.tag }}"
+            cmd: Cmd
+            entrypoint: Entrypoint
 
-        - name: Show image specifics
-          ansible.builtin.debug:
-            msg:
-              entrypoint: '{{ __image_info.images[0].Config.Entrypoint | default([""], true) }}'
-              cmd: '{{ __image_info.images[0].Config.Cmd | default([], true) }}'
-
+        - name: Delete the intermediate image
+          community.docker.docker_image:
+            name: "{{ build_vars.image.name }}"
+            tag: tmp
+            state: absent
 
     - name: Save container to image (podman)
       when:
@@ -72,22 +100,17 @@
           ansible.builtin.set_fact:
             build_vars: "{{ lookup('file', 'docker-settings.yml') | from_yaml }}"
 
-        - name: Retrieve image info
-          containers.podman.podman_image_info:
-            name: "{{ build_vars.image.name }}:{{ build_vars.image.tag }}"
-          register: __image_info
-
-        - name: Show image specifics
-          ansible.builtin.debug:
-            msg:
-              entrypoint: '{{ __image_info.images[0].Config.Entrypoint | default([""], true) }}'
-              cmd: '{{ __image_info.images[0].Config.Cmd | default([], true) }}'
+        - name: Get image info
+          ansible.builtin.include_tasks:
+            file: tasks/image-info.yml
+          vars:
+            image_name: "{{ build_vars.image.name }}:{{ build_vars.image.tag }}"
+            cmd: Cmd
+            entrypoint: Entrypoint
 
         - name: Save running container as image
           ansible.builtin.command: >-
             podman container commit
-            -c 'ENTRYPOINT {{ __image_info.images[0].Config.Entrypoint | default([""], true) | to_json }}'
-            -c 'CMD {{ __image_info.images[0].Config.Cmd | default([], true) | to_json }}'
             {{ build_vars.container.name }}
             {{ build_vars.image.name }}:{{ build_vars.image.tag }}
           changed_when: true

@@ -41,12 +41,12 @@ jobs:
 
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: "${{ github.repository }}"
 
       - name: Set up Python 3.
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.13'
 
@@ -95,11 +95,43 @@ jobs:
 
       - name: Retrieve & install wrapper scripts
         run: |
-          set -e
-          sudo apt install curl
-          curl -s -o /tmp/install.sh \
-            https://raw.githubusercontent.com/de-it-krachten/ansible-role-molecule/dev/files/install.sh
-          bash /tmp/install.sh
+
+          cicd_version=${{ vars.cicd_version }}
+
+          # Install requirements
+          echo "== Installing dependencies"
+          sudo apt install curl jq -y
+
+          # If no package version was given, get the latest
+          if [[ -z $cicd_version ]]
+          then
+            echo "== Retrieving cicd_tools version"
+
+            # API uri to query
+            api_url=https://api.github.com/repos/de-it-krachten/cicd-tools/releases/latest
+
+            # Get latest release download URL for .deb asset
+            cicd_version=$(curl -s $api_url | jq -r '.tag_name' | sed "s/null//" | sed "s/^v//")
+
+          fi
+
+          # If still no version found, fall back onto a default
+          if [[ -z $cicd_version ]]
+          then
+            echo "== Fallback to default version '1.6.0'"
+            cicd_version=1.6.0
+          fi
+
+          # Construct url
+          release_url=https://github.com/de-it-krachten/cicd-tools/releases/download/v${cicd_version}/cicd-tools_${cicd_version}.deb
+
+          # Download package
+          echo "== Downloading package '$release_url'"
+          file=$(basename $release_url)
+          curl -s -L -o $file -s $release_url || exit 1
+ 
+          echo "== Installing package '$file'"
+          sudo dpkg -i $file || exit 1
 
       - name: Install required galaxy collections
         run: |
@@ -154,7 +186,7 @@ jobs:
             runs_on: <= distro.value.github.runs_on | default('ubuntu-22.04') =>
             distro: <= distro.key =>
             playbook: converge.yml
-<% if distro.key | regex_search('(rhel8|oraclelinux8|almalinux8|rockylinux8|opensuse15|sles15)') %>
+<% if distro.key | regex_search('(rhel8|centos8|oraclelinux8|almalinux8|rockylinux8|olam8|opensuse15|sles15)') %>
             ansible: "ansible-core>2.16,<2.17"
             ansible_lint: "ansible-lint>6,<7"
 <% else %>
@@ -169,7 +201,7 @@ jobs:
     steps:
 
       - name: Check out the codebase.
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: "${{ github.repository }}"
 
@@ -184,7 +216,7 @@ jobs:
 <% endif %>
 
       - name: Set up Python 3.
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.13'
 
@@ -257,11 +289,43 @@ jobs:
 
       - name: Retrieve & install wrapper scripts
         run: |
-          set -e
-          sudo apt install curl
-          curl -s -o /tmp/install.sh \
-            https://raw.githubusercontent.com/de-it-krachten/ansible-role-molecule/dev/files/install.sh
-          bash /tmp/install.sh
+
+          cicd_version=${{ vars.cicd_version }}
+
+          # Install requirements
+          echo "== Installing dependencies"
+          sudo apt install curl jq -y
+
+          # If no package version was given, get the latest
+          if [[ -z $cicd_version ]]
+          then
+            echo "== Retrieving cicd_tools version"
+
+            # API uri to query
+            api_url=https://api.github.com/repos/de-it-krachten/cicd-tools/releases/latest
+
+            # Get latest release download URL for .deb asset
+            cicd_version=$(curl -s $api_url | jq -r '.tag_name' | sed "s/null//" | sed "s/^v//")
+
+          fi
+
+          # If still no version found, fall back onto a default
+          if [[ -z $cicd_version ]]
+          then
+            echo "== Fallback to default version '1.6.0'"
+            cicd_version=1.6.0
+          fi
+
+          # Construct url
+          release_url=https://github.com/de-it-krachten/cicd-tools/releases/download/v${cicd_version}/cicd-tools_${cicd_version}.deb
+
+          # Download package
+          echo "== Downloading package '$release_url'"
+          file=$(basename $release_url)
+          curl -s -L -o $file -s $release_url || exit 1
+ 
+          echo "== Installing package '$file'"
+          sudo dpkg -i $file || exit 1
 
       - name: Install required galaxy collections
         run: |
