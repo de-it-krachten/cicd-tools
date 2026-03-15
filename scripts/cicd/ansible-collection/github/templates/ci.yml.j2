@@ -186,7 +186,7 @@ jobs:
             runs_on: <= distro.value.github.runs_on | default('ubuntu-22.04') =>
             distro: <= distro.key =>
             playbook: converge.yml
-<% if distro.key | regex_search('(rhel8|oraclelinux8|almalinux8|rockylinux8|olam8|opensuse15|sles15)') %>
+<% if distro.key | regex_search('(rhel8|centos8|oraclelinux8|almalinux8|rockylinux8|olam8|opensuse15|sles15)') %>
             ansible: "ansible-core>2.16,<2.17"
             ansible_lint: "ansible-lint>6,<7"
 <% else %>
