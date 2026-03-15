@@ -353,6 +353,26 @@ platforms:
           - network_name: private_network
             type: dhcp
             auto_config: true
+  olam8:
+    name: Oracle Linux Automation Manager 8
+    ci: false
+    supported: false
+    galaxy:
+      name: EL
+      version: 8
+    molecule:
+      docker:
+        image: "docker.io/dropveter/olam:latest"
+        pre_build_image: true
+        privileged: true
+        volumes:
+          - /sys/fs/cgroup:/sys/fs/cgroup:rw
+        cgroupns_mode: host
+        ports:
+          - 443:443
+      podman:
+        image: "docker.io/dropveter/olam:latest"
+      vagrant: {}
   almalinux8:
     name: AlmaLinux 8
     ci: {{ platform_defaults.almalinux8.ci | lower }}
@@ -514,10 +534,10 @@ platforms:
           - network_name: private_network
             type: dhcp
             auto_config: true
-  opensusetumbleweed15:
-    name: openSUSE Tumbleweed 15
-    ci: {{ platform_defaults.opensusetumbleweed15.ci | lower }}
-    supported: {{ platform_defaults.opensusetumbleweed15.supported | lower }}
+  opensusetumbleweed:
+    name: openSUSE Tumbleweed
+    ci: {{ platform_defaults.opensusetumbleweed.ci | lower }}
+    supported: {{ platform_defaults.opensusetumbleweed.supported | lower }}
     galaxy:
       name: opensuse
       version: all

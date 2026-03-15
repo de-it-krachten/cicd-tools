@@ -20,10 +20,10 @@
           collection: "{{ collection }}"
           collection_dir: "{{ base_path }}"
 
-    - name: Load .cicd and .cicd.overwrite files
+    - name: Load role specific data
       ansible.builtin.set_fact:
-        cicd_vars: "{{ lookup('file', base_path+'/.cicd') | from_yaml }}"
-        cicd_vars_overwrite: "{{ lookup('file', base_path+'/.cicd.overwrite') | from_yaml }}"
+        cicd_vars: "{{ lookup('file', base_path + '/.cicd') | from_yaml }}"
+        cicd_vars_overwrite: "{{ lookup('file', base_path + '/.cicd.overwrite') | from_yaml }}"
 
     - name: Merge dicts
       ansible.builtin.set_fact:
@@ -31,7 +31,7 @@
 
     - name: Define some sub-keys as top-level
       ansible.builtin.set_fact:
-        "{{ item }}": "{{ vars['cicd'][item] }}"
+        "{{ item }}": "{{ cicd[item] }}"
       loop:
         - generic
         # - collection

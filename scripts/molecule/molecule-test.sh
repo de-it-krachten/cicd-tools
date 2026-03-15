@@ -743,6 +743,8 @@ Ansible_driver_libary=${Virtual_environment}/lib64/${Virtual_python}/site-packag
 export Ansible_driver_libary
 
 # Variable file
+Vars_file=${Vars_file:-${TMPFILE}vars}
+echo "ansible_python_interpreter: /usr/bin/python3" >> $Vars_file
 if [[ -n $Vars_file ]]
 then
   [[ $Vars_file =~ ^/ ]] || Vars_file=${PWD}/${Vars_file}

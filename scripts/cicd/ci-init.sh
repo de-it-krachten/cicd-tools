@@ -161,7 +161,7 @@ function Update_from_template
   cp ${DIRNAME}/common/*.j2 /tmp
   cp ${DIRNAME}/${Template}/${Source}.j2 /tmp
 
-  if e2j2 -f /tmp/${Source}.j2
+  if e2j2 -f /tmp/${Source}.j2 >/dev/null 2>&1
   then
     cp /tmp/${Source} ${Target}
   else
@@ -371,12 +371,18 @@ Executable_test molecule
 case $Mode in
   playbook)
     ansible-playbook ${DIRNAME}/${Template}/ci-init.yml \
+    -i localhost, \
+    -c local \
+    -e ansible_python_interpreter=$(which python3) \
     -e playbook=$Playbook \
     -e playbook_path="$PWD" \
     -e template=$Template $Args || exit 1
     ;;
   role)
     ansible-playbook $Verbose1 ${DIRNAME}/${Template}/ci-init.yml \
+    -i localhost, \
+    -c local \
+    -e ansible_python_interpreter=$(which python3) \
     -e role=$Role \
     -e role_dir="$PWD" \
     -e template=$Template \
@@ -385,6 +391,9 @@ case $Mode in
     ;;
   collection)
     ansible-playbook $Verbose1 ${DIRNAME}/${Template}/ci-init.yml \
+    -i localhost, \
+    -c local \
+    -e ansible_python_interpreter=$(which python3) \
     -e collection=$Collection \
     -e collection_dir="$PWD" \
     -e collection_upload=$Collection_upload \
@@ -393,6 +402,9 @@ case $Mode in
     ;;
   package)
     ansible-playbook $Verbose1 ${DIRNAME}/${Template}/ci-init.yml \
+    -i localhost, \
+    -c local \
+    -e ansible_python_interpreter=$(which python3) \
     -e collection=$Collection \
     -e collection_dir="$PWD" \
     -e collection_upload=$Collection_upload \

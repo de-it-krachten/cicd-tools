@@ -34,4 +34,10 @@ case $Name in
     ;;
 esac
     
-ansible-playbook $DIRNAME/readme-$Type.yml -e name=$Name -e working_dir=$Working_dir -e readme_file=$file
+ansible-playbook $DIRNAME/readme-$Type.yml \
+    -i localhost, \
+    -c local \
+    -e ansible_python_interpreter=$(which python3) \
+    -e r_name=$Name \
+    -e working_dir=$Working_dir \
+    -e readme_file=$file
