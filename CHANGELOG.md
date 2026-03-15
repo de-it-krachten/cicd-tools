@@ -1,3 +1,17 @@
+# [1.7.0](https://github.com/de-it-krachten/cicd-tools/compare/v1.6.0...v1.7.0) (2026-03-15)
+
+
+### Bug Fixes
+
+* Enforce using system python ([9034262](https://github.com/de-it-krachten/cicd-tools/commit/90342628a02c13dd22c2742407d4e98e6cf4cda9))
+* Remove all deprecation warnings ([02ba7ec](https://github.com/de-it-krachten/cicd-tools/commit/02ba7ec87c8a5447676155b29d84fe59fe0e0eac))
+* Update docker-build scripts ([3d3816a](https://github.com/de-it-krachten/cicd-tools/commit/3d3816ac82635394d1bd27122fbafe35870a9f9c))
+
+
+### Features
+
+* Add support for support changes ([98191bf](https://github.com/de-it-krachten/cicd-tools/commit/98191bfde36b5045c1d221db266850411e4d0efd))
+
 # [1.6.0](https://github.com/de-it-krachten/cicd-tools/compare/v1.5.2...v1.6.0) (2026-02-25)
 
 
