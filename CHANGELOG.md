@@ -1,3 +1,15 @@
+# [1.8.0](https://github.com/de-it-krachten/cicd-tools/compare/v1.7.0...v1.8.0) (2026-03-18)
+
+
+### Bug Fixes
+
+* ci | add 'jinja[spacing]' to be ignored by ansible-lint ([899d4fc](https://github.com/de-it-krachten/cicd-tools/commit/899d4fc6b992a7eebba5123e4b9e258b7f7c8c6a))
+
+
+### Features
+
+* docker-build | add docker-squash to reduce image size ([893da00](https://github.com/de-it-krachten/cicd-tools/commit/893da00a2ed08db76c56f657bfa82613ddfb03a0))
+
 # [1.7.0](https://github.com/de-it-krachten/cicd-tools/compare/v1.6.0...v1.7.0) (2026-03-15)
 
 
