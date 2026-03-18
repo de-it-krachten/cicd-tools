@@ -1,14 +1,44 @@
 ---
 
 image:
-  name: my-org/my-image   # name of the image
-  tag: latest             # tag of the image
-  parent: alpine:latest   # image to use as startingpoint for our image
-  registry: docker.io     # docker registry to push image to
-  tags: []                # add additional tags
+
+  # image to use as startingpoint for our image
+  parent: alpine:latest
+
+  # docker registry to push image to
+  registry: docker.io
+
+  # name of the image
+  name: my-org/my-image
+
+  # tag of the image
+  tag: latest
+
+  # additional tags for the image
+  tags: []
+
+  # Should the image inherit cmd, entrypoint & user from parent
+  inherit_parent_settings: true
+
+  # Commands to run when creating final image
+  # example:
+  # removal_commands:
+  #  - apk del --purge bash
+  #  - apk del --purge python3
+  #  - rm -fr /var/cache/apk/*
+  removal_commands: []
+
 container:
-  name: mytest-container  # name of the temporary container
-  priviledged: false      # should the container be started in privileged mode
-  volumes: []             # volumes to provide to the container
-environment:              # dict of key/values to pass as environment variables
+
+  # name of the temporary container
+  name: mytest-container
+
+  # should the container be started in privileged mode
+  priviledged: false
+
+  # volumes to provide to the container
+  volumes: []
+
+# dict of key/values to pass as environment variables
+environment:
   var1: value1
