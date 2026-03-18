@@ -49,6 +49,13 @@ pproxy:
     - ansible-builder
   requirements: []
 
+'docker-squash':
+  packages:
+    - docker-squash
+  links:
+    - docker-squash
+  requirements: []
+
 {% set ansible_envs = [
   { "name": "ansible9",  "version": "ansible>=9,<10" },
   { "name": "ansible11", "version": "ansible>=11,<12" },
@@ -105,7 +112,7 @@ pproxy:
 awxkit:
   python: /usr/bin/python3.11
   packages:
-    - "awxkit==23.7.0"
+    - "awxkit==24.6.1"
     - pysocks
   links:
     - awx
