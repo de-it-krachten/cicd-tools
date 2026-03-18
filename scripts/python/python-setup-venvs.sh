@@ -61,7 +61,7 @@ then
 fi
 
 # Setup generic
-for venv in yq e2j2 jinjanator pproxy
+for venv in yq e2j2 jinjanator pproxy docker-squash
 do
   Print_separator
   echo "$venv"

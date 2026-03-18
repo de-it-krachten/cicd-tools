@@ -6,6 +6,7 @@
     ansible_python_interpreter: /usr/bin/python3
     container_tool: "{{ lookup('env', 'DOCKER_BINARY') }}"
     docker_push: "{{ lookup('env', 'DOCKER_PUSH') | default(False) }}"
+    container_image_tmp: "{{ build_vars.image.name }}:tmp"
   tasks:
 
     - name: Save container to image (docker)
@@ -22,51 +23,110 @@
           ansible.builtin.include_tasks:
             file: tasks/image-info.yml
           vars:
-            image_name: "{{ build_vars.image.name }}:tmp"
+            image_name: "{{ container_image_tmp }}"
             cmd: Cmd
             entrypoint: Entrypoint
+            user: User
 
         - name: Save running container as image
           ansible.builtin.command: >
             docker commit
             {{ build_vars.container.name }}
-            {{ build_vars.image.name }}:tmp
+            {{ container_image_tmp }}
 
-        - name: Show Dockerfile for entrypoint restore
+    - name: Restore user/cmd/entrypoint (docker)
+      when:
+        - container_tool == 'docker'
+        # - build_vars.container.name is defined
+      block:
+
+        - name: Decide where to restore from
+          ansible.builtin.set_fact:
+            Entrypoint: "{{ Entrypoint_p | default(None) }}"
+            Cmd: "{{ Cmd_p | default(None) }}"
+            User: "{{ User_p | default(None) }}"
+          when: build_vars.image.inherit_parent_settings | bool
+
+        - name: Generate Dockerfile for restoring
           ansible.builtin.debug:
-            msg: |
-              FROM {{ build_vars.image.name }}:tmp
-              {% if Entrypoint | length > 0 %}
-              ENTRYPOINT {{ Entrypoint | to_json }}
-              {% else %}
-              ENTRYPOINT []
-              {% endif %}
-              {% if Cmd | length > 0 %}
-              CMD {{ Cmd | to_json }}
-              {% endif %}
+            msg: "{{ lookup('template', 'templates/Dockerfile.restore.j2') }}"
 
-        - name: Create Dockerfile for entrypoint restore
-          ansible.builtin.copy:
-            content: |
-              FROM {{ build_vars.image.name }}:tmp
-              {% if Entrypoint | length > 0 %}
-              ENTRYPOINT {{ Entrypoint | to_json }}
-              {% else %}
-              ENTRYPOINT []
-              {% endif %}
-              {% if Cmd | length > 0 %}
-              CMD {{ Cmd | to_json }}
-              {% endif %}
+        - name: Create Dockerfile for restore
+          ansible.builtin.template:
+            src: templates/Dockerfile.restore.j2
             dest: "{{ buildpath }}/Dockerfile.restore"
             mode: "0640"
 
         - name: Rebuild with original entrypoint and cmd
-          community.docker.docker_image:
-            name: "{{ build_vars.image.name }}:{{ build_vars.image.tag }}"
-            source: build
-            build:
-              path: "{{ buildpath }}"
-              dockerfile: Dockerfile.restore
+          ansible.builtin.shell:
+            cmd: >-
+              docker build
+              --tag {{ build_vars.image.name }}:{{ build_vars.image.tag }}
+              --file Dockerfile.restore . 2>&1
+          args:
+            chdir: "{{ buildpath }}"
+          register: __build
+
+        - name: Show build log
+          ansible.builtin.debug:
+            msg: "{{ __build.stdout_lines }}"
+          when: __build.stdout is defined
+
+
+        - name: Create virtual environment
+          ansible.builtin.pip:
+            name:
+              - pip
+              - wheel
+              - setuptools
+            state: present
+            virtualenv: "/usr/local/venv/docker-squash"
+            virtualenv_command: "/usr/bin/python3 -m venv"
+            extra_args: "--upgrade"
+          become: yes
+
+        - name: Install awxkit via pip
+          ansible.builtin.pip:
+            name:
+              - docker-squash
+            state: present
+            executable: "/usr/local/venv/docker-squash/bin/pip3"
+            extra_args: "--upgrade"
+          become: yes
+
+        - name: Create symbolic link in /usr/local/bin
+          ansible.builtin.file:
+            src: /usr/local/venv/docker-squash/bin/docker-squash
+            dest: /usr/local/bin/docker-squash
+            owner: root
+            group: root
+            state: link
+            force: true
+          become: yes
+
+        - name: Now squash all layers
+          ansible.builtin.shell:
+            cmd: |
+              set -e
+
+              image1={{ build_vars.image.parent }}
+              image2={{ build_vars.image.name }}:{{ build_vars.image.tag }}
+              image3={{ build_vars.image.name }}-tmp:{{ build_vars.image.tag }}
+
+              layers1=$(docker history $image1 | wc -l)
+              layers2=$(docker history $image2 | wc -l)
+
+              layers2squash=$(( $layers2 - $layers1 ))
+
+              /usr/local/bin/docker-squash \
+                --from-layer $layers2squash \
+                --tag $image3 \
+                --message "Used docker-squash for squashing all layers since parent" \
+                $image2
+
+              docker rmi $image2
+              docker tag $image3 $image2
+              docker rmi $image3
 
         - name: Add additional tags
           ansible.builtin.command: >-
@@ -83,6 +143,7 @@
             image_name: "{{ build_vars.image.name }}:{{ build_vars.image.tag }}"
             cmd: Cmd
             entrypoint: Entrypoint
+            user: User
 
         - name: Delete the intermediate image
           community.docker.docker_image:
@@ -107,6 +168,7 @@
             image_name: "{{ build_vars.image.name }}:{{ build_vars.image.tag }}"
             cmd: Cmd
             entrypoint: Entrypoint
+            user: User
 
         - name: Save running container as image
           ansible.builtin.command: >-
