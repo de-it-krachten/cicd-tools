@@ -16,6 +16,7 @@
   ansible.builtin.set_fact:
     "{{ cmd }}": "{{ __image_info.images[0]['Config']['Cmd'] | default(None) }}"
     "{{ entrypoint }}": "{{ __image_info.images[0]['Config']['Entrypoint'] | default(None) }}"
+    "{{ user }}": "{{ __image_info.images[0]['Config']['User'] | default(None) }}"
 
 - name: Show image specifics
   ansible.builtin.debug:
@@ -23,3 +24,4 @@
       image_name: "{{ image_name }}"
       Cmd: "{{ vars[cmd] }}"
       Entrypoint: "{{ vars[entrypoint] }}"
+      User: "{{ vars[user] }}"
