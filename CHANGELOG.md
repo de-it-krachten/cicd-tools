@@ -1,3 +1,10 @@
+## [1.9.1](https://github.com/de-it-krachten/cicd-tools/compare/v1.9.0...v1.9.1) (2026-03-24)
+
+
+### Bug Fixes
+
+* Remove hard-code proxy ([808f45a](https://github.com/de-it-krachten/cicd-tools/commit/808f45ac8fd42eb761a23077c25afa10849ce05f))
+
 # [1.9.0](https://github.com/de-it-krachten/cicd-tools/compare/v1.8.0...v1.9.0) (2026-03-24)
 
 
