@@ -2,8 +2,8 @@
 
 - name: Push playbook
   hosts: localhost
-  vars:
-    http_proxy: 'socks5h://127.0.0.1:3128'
+#  vars:
+#    http_proxy: 'socks5h://127.0.0.1:3128'
 
   tasks:
 
@@ -22,8 +22,14 @@
 
     - name: Configure proxy usage
       become: yes
-      when: http_proxy is defined
+      when: http_proxy is defined and http_proxy | length > 0
       block:
+
+        - name: Create /etc/systemd/system/docker.service.d
+          ansible.builtin.file:
+            path: /etc/systemd/system/docker.service.d
+            state: directory
+            mode: "0755"
 
         - name: Configure proxy at daemon level
           ansible.builtin.copy:
