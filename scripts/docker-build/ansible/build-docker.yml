@@ -1,0 +1,10 @@
+---
+
+- name: Import playbook build-docker-pre.yml
+  ansible.builtin.import_playbook: build-docker-pre.yml
+
+- name: Import playbook build-docker-container.yml
+  ansible.builtin.import_playbook: build-docker-container.yml
+
+- name: Import playbook build-docker-post.yml
+  ansible.builtin.import_playbook: build-docker-post.yml

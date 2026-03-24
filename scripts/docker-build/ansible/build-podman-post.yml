@@ -6,7 +6,6 @@
     ansible_python_interpreter: /usr/bin/python3
     container_tool: "{{ lookup('env', 'DOCKER_BINARY') }}"
     docker_push: "{{ lookup('env', 'DOCKER_PUSH') | default(False) }}"
-    container_image_tmp: "{{ build_vars.image.name }}:tmp"
   tasks:
 
     - name: Save container to image (docker)
@@ -15,15 +14,15 @@
         - build_vars.container.name is defined
       block:
 
-        - name: Load pipeline variable from file
-          ansible.builtin.set_fact:
-            build_vars: "{{ lookup('file', 'docker-settings.yml') | from_yaml }}"
+        - name: Load generic variables 
+          ansible.builtin.include_tasks:
+            file: tasks/get-settings.yml
 
         - name: Get image info
           ansible.builtin.include_tasks:
             file: tasks/image-info.yml
           vars:
-            image_name: "{{ container_image_tmp }}"
+            image_name: "{{ container_image_tmp1 }}"
             cmd: Cmd
             entrypoint: Entrypoint
             user: User
@@ -32,7 +31,7 @@
           ansible.builtin.command: >
             docker commit
             {{ build_vars.container.name }}
-            {{ container_image_tmp }}
+            {{ container_image_tmp1 }}
 
     - name: Restore user/cmd/entrypoint (docker)
       when:
@@ -61,7 +60,7 @@
           ansible.builtin.shell:
             cmd: >-
               docker build
-              --tag {{ build_vars.image.name }}:{{ build_vars.image.tag }}
+              --tag {{ container_image_tmp2 }}
               --file Dockerfile.restore . 2>&1
           args:
             chdir: "{{ buildpath }}"
@@ -72,84 +71,51 @@
             msg: "{{ __build.stdout_lines }}"
           when: __build.stdout is defined
 
+    - name: Squash layers
+      when:
+        - container_tool == 'docker'
+        - build_vars.container.name is defined
+      block:
 
-        - name: Create virtual environment
-          ansible.builtin.pip:
-            name:
-              - pip
-              - wheel
-              - setuptools
-            state: present
-            virtualenv: "/usr/local/venv/docker-squash"
-            virtualenv_command: "/usr/bin/python3 -m venv"
-            extra_args: "--upgrade"
-          become: yes
-
-        - name: Install awxkit via pip
-          ansible.builtin.pip:
-            name:
-              - docker-squash
-            state: present
-            executable: "/usr/local/venv/docker-squash/bin/pip3"
-            extra_args: "--upgrade"
-          become: yes
-
-        - name: Create symbolic link in /usr/local/bin
-          ansible.builtin.file:
-            src: /usr/local/venv/docker-squash/bin/docker-squash
-            dest: /usr/local/bin/docker-squash
-            owner: root
-            group: root
-            state: link
-            force: true
-          become: yes
-
-        - name: Now squash all layers
-          ansible.builtin.shell:
-            cmd: |
-              set -e
-
-              image1={{ build_vars.image.parent }}
-              image2={{ build_vars.image.name }}:{{ build_vars.image.tag }}
-              image3={{ build_vars.image.name }}-tmp:{{ build_vars.image.tag }}
-
-              layers1=$(docker history $image1 | wc -l)
-              layers2=$(docker history $image2 | wc -l)
-
-              layers2squash=$(( $layers2 - $layers1 ))
-
-              /usr/local/bin/docker-squash \
-                --from-layer $layers2squash \
-                --tag $image3 \
-                --message "Used docker-squash for squashing all layers since parent" \
-                $image2
-
-              docker rmi $image2
-              docker tag $image3 $image2
-              docker rmi $image3
-
-        - name: Add additional tags
-          ansible.builtin.command: >-
-            docker image tag
-            {{ build_vars.image.name }}:{{ build_vars.image.tag }}
-            {{ build_vars.image.name }}:{{ item }}
-          changed_when: true
-          loop: "{{ build_vars.image.tags | default([]) }}"
-
-        - name: Get image info
+        - name: Squash new layers
           ansible.builtin.include_tasks:
-            file: tasks/image-info.yml
-          vars:
-            image_name: "{{ build_vars.image.name }}:{{ build_vars.image.tag }}"
-            cmd: Cmd
-            entrypoint: Entrypoint
-            user: User
+            file: tasks/image-squash.yml
 
-        - name: Delete the intermediate image
-          community.docker.docker_image:
-            name: "{{ build_vars.image.name }}"
-            tag: tmp
-            state: absent
+    - name: Squash layers
+      when:
+        - container_tool == 'docker'
+        # - build_vars.container.name is defined
+      block:
+
+        - name: Delete intermediate images
+          community.docker.docker_image_remove:
+            name: "{{ item }}"
+          loop:
+            - "{{ container_image_tmp1 }}"
+            - "{{ container_image_tmp2 }}"
+
+#        - name: Add additional tags
+#          ansible.builtin.command: >-
+#            docker image tag
+#            {{ build_vars.image.name }}:{{ build_vars.image.tag }}
+#            {{ build_vars.image.name }}:{{ item }}
+#          changed_when: true
+#          loop: "{{ build_vars.image.tags | default([]) }}"
+#
+#        - name: Get image info
+#          ansible.builtin.include_tasks:
+#            file: tasks/image-info.yml
+#          vars:
+#            image_name: "{{ build_vars.image.name }}:{{ build_vars.image.tag }}"
+#            cmd: Cmd
+#            entrypoint: Entrypoint
+#            user: User
+#
+#        - name: Delete the intermediate image
+#          community.docker.docker_image:
+#            name: "{{ build_vars.image.name }}"
+#            tag: tmp
+#            state: absent
 
     - name: Save container to image (podman)
       when:

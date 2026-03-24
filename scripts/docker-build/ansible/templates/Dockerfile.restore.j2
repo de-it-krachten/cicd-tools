@@ -1,4 +1,4 @@
-FROM {{ container_image_tmp }}
+FROM {{ container_image_tmp1 }}
 
 {% if build_vars.image.removal_commands | default([]) | length > 0 %}
 {% for cmd in build_vars.image.removal_commands %}

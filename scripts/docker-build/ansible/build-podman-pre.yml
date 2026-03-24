@@ -8,13 +8,12 @@
     ansible_python_interpreter: /usr/bin/python3
     docker_build_refresh: "{{ lookup('env', 'DOCKER_BUILD_REFRESH') | bool }}"
     container_tool: "{{ lookup('env', 'DOCKER_BINARY') }}"
-    container_image_tmp: "{{ build_vars.image.name }}:tmp"
 
   tasks:
 
-    - name: Load pipeline variable from file
-      ansible.builtin.set_fact:
-        build_vars: "{{ lookup('file', 'docker-settings.yml') | from_yaml }}"
+    - name: Load generic variables
+      ansible.builtin.include_tasks:
+        file: tasks/get-settings.yml
 
     - name: Show settings
       ansible.builtin.debug:
@@ -36,6 +35,11 @@
         dest: "{{ buildpath }}/Dockerfile"
         mode: "0644"
 
+    - name: Define parent image name to use
+      ansible.builtin.set_fact:
+        parent_image_name: >-
+          {{ build_vars.image.parent | regex_replace(':', ':upstream-') }}
+
     - name: Docker build phase
       when: docker_build_refresh
       block:
@@ -47,20 +51,25 @@
             - name: Pull parent image (docker)
               community.docker.docker_image:
                 name: "{{ build_vars.image.parent }}"
+                repository: "{{ parent_image_name }}"
                 source: pull
+
+            - name: Remove Docker image tag
+              community.docker.docker_image_remove:
+                name: "{{ build_vars.image.parent }}"
 
             - name: Get parent image info
               ansible.builtin.include_tasks:
                 file: tasks/image-info.yml
               vars:
-                image_name: "{{ build_vars.image.parent }}"
+                image_name: "{{ parent_image_name }}"
                 cmd: Cmd_p
                 entrypoint: Entrypoint_p
                 user: User_p
 
             - name: Create image from Dockerfile (docker)
               community.docker.docker_image:
-                name: "{{ container_image_tmp }}"
+                name: "{{ container_image_tmp1 }}"
                 source: build
                 build:
                   path: "{{ buildpath }}"
@@ -77,7 +86,7 @@
               ansible.builtin.include_tasks:
                 file: tasks/image-info.yml
               vars:
-                image_name: "{{ container_image_tmp }}"
+                image_name: "{{ container_image_tmp1 }}"
                 cmd: Cmd
                 entrypoint: Entrypoint
                 user: User
@@ -86,7 +95,7 @@
               ansible.builtin.debug:
                 msg:
                   name: "{{ build_vars.container.name }}"
-                  image: "{{ container_image_tmp }}"
+                  image: "{{ container_image_tmp1 }}"
                   container_default_behavior: no_defaults
                   privileged: "{{ build_vars.container.priviledged | default(False) }}"
                   volumes: "{{ build_vars.container.volumes | default(omit) }}"
@@ -98,7 +107,7 @@
             - name: Deploy container from new image
               community.docker.docker_container:
                 name: "{{ build_vars.container.name }}"
-                image: "{{ container_image_tmp }}"
+                image: "{{ container_image_tmp1 }}"
                 container_default_behavior: no_defaults
                 privileged: "{{ build_vars.container.priviledged | default(False) }}"
                 volumes: "{{ build_vars.container.volumes | default(omit) }}"
@@ -116,12 +125,19 @@
             - name: Pull parent image (podman)
               containers.podman.podman_image:
                 name: "{{ build_vars.image.parent }}"
+                tag: "{{ parent_image_name }}"
+                state: present
+
+            - name: Remove image tag
+              containers.podman.podman_image:
+                name: "{{ build_vars.image.parent }}"
+                state: absent
 
             - name: Get image info
               ansible.builtin.include_tasks:
                 file: tasks/image-info.yml
               vars:
-                image_name: "{{ build_vars.image.parent }}"
+                image_name: "{{ parent_image_name }}"
                 cmd: Cmd_p
                 entrypoint: Entrypoint_p
 
@@ -143,7 +159,7 @@
               ansible.builtin.include_tasks:
                 file: tasks/image-info.yml
               vars:
-                image_name: "{{ build_vars.image.parent }}"
+                image_name: "{{ parent_image_name }}"
                 cmd: Cmd
                 entrypoint: Entrypoint
 
