@@ -1,0 +1,47 @@
+---
+
+- name: Post building phase
+  hosts: localhost
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    container_tool: "{{ lookup('env', 'DOCKER_BINARY') }}"
+    docker_push: "{{ lookup('env', 'DOCKER_PUSH') | default(False) }}"
+  tasks:
+
+    - name: Decide where to restore from
+      ansible.builtin.set_fact:
+        Entrypoint: "{{ Entrypoint_p | default(None) }}"
+        Cmd: "{{ Cmd_p | default(None) }}"
+        User: "{{ User_p | default(None) }}"
+      when: build_vars.image.inherit_parent_settings | bool
+
+    - name: Generate Dockerfile for restoring
+      ansible.builtin.debug:
+        msg: "{{ lookup('template', 'templates/Dockerfile.restore.j2') }}"
+
+    - name: Create Dockerfile for restore
+      ansible.builtin.template:
+        src: templates/Dockerfile.restore.j2
+        dest: "{{ buildpath }}/Dockerfile.restore"
+        mode: "0640"
+
+    - name: Rebuild with original entrypoint and cmd
+      ansible.builtin.shell:
+        cmd: >-
+          docker build
+          --tag {{ container_image_tmp2 }}
+          --file Dockerfile.restore . 2>&1
+      args:
+        chdir: "{{ buildpath }}"
+      register: __build
+
+    - name: Show build log
+      ansible.builtin.debug:
+        msg: "{{ __build.stdout_lines }}"
+      when: __build.stdout is defined
+
+    - name: Squash new layers
+      ansible.builtin.include_tasks:
+        file: tasks/image-squash.yml
+      when: build_vars.container.name is defined
+

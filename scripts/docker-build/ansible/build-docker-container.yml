@@ -1,0 +1,85 @@
+---
+
+# Create image using ansible and deploy an container
+- name: Create image using ansible and deploy an container
+  hosts: localhost
+  # become: true
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    docker_build_refresh: "{{ lookup('env', 'DOCKER_BUILD_REFRESH') | bool }}"
+    container_tool: "{{ lookup('env', 'DOCKER_BINARY') }}"
+
+  tasks:
+
+    - name: Load generic variables
+      ansible.builtin.include_tasks:
+        file: tasks/get-settings.yml
+
+    - name: Deploy temporary container for updates via ansible
+      when: build_vars.container.name is defined
+      block:
+     
+        - name: Show container settings
+          ansible.builtin.debug:
+            msg:
+              name: "{{ build_vars.container.name }}"
+              image: "{{ container_image_tmp1 }}"
+              container_default_behavior: no_defaults
+              privileged: "{{ build_vars.container.priviledged | default(False) }}"
+              volumes: "{{ build_vars.container.volumes | default(omit) }}"
+              entrypoint: "{{ build_vars.container.entrypoint | default(omit) }}"
+              cgroupns_mode: "{{ build_vars.container.cgroupns_mode | default(omit) }}"
+    
+        - name: Deploy container from new image
+          community.docker.docker_container:
+            name: "{{ build_vars.container.name }}"
+            image: "{{ container_image_tmp1 }}"
+            container_default_behavior: no_defaults
+            privileged: "{{ build_vars.container.priviledged | default(False) }}"
+            volumes: "{{ build_vars.container.volumes | default(omit) }}"
+            entrypoint: "{{ build_vars.container.entrypoint | default(omit) }}"
+            cgroupns_mode: "{{ build_vars.container.cgroupns_mode | default(omit) }}"
+    
+        - name: Wait for 5 seconds
+          ansible.builtin.pause:
+            seconds: 5
+    
+        - name: Add container to inventory
+          ansible.builtin.add_host:
+            name: "{{ build_vars.container.name }}"
+            ansible_connection: "{{ container_tool }}"
+            ansible_host: "{{ build_vars.container.name }}"
+            ansible_user: root
+            # ansible_docker_extra_args: >-
+            #   -H tcp://127.0.0.1:2375
+            groups:
+              - containers
+          vars:
+            ansible_python_interpreter: /usr/bin/python3
+
+- name: Execute custom code
+  ansible.builtin.import_playbook: build-custom.yml
+
+- name: Save changes to image
+  hosts: localhost
+  # become: true
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    docker_build_refresh: "{{ lookup('env', 'DOCKER_BUILD_REFRESH') | bool }}"
+    container_tool: "{{ lookup('env', 'DOCKER_BINARY') }}"
+
+  tasks:
+
+    - name: Load generic variables
+      ansible.builtin.include_tasks:
+        file: tasks/get-settings.yml
+
+    - name: Save container to image (docker)
+      when: build_vars.container.name is defined
+      block:
+
+        - name: Save running container as image
+          ansible.builtin.command: >
+            docker commit
+            {{ build_vars.container.name }}
+            {{ container_image_tmp1 }}
