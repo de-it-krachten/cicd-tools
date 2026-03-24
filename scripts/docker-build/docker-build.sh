@@ -315,11 +315,19 @@ EOF
 
 OS_settings
 
-if [[ ! -f docker-settings.yml ]]
+# Exit if not initialized
+if [[ ! -f docker-settings.yml && ! -f docker-settings.yml.j2 ]]
 then
   echo "Docker build project not initialized!" >&2
   echo "Execute 'docker-init.sh' and edit docker-settings.yml to reflect your requirements." >&2
   exit 1
+fi
+
+# Render docker-settings if jinja template is found
+if [[ -f docker-settings.yml.j2 ]]
+then
+  export DATESTAMP
+  jinjanate -o docker-settings.yml docker-settings.yml.j2 || exit 1
 fi
 
 #----------------------------------------------------------
@@ -342,7 +350,7 @@ then
   echo "Executing cleanup phase (pre)"
   echo "================================================================="
 
-  ansible-playbook ${TMPDIR}/ansible/build-cleanup.yml $Ansible_args
+  ansible-playbook ${TMPDIR}/ansible/build-${Container_tool}-cleanup.yml $Ansible_args
 
 fi
 
@@ -356,7 +364,7 @@ fi
   echo "Executing build phase"
   echo "================================================================="
 
-  ansible-playbook ${TMPDIR}/ansible/build.yml $Ansible_args --skip-tags molecule-notest
+  ansible-playbook ${TMPDIR}/ansible/build-${Container_tool}.yml $Ansible_args --skip-tags molecule-notest
 
 #fi
 
@@ -378,7 +386,7 @@ then
     Docker_config_clean=true
   fi
 
-  ansible-playbook ${TMPDIR}/ansible/push.yml $Ansible_args
+  ansible-playbook ${TMPDIR}/ansible/push-${Container_tool}.yml $Ansible_args
 fi
 
 
@@ -392,7 +400,7 @@ then
   echo "Executing cleanup phase (post)"
   echo "================================================================="
 
-  ansible-playbook ${TMPDIR}/ansible/build-cleanup.yml $Ansible_args
+  ansible-playbook ${TMPDIR}/ansible/build-${Container_tool}-cleanup.yml $Ansible_args
 
 fi
 
