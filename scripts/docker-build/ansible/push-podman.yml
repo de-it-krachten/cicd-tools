@@ -1,0 +1,84 @@
+---
+
+- name: Push playbook
+  hosts: localhost
+  vars:
+    http_proxy: 'socks5h://127.0.0.1:3128'
+
+  tasks:
+
+    - name: Load generic variables 
+      ansible.builtin.include_tasks:
+        file: tasks/get-settings.yml
+
+    - name: Show tags
+      ansible.builtin.debug:
+        msg: "{{ build_tags }}"
+
+    - name: Setup tags
+      community.docker.docker_image_tag:
+        name: "{{ build_vars.image.name }}:{{ build_vars.image.tag }}"
+        repository: "{{ build_tags }}"
+
+    - name: Configure proxy usage
+      become: yes
+      when: http_proxy is defined
+      block:
+
+        - name: Configure proxy at daemon level
+          ansible.builtin.copy:
+            content: |
+              [Service]
+              Environment="HTTP_PROXY={{ http_proxy }}"
+              Environment="HTTPS_PROXY={{ http_proxy }}"
+              Environment="ALL_PROXY={{ http_proxy }}"
+              Environment="NO_PROXY=localhost,127.0.0.1,::1"
+            dest: /etc/systemd/system/docker.service.d/proxy.conf
+            mode: "0644"
+          register: __docker_proxy
+
+        - name: Restart docker daemon
+          ansible.builtin.systemd:
+            name: docker
+            state: restarted
+            daemon_reload: true
+          when: __docker_proxy.changed
+
+
+    - name: Push image
+      block:
+
+        - name: Push image to remote target
+          community.docker.docker_image:
+            name: "{{ item }}"
+            push: true
+            source: local
+          loop: "{{ build_tags }}"
+          register: _docker_image1
+          environment:
+            HOME: "{{ lookup('env', 'CUST_HOME') }}"
+
+      rescue:
+
+        - name: Show failure details
+          ansible.builtin.fail:
+            msg: "{{ _docker_image1 }}"
+
+
+    - name: Disable proxy usage
+      become: yes
+      when: http_proxy is defined
+      block:
+
+        - name: Disable proxy
+          ansible.builtin.file:
+            path: /etc/systemd/system/docker.service.d/proxy.conf
+            state: absent
+          register: __docker_proxy
+
+        - name: Restart docker daemon
+          ansible.builtin.systemd:
+            name: docker
+            state: restarted
+            daemon_reload: true
+          when: __docker_proxy.changed

@@ -1,6 +1,7 @@
 #!/bin/bash
 
 prefix=/opt/cicd-tools
+#rsync_args="--delete -c"
 [[ $1 == -D ]] && rsync_args="--delete -cn" && shift
 
 # Check if sudo should be used
