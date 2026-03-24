@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/de-it-krachten/cicd-tools/compare/v1.8.0...v1.9.0) (2026-03-24)
+
+
+### Features
+
+* refactor docker-build.sh ([cbdb0d7](https://github.com/de-it-krachten/cicd-tools/commit/cbdb0d702d761ac54903c88f3d09b328db49e53a))
+
 # [1.8.0](https://github.com/de-it-krachten/cicd-tools/compare/v1.7.0...v1.8.0) (2026-03-18)
 
 
