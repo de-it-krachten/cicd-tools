@@ -1,3 +1,10 @@
+## [1.9.2](https://github.com/de-it-krachten/cicd-tools/compare/v1.9.1...v1.9.2) (2026-03-25)
+
+
+### Bug Fixes
+
+* Remove HOME overwrite ([04d9fed](https://github.com/de-it-krachten/cicd-tools/commit/04d9fed4c5b6a089efdef55e774411d0f72afb84))
+
 ## [1.9.1](https://github.com/de-it-krachten/cicd-tools/compare/v1.9.0...v1.9.1) (2026-03-24)
 
 
