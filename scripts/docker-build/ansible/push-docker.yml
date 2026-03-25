@@ -4,6 +4,8 @@
   hosts: localhost
 #  vars:
 #    http_proxy: 'socks5h://127.0.0.1:3128'
+#  environment:
+#    HOME: "{{ lookup('env', 'CUST_HOME') }}"
 
   tasks:
 
@@ -61,8 +63,6 @@
             source: local
           loop: "{{ build_tags }}"
           register: _docker_image1
-          environment:
-            HOME: "{{ lookup('env', 'CUST_HOME') }}"
 
       rescue:
 
