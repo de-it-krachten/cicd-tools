@@ -15,10 +15,6 @@
       ansible.builtin.include_tasks:
         file: tasks/get-settings.yml
 
-    - name: Show settings
-      ansible.builtin.debug:
-        msg: "{{ build_vars }}"
-
     - name: Create temporary build directory
       ansible.builtin.tempfile:
         state: directory
@@ -35,24 +31,19 @@
         dest: "{{ buildpath }}/Dockerfile"
         mode: "0644"
 
-    - name: Define parent image name to use
-      ansible.builtin.set_fact:
-        parent_image_name: >-
-          {{ build_vars.image.parent | regex_replace(':', ':upstream-') }}
-
     - name: Docker build phase
       when: docker_build_refresh
       block:
 
-        - name: Pull parent image (docker)
-          community.docker.docker_image:
-            name: "{{ build_vars.image.parent }}"
-            repository: "{{ parent_image_name }}"
-            source: pull
+        - name: Use remote image (pull)
+          when: build_vars.image.parent_pull | default(true) | bool
+          block:
 
-        - name: Remove Docker image tag
-          community.docker.docker_image_remove:
-            name: "{{ build_vars.image.parent }}"
+            - name: Pull parent image (docker)
+              community.docker.docker_image:
+                name: "{{ build_vars.image.parent }}"
+                repository: "{{ parent_image_name }}"
+                source: pull
 
         - name: Get parent image info
           ansible.builtin.include_tasks:
@@ -63,13 +54,23 @@
             entrypoint: Entrypoint_p
             user: User_p
 
+        - debug:
+            msg:
+              community.docker.docker_image:
+                name: "{{ container_image_tmp1 }}"
+                source: build
+                build:
+                  path: "{{ buildpath }}"
+                  pull: "{{ build_vars.image.parent_pull | default(true) | bool }}"
+                  args: "{{ docker_container_build_args | default(omit) }}"
+
         - name: Create image from Dockerfile (docker)
           community.docker.docker_image:
             name: "{{ container_image_tmp1 }}"
             source: build
             build:
               path: "{{ buildpath }}"
-              pull: true
+              pull: "{{ build_vars.image.parent_pull | default(true) | bool }}"
               args: "{{ docker_container_build_args | default(omit) }}"
           register: _build
 

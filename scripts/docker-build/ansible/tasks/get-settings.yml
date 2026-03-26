@@ -4,11 +4,13 @@
   ansible.builtin.set_fact:
     build_vars: "{{ lookup('file', 'docker-settings.yml') | from_yaml }}"
 
+- name: Show settings
+  ansible.builtin.debug:
+    msg: "{{ build_vars }}"
+
 - name: Define images
   ansible.builtin.set_fact:
-    parent_image_name_org: "{{ build_vars.image.parent }}"
-    parent_image_name: >-
-      {{ build_vars.image.parent | regex_replace(':', ':upstream-') }}
+    parent_image_name: "{{ build_vars.image.parent }}"
     container_image_name: "{{ build_vars.image.name }}:{{ build_vars.image.tag }}"
     container_image_tmp1: "{{ build_vars.image.name }}:tmp1"
     container_image_tmp2: "{{ build_vars.image.name }}:tmp2"
@@ -25,4 +27,3 @@
       ]
   vars:
     registries: "{{ build_vars.image.registries | default([build_vars.image.registry]) }}"
-

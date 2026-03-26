@@ -13,52 +13,31 @@
       ansible.builtin.include_tasks:
         file: tasks/get-settings.yml
 
-    - name: Delete docker containers
-      when: container_tool == 'docker'
-      block:
+    - name: Delete Docker container
+      community.docker.docker_container:
+        name: "{{ build_vars.container.name }}"
+        state: absent
+        container_default_behavior: compatibility
+      when: build_vars.container.name is defined
 
-        - name: Delete Docker container
-          community.docker.docker_container:
-            name: "{{ build_vars.container.name }}"
-            state: absent
-            container_default_behavior: compatibility
-          when: build_vars.container.name is defined
+    - name: Delete Docker images - final
+      community.docker.docker_image:
+        name: "{{ item }}"
+        state: absent
+      loop: "{{ build_tags }}"
 
-        - name: Delete Docker images - final
-          community.docker.docker_image:
-            name: "{{ item }}"
-            state: absent
-          loop: "{{ build_tags }}"
+    - name: Delete intermediate images
+      community.docker.docker_image:
+        name: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ container_image_tmp1 }}"
+        - "{{ container_image_tmp2 }}"
 
-        - name: Delete intermediate images
-          community.docker.docker_image:
-            name: "{{ item }}"
-            state: absent
-          loop:
-            - "{{ container_image_tmp1 }}"
-            - "{{ container_image_tmp2 }}"
-
-        - name: Delete parent images
-          community.docker.docker_image:
-            name: "{{ item }}"
-            state: absent
-          loop:
-            - "{{ parent_image_name_org }}"
-            - "{{ parent_image_name }}"
-
-
-    - name: Delete podman containers
-      when: container_tool == 'podman'
-      block:
-
-        - name: Delete podman container
-          containers.podman.podman_container:
-            name: "{{ build_vars.container.name }}"
-            state: absent
-          when: build_vars.container.name is defined
-
-        - name: Delete podman images - final
-          containers.podman.podman_container:
-            name: "{{ build_vars.image.name }}:{{ item }}"
-            state: absent
-          loop: "{{ [build_vars.image.tag] + (build_vars.image.tags | default([])) }}"
+    - name: Delete parent images
+      community.docker.docker_image:
+        name: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ parent_image_name }}"
+      when: build_vars.image.parent_pull | default(true) | bool

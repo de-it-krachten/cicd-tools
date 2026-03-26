@@ -5,6 +5,10 @@
   gather_facts: true
   become: yes
   vars:
-    upgrade: true
+    # packages
+    package_mode: upgrade-verbose
+    # rootca
+    rootca_certificates: []
   roles:
-    - { role: deitkrachten.package, package_mode: upgrade-verbose, when: upgrade|bool }
+    - deitkrachten.rootca
+    - deitkrachten.package

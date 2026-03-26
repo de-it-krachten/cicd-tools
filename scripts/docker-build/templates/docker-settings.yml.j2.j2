@@ -6,7 +6,7 @@ image:
   parent: alpine:latest
 
   # docker registry to push image to
-  registry: docker.io
+  registries: <= registries | default(["docker.io"]) =>
 
   # name of the image
   name: my-org/my-image
