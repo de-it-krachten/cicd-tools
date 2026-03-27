@@ -1,3 +1,49 @@
+# 1.0.0 (2026-03-27)
+
+
+### Bug Fixes
+
+* Add azure requirements for virtual environments ([525cd88](https://github.com/de-it-krachten/cicd-tools/commit/525cd88fe713dd8c84e84d036efbcc4b9e6cf6c9))
+* ci | add 'jinja[spacing]' to be ignored by ansible-lint ([701b84a](https://github.com/de-it-krachten/cicd-tools/commit/701b84af61528ecacebc28a81e3cf76030200a7f))
+* Delete faulty code ([09ea16e](https://github.com/de-it-krachten/cicd-tools/commit/09ea16e2d8467c308ffde91fd32353716d7e226f))
+* Enforce using system python ([ea0fae3](https://github.com/de-it-krachten/cicd-tools/commit/ea0fae3480372208f204b8bbdff6464310c42519))
+* Final fix for 'ansible-collections.sh' ([6433e4a](https://github.com/de-it-krachten/cicd-tools/commit/6433e4a585381911965a9ca4cff2f92a512b15a7))
+* Fix collections merge ([f7e7d56](https://github.com/de-it-krachten/cicd-tools/commit/f7e7d56b0c21babd61e8cc1ab579123e0f52488d))
+* Fix molecule requirements for other orgs ([6aa0133](https://github.com/de-it-krachten/cicd-tools/commit/6aa0133bb3e95a518fcdd340dffe123647e23aaa))
+* Fix support for ansible 2.16 / python 3.6 ([0343e8d](https://github.com/de-it-krachten/cicd-tools/commit/0343e8de3cad483f777221619deb7aa7cdc77c54))
+* Fix workflow links in README files ([2cb5088](https://github.com/de-it-krachten/cicd-tools/commit/2cb50883c8f6e20b3bb8dc1af5b4b84fb961d527))
+* Github workflow activation no longer make script fail ([dcf65d8](https://github.com/de-it-krachten/cicd-tools/commit/dcf65d894da7b06a9de43872b5f0831a42da6a37))
+* Make ansible9 work (SELinux issue solved) ([98849ca](https://github.com/de-it-krachten/cicd-tools/commit/98849cac0e32e46d9f36ab57f75ac5250742c50b))
+* Make github releases work on protected branch ([0ca9e56](https://github.com/de-it-krachten/cicd-tools/commit/0ca9e5617598cf908cf03cd807fdf9bff527ac2f))
+* Make python.sh exit cleanly ([f46d926](https://github.com/de-it-krachten/cicd-tools/commit/f46d92625db4dfe5af869ad2b49d8922dc47e4b7))
+* Multiple fixes for GA ([88fa7ea](https://github.com/de-it-krachten/cicd-tools/commit/88fa7eae56a1d66cb477b93123820915950266b6))
+* No support for overlapping parent and child images ([40766ef](https://github.com/de-it-krachten/cicd-tools/commit/40766ef316e44872cbd73a1272b39a7ee4044cd2))
+* Refactor 'ansible-collections.sh' for proper output ([97dfdf0](https://github.com/de-it-krachten/cicd-tools/commit/97dfdf03d38f243cc2cfcf59b3f006f34887615c))
+* Refactor 'ansible-collections.sh' for simplification ([b412196](https://github.com/de-it-krachten/cicd-tools/commit/b412196270e53a0d88aee7c403b30db0a094244e))
+* Remove all deprecation warnings ([de3a983](https://github.com/de-it-krachten/cicd-tools/commit/de3a98343afac731670a02806f5d55f005f7f34a))
+* Remove hard-code proxy ([89a9566](https://github.com/de-it-krachten/cicd-tools/commit/89a95666a28171d8fc76121bc28c652a53197c57))
+* Remove HOME overwrite ([fa4a3cc](https://github.com/de-it-krachten/cicd-tools/commit/fa4a3cc5780edc1a22411b3f38c9daea2cd12ed2))
+* Rename multiple scripts ([f4bb8df](https://github.com/de-it-krachten/cicd-tools/commit/f4bb8dfd0dfd00898648ef1f6d7fd792c6113b4d))
+* Support custom ansible venvs ([6dbaba7](https://github.com/de-it-krachten/cicd-tools/commit/6dbaba7629d8dfb433a5d8fc83c013477c338e0b))
+* Update ansible-role CI workflow to download the debian package ([67e7852](https://github.com/de-it-krachten/cicd-tools/commit/67e7852d5f1eb5d9b977f44210988fb2c6cf5747))
+* Update CI templates ([e35cb69](https://github.com/de-it-krachten/cicd-tools/commit/e35cb696faca108990b0d030dbb5785ea2b11c0f))
+* Update code to allign with customer setup ([7a9c098](https://github.com/de-it-krachten/cicd-tools/commit/7a9c0981dd023568d66af52e7fd6ef1399d6bcc6))
+* Update docker-build scripts ([49216b4](https://github.com/de-it-krachten/cicd-tools/commit/49216b4cda827ca0f3628f088bd7f62370d5a666))
+
+
+### Features
+
+* Add ansible-navigator (in venv) ([bc858c7](https://github.com/de-it-krachten/cicd-tools/commit/bc858c7d760af308287e598f95b8df02e29dc442))
+* Add jinjanator in venv ([923840b](https://github.com/de-it-krachten/cicd-tools/commit/923840ba824ae57f676efab52277055e4f3fd6d9))
+* Add script to setup python virtual environments ([31f00af](https://github.com/de-it-krachten/cicd-tools/commit/31f00afb291e111ae29d76b5621007fa2dc9140f))
+* Add support for OpenSUSE/SLES 16 ([6da7ba7](https://github.com/de-it-krachten/cicd-tools/commit/6da7ba73b5b324d347a994e674fe29f8fb105ada))
+* Add support for support changes ([11211e6](https://github.com/de-it-krachten/cicd-tools/commit/11211e6ccbeb7056703b6b7cea25523d17da0b9c))
+* docker-build | add docker-squash to reduce image size ([f4df9fa](https://github.com/de-it-krachten/cicd-tools/commit/f4df9fafbfa2ae467f821ffaf10c073c79638415))
+* first release ([f46d282](https://github.com/de-it-krachten/cicd-tools/commit/f46d282c91d84cdc43e46903a82c0ec25cbe1d95))
+* Molecule | Add support for collections ([6fa1832](https://github.com/de-it-krachten/cicd-tools/commit/6fa18323948194d0d29b5498ce5eb5710697477b))
+* refactor docker-build.sh ([e3d9d55](https://github.com/de-it-krachten/cicd-tools/commit/e3d9d55cbba242eea6e46dcedc2a42fc77ddb2a2))
+* Support self-hosted collections (git) ([a540236](https://github.com/de-it-krachten/cicd-tools/commit/a540236105660fb39110f926f0c349caf64df10f))
+
 ## [1.9.2](https://github.com/de-it-krachten/cicd-tools/compare/v1.9.1...v1.9.2) (2026-03-25)
 
 
