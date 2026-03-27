@@ -1,0 +1,29 @@
+FROM {{ container_image_tmp1 }}
+
+{% if build_vars.image.removal_commands | default([]) | length > 0 %}
+{% for cmd in build_vars.image.removal_commands %}
+{% if loop.index == 1 %}
+RUN {{ cmd }}{{ ' \\' if not loop.last }}
+{% else %}
+ && {{ cmd }}{{ ' \\' if not loop.last }}
+{% endif %}
+{% endfor %}
+{% endif %}
+
+{% if User | length > 0 %}
+USER {{ User }}
+{% endif %}
+
+{% if Entrypoint | length > 0 %}
+ENTRYPOINT {{ Entrypoint | to_json }}
+{% else %}
+ENTRYPOINT []
+{% endif %}
+
+{% if Cmd | length > 0 %}
+CMD {{ Cmd | to_json }}
+{% endif %}
+
+{% if User | length > 0 %}
+USER {{ User }}
+{% endif %}

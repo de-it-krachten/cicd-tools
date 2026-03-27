@@ -1,0 +1,22 @@
+---
+
+# Create image using ansible and deploy an container
+- name: Create image using ansible and deploy an container
+  hosts: localhost
+  # become: true
+  gather_facts: false
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    docker_build_refresh: "{{ lookup('env', 'DOCKER_BUILD_REFRESH') | bool }}"
+    container_tool: "{{ lookup('env', 'DOCKER_BINARY') }}"
+
+  tasks:
+
+    - name: Load generic variables
+      ansible.builtin.include_tasks:
+        file: tasks/get-settings.yml
+
+    - name: Do not allow image name same as parent
+      ansible.builtin.fail:
+        msg: "Image cannot have the same name as the parent"
+      when: build_vars.image.parent == ( build_vars.image.name + ':' + build_vars.image.tag )

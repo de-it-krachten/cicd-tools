@@ -1,0 +1,34 @@
+---
+
+branches:
+  - name: main
+    prerelease: false
+  - name: master
+    prerelease: false
+
+plugins:
+
+  # Analyze commits to decide release type (major/minor/patch)
+  - "@semantic-release/commit-analyzer"
+
+  # Generate release notes
+  - "@semantic-release/release-notes-generator"
+
+<% if not github.branch_protection | default(false) | bool %>
+  # Update CHANGELOG.md
+  - - "@semantic-release/changelog"
+
+<% endif %>
+  # Update Github release
+  - - "@semantic-release/github"
+
+<% if not github.branch_protection | default(false) | bool %>
+  # Commit galaxy.yml + changelog changes
+  - - "@semantic-release/git"
+    - assets:
+        - CHANGELOG.md
+      message: 'chore(release): ${nextRelease.version} [skip ci]
+
+
+        ${nextRelease.notes}'
+<% endif %>

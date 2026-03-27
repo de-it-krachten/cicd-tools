@@ -1,0 +1,43 @@
+---
+
+# Create image using ansible and deploy an container
+- name: Cleanup containers
+  hosts: localhost
+  # become: true
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    container_tool: "{{ lookup('env', 'DOCKER_BINARY') }}"
+  tasks:
+
+    - name: Load generic variables 
+      ansible.builtin.include_tasks:
+        file: tasks/get-settings.yml
+
+    - name: Delete Docker container
+      community.docker.docker_container:
+        name: "{{ build_vars.container.name }}"
+        state: absent
+        container_default_behavior: compatibility
+      when: build_vars.container.name is defined
+
+    - name: Delete Docker images - final
+      community.docker.docker_image:
+        name: "{{ item }}"
+        state: absent
+      loop: "{{ build_tags }}"
+
+    - name: Delete intermediate images
+      community.docker.docker_image:
+        name: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ container_image_tmp1 }}"
+        - "{{ container_image_tmp2 }}"
+
+    - name: Delete parent images
+      community.docker.docker_image:
+        name: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ parent_image_name }}"
+      when: build_vars.image.parent_pull | default(true) | bool

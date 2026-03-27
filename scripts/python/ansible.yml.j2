@@ -1,0 +1,119 @@
+---
+
+default:
+  python: >-
+    {%- if '/usr/bin/python3.13' is is_file %}
+    /usr/bin/python3.13
+    {%- elif '/usr/bin/python3.12' is is_file %}
+    /usr/bin/python3.12
+    {%- else %}
+    /usr/bin/python3.11
+    {% endif %}
+
+yq:
+  packages:
+    - yq
+  links:
+    - yq
+  requirements: []
+
+e2j2:
+  packages:
+    - e2j2
+    - jinja2-ansible-filters
+  links:
+    - e2j2
+  requirements: []
+
+jinjanator:
+  packages:
+    - jinjanator
+    - jinjanator-plugin-ansible
+  links:
+    - jinjanate
+  requirements: []
+
+pproxy:
+  packages:
+    - pproxy
+    - python-daemon
+  links:
+    - pproxy
+  requirements: []
+
+'ansible-navigator':
+  packages:
+    - ansible-navigator
+  links:
+    - ansible-navigator
+    - ansible-builder
+  requirements: []
+
+'docker-squash':
+  packages:
+    - docker-squash
+  links:
+    - docker-squash
+  requirements: []
+
+{% set ansible_envs = [
+  { "name": "ansible9",  "version": "ansible>=9,<10" },
+  { "name": "ansible11", "version": "ansible>=11,<12" },
+  { "name": "ansible12", "version": "ansible>=12,<13" },
+  { "name": "ansiblecore216", "version": "ansible-core>=2.16,<2.17" },
+  { "name": "ansiblecore218", "version": "ansible-core>=2.18,<2.19" },
+  { "name": "ansiblecore219", "version": "ansible-core>=2.19,<2.20" }
+] %}
+
+{% for env in ansible_envs %}
+{{ env.name }}:
+{% if env.python is defined %}
+  python: "{{ env.python }}"
+{% endif %}
+  packages:
+    # ansible
+    - "{{ env.version }}"
+    # linting  
+    - ansible-lint
+    - ansible-compat
+    - yamllint
+    # Molecule 
+    - molecule
+    - molecule-plugins
+    - molecule-plugins[docker]
+    - molecule-plugins[podman]
+    - molecule-plugins[vagrant]
+    - molecule-hetznercloud
+    - hcloud
+    # generic
+    - lxml
+    - dnspython
+    - jmespath
+    - netaddr
+    - requests
+    - urllib3
+    - passlib
+    # vmware
+    - pyvim
+    - pyvmomi
+    # Windows connectivity
+    - pysocks
+    - pywinrm
+    - pywinrm[credssp]
+    - pypsrp
+    - pypsrp[credssp]
+  links: []
+  requirements:
+    - azure/azcollection/requirements.txt
+    - azure/azcollection/requirements-azure.txt
+
+{% endfor %}
+
+awxkit:
+  python: /usr/bin/python3.11
+  packages:
+    - "awxkit==24.6.1"
+    - pysocks
+  links:
+    - awx
+  requirements: []

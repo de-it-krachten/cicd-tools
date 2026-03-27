@@ -1,0 +1,33 @@
+# {{ tasklist.key }}
+
+Tasklist variables
+--------------
+
+{% for item in tasklist.value.fields -%}
+<sub>**{{ item.name }}**</sub>{% if not loop.last %} |{% endif %}
+{%- endfor %}
+
+{% for item in tasklist.value.fields -%}
+:---{% if not loop.last %} |{% endif %}
+{%- endfor %}
+
+{% for item in tasklist.value.vars %}
+{% for item2 in tasklist.value.fields -%}
+<sub>{{ item[item2.name] }}</sub>{% if not loop.last %} |{% endif %}
+{%- endfor %}
+
+{% endfor %}
+
+
+
+Example Playbook
+----------------
+
+{% for item in tasklist.value.examples %}
+{{ item.description }}
+
+<pre><code>
+{{ item.code }}
+</pre></code>
+
+{% endfor %}

@@ -1,0 +1,15 @@
+---
+
+- name: Find tasks + handlers
+  ansible.builtin.find:
+    path:
+      - "{{ ansible_code_path }}/tasks"
+      - "{{ ansible_code_path }}/handlers"
+    patterns: '*.yml,*.yaml'
+    recurse: true
+  register: result1
+
+- name: Create list with files
+  ansible.builtin.set_fact:
+    playbook_files: []
+    task_files: "{{ result1.files | json_query('[].path') }}"

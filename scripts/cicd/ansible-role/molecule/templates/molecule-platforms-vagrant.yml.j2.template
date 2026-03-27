@@ -1,0 +1,35 @@
+---
+
+<% for platform in platforms|dict2items %>
+  <% if platform.value.molecule.vagrant is defined %>
+- name: <= platform.key =>
+  ci: <= platform.value.ci | lower =>
+    <% if platform.value.molecule.vagrant.box is defined %>
+  box: <= platform.value.molecule.vagrant.box =>
+    <% endif %>
+    <% if platform.value.molecule.vagrant.memory is defined %>
+  memory: <= platform.value.molecule.vagrant.memory =>
+    <% endif %>
+    <% if platform.value.molecule.vagrant.cpus is defined %>
+  cpus: <= platform.value.molecule.vagrant.cpus =>
+    <% endif %>
+    <% if platform.value.molecule.vagrant.groups is defined %>
+  groups: <= platform.value.molecule.vagrant.groups =>
+    <% endif %>
+    <% if platform.value.molecule.vagrant.interfaces is defined %>
+  interfaces: <= platform.value.molecule.vagrant.interfaces =>
+    <% endif %>
+    <% if platform.value.molecule.vagrant.instance_raw_config_args is defined %>
+  instance_raw_config_args: <= platform.value.molecule.vagrant.instance_raw_config_args =>
+    <% endif %>
+    <% if platform.value.molecule.vagrant.provider is defined %>
+  provider: <= platform.value.molecule.vagrant.provider =>
+    <% endif %>
+    <% if platform.value.molecule.vagrant.provider_options is defined %>
+  provider_options: <= platform.value.molecule.vagrant.provider_options =>
+    <% endif %>
+    <% if platform.value.molecule.vagrant.provider_raw_config_args is defined %>
+  provider_raw_config_args: <= platform.value.molecule.vagrant.provider_raw_config_args =>
+    <% endif %>
+  <% endif %>
+<% endfor %>

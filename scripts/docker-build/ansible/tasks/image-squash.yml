@@ -1,0 +1,47 @@
+---
+
+- name: Create virtual environment
+  ansible.builtin.pip:
+    name:
+      - pip
+      - wheel
+      - setuptools
+    state: present
+    virtualenv: "/usr/local/venv/docker-squash"
+    virtualenv_command: "/usr/bin/python3 -m venv"
+    extra_args: "--upgrade"
+  become: yes
+
+- name: Install awxkit via pip
+  ansible.builtin.pip:
+    name:
+      - docker-squash
+    state: present
+    executable: "/usr/local/venv/docker-squash/bin/pip3"
+    extra_args: "--upgrade"
+  become: yes
+
+- name: Create symbolic link in /usr/local/bin
+  ansible.builtin.file:
+    src: /usr/local/venv/docker-squash/bin/docker-squash
+    dest: /usr/local/bin/docker-squash
+    owner: root
+    group: root
+    state: link
+    force: true
+  become: yes
+
+- name: Copy docker-squash script
+  ansible.builtin.copy:
+    src: files/docker-squash.sh
+    dest: /usr/local/bin/docker-squash.sh
+    mode: "0555"
+  become: yes
+
+- name: Execute docker-squash script
+  ansible.builtin.command:
+    cmd: >-
+      /usr/local/bin/docker-squash.sh
+      "{{ parent_image_name }}" \
+      "{{ container_image_tmp2 }}" \
+      "{{ container_image_name }}"

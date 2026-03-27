@@ -1,0 +1,22 @@
+---
+
+# Generic
+generic:
+  role: {{ Name }}
+  role_short: {{ Name_short }}
+  role_description: |
+    <basic role description>
+  collections: []
+
+{% include 'platforms-' + Platforms + '.yml.j2' %}
+
+# Molecule
+molecule:
+  requirements:
+    roles_extra: []
+
+{% if Platforms == 'windows' %}
+# Github
+github:
+  molecule: false
+{% endif %}

@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  role_name: <= galaxy.role_name =>
+  namespace: <= galaxy.namespace =>
+  description: <= galaxy.description =>
+  author: <= galaxy.author =>
+  company: <= galaxy.company =>
+  license: <= galaxy.license =>
+  min_ansible_version: <= galaxy.min_ansible_version =>
+  platforms:
+<= galaxy.platforms | to_nice_yaml | indent(width=2,first=True) =>
+dependencies: []
