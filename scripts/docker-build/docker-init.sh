@@ -206,7 +206,7 @@ done
 shift $(($OPTIND -1))
 
 # Create files from template
-Template docker-settings.yml
+Template docker-settings.yml.j2
 Template Dockerfile.j2
 Template build-custom.yml
 Template requirements.yml
