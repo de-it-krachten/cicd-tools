@@ -15,21 +15,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-<<<<<<< HEAD
-        uses: actions/checkout@v4
-
-      - name: Use Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-=======
         uses: actions/checkout@v6
 
       - name: Use Node.js 24
         uses: actions/setup-node@v6
         with:
           node-version: 24
->>>>>>> 1428b24b1b3f366e4b296cc4d5a7f2fd1c074723
 
       - name: Install package dependencies
         run: |

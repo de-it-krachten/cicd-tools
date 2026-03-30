@@ -47,11 +47,7 @@ jobs:
       PACKAGE_NAME: ${{ github.event.inputs.package_name || 'cicd-tools' }}
       VERSION: ${{ needs.get-version.outputs.version }}
     steps:
-<<<<<<< HEAD
-      - uses: actions/checkout@v4
-=======
       - uses: actions/checkout@v6
->>>>>>> 1428b24b1b3f366e4b296cc4d5a7f2fd1c074723
 
       - name: Install build tools
         run: |
@@ -111,11 +107,7 @@ jobs:
 
       # Upload artifact
       - name: Upload DEB artifact
-<<<<<<< HEAD
-        uses: actions/upload-artifact@v4
-=======
         uses: actions/upload-artifact@v6
->>>>>>> 1428b24b1b3f366e4b296cc4d5a7f2fd1c074723
         with:
           name: built-package-deb
           path: ${PACKAGE_NAME}_*.deb
@@ -186,11 +178,7 @@ jobs:
 
       # Upload artifact
       - name: Upload RPM artifact
-<<<<<<< HEAD
-        uses: actions/upload-artifact@v4
-=======
         uses: actions/upload-artifact@v6
->>>>>>> 1428b24b1b3f366e4b296cc4d5a7f2fd1c074723
         with:
           name: built-package-rpm
           path: ~/rpmbuild/RPMS/noarch/*.rpm
