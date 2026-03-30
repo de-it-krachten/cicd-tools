@@ -68,6 +68,10 @@ CICD_ROOT=/opt/cicd-tools
 #    exit 1
 # fi
 
+# Activate ansible venv
+source /usr/local/venv/ansible12/bin/activate
+
+
 
 ##############################################################
 #
@@ -239,11 +243,11 @@ case $repo in
 
     # Update .cicd file
     echo "Ansible playbook repo '$repo'"
-    ${DIRNAME}/bin/ci-init.sh $Args -m playbook -iF
+    ${CICD_ROOT}/bin/ci-init.sh $Args -m playbook -iF
     [[ $Phase == 1 ]] && exit 0
 
     # Update all CI code
-    ${DIRNAME}/bin/ci-init.sh $Args -m playbook
+    ${CICD_ROOT}/bin/ci-init.sh $Args -m playbook
 
     # Update README
     Readme
@@ -253,11 +257,11 @@ case $repo in
 
     # Update .cicd file
     echo "Ansible collection repo '$repo'"
-    ${DIRNAME}/bin/ci-init.sh $Args -m collection -iF
+    ${CICD_ROOT}/bin/ci-init.sh $Args -m collection -iF
     [[ $Phase == 1 ]] && exit 0
 
     # Update all CI code
-    ${DIRNAME}/bin/ci-init.sh $Args -m collection
+    ${CICD_ROOT}/bin/ci-init.sh $Args -m collection
 
     # Update README
     Readme

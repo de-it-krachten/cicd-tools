@@ -140,7 +140,7 @@ jobs:
           echo "== Downloading package '$release_url'"
           file=$(basename $release_url)
           curl -s -L -o $file -s $release_url || exit 1
- 
+
           echo "== Installing package '$file'"
           sudo dpkg -i $file || exit 1
 
