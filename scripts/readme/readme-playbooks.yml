@@ -1,0 +1,129 @@
+---
+
+- name: README playbooks
+  hosts: localhost
+  connection: local
+  gather_facts: true
+#  vars_files:
+#    - "{{ working_dir }}/.cicd"
+  vars:
+    bindir: "{{ lookup('env', 'BINDIR') }}"
+    tmpdir: "{{ lookup('env', 'TMPDIR') }}"
+    github_owner: de-it-krachten
+    github_repo: "{{ r_name }}"
+    readme_file: README.md
+    md_template1: README-playbook.md.j2
+    tasklists: {}
+
+    defaults: "{{ working_dir + '/defaults/main.yml' }}"
+
+  tasks:
+
+    - name: Show vars
+      ansible.builtin.debug:
+        msg:
+          tmpdir: "{{ tmpdir }}"
+          working_dir: "{{ working_dir }}"
+
+    - name: Load .cicd and .cicd.overwrite files
+      ansible.builtin.set_fact:
+        cicd_vars: "{{ lookup('file', working_dir+'/.cicd') | from_yaml }}"
+        cicd_vars_overwrite: "{{ lookup('file', working_dir+'/.cicd.overwrite') | from_yaml }}"
+
+    - name: Merge dicts
+      ansible.builtin.set_fact:
+        cicd: "{{ cicd_vars | combine(cicd_vars_overwrite, recursive=True) }}"
+
+    - name: Define some sub-keys as top-level
+      ansible.builtin.set_fact:
+        "{{ item }}": "{{ cicd[item] }}"
+      when: cicd[item] is defined
+      loop:
+        - generic
+        - dependencies
+        - platforms
+        - platforms_overwrite
+        - galaxy
+        - github
+        - gitlab
+        - molecule
+        - ci_templates
+        - tasklists
+        - readme
+
+    - name: Nothing to do
+      ansible.builtin.meta: end_play
+      when: readme is defined and readme.skip | bool
+
+    - name: Get all external roles
+      ansible.builtin.command:
+        cmd: "{{ bindir }}/ansible-galaxy.sh"
+      args:
+        chdir: "{{ working_dir }}"
+      changed_when: true
+
+    - name: Create empty roles file
+      ansible.builtin.copy:
+        content: |
+          ---
+          roles: []
+        dest: "{{ working_dir }}/.roles"
+        force: false
+        mode: "0644"
+
+    - name: Create empty collections file
+      ansible.builtin.copy:
+        content: |
+          ---
+          collections:
+            - community.general
+        dest: "{{ working_dir }}/.collections"
+        force: false
+        mode: "0644"
+
+    - name: Merge platforms with platforms_overwrite
+      ansible.builtin.set_fact:
+        platforms: "{{ platforms|combine(platforms_overwrite, recursive=True) }}"
+
+    - name: Get all colllection & role dependency files
+      ansible.builtin.set_fact:
+        collection_files: >
+          {{ lookup('filetree', working_dir, wantlist=True)
+           | selectattr('path', 'search', '/.collections$')
+           | map(attribute='path')
+           | list }}
+        roles_files: >-
+          {{ lookup('filetree', working_dir, wantlist=True)
+           | selectattr('path', 'search', '/.roles$')
+           | map(attribute='path')
+           | list }}
+
+    - name: Create list of collections
+      ansible.builtin.set_fact:
+        dep_collections: "{{ dep_collections | default([]) + lookup('file', working_dir + '/' + item) | from_yaml | json_query('collections[].name') }}"
+      loop: "{{ collection_files }}"
+
+    - name: Create list of roles
+      ansible.builtin.set_fact:
+        dep_roles: "{{ dep_roles | default([]) + lookup('file', working_dir + '/' + item) | from_yaml | json_query('roles[].name') }}"
+      loop: "{{ roles_files }}"
+
+    - name: Define dependencies
+      ansible.builtin.set_fact:
+        dependencies:
+          roles: "{{ (dependencies.roles | default([])) + dep_roles | sort | unique }}"
+          collections: "{{ (dependencies.collections | default([])) + dep_collections | sort | unique }}"
+
+    # basic README w/out task lists
+    - name: Create README.md from template '{{ md_template1 }}' (w/out taskslists)  # noqa name[template]
+      ansible.builtin.template:
+        src: "{{ md_template1 }}"
+        dest: "{{ working_dir }}/{{ readme_file }}"
+        mode: "0644"
+
+    - name: Cleanup external roles
+      ansible.builtin.command:
+        cmd: "{{ bindir }}/ansible-galaxy.sh -c"
+      args:
+        chdir: "{{ working_dir }}"
+      changed_when: true

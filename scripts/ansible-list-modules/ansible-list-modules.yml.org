@@ -1,0 +1,185 @@
+---
+
+- hosts: localhost
+  vars:
+    ansible_type: role
+  vars_files:
+    - vars/keywords.yml
+  tasks:
+
+    - name: The variable ansible_code_path is mandatory
+      ansible.builtin.assert:
+        that:
+          - ansible_code_path is defined
+          - ansible_code_path|d('')|length > 0
+          - ansible_type is defined
+          - ansible_type is search('^(role|playbooks)$')
+
+    - name: Load collections from previous migration
+      ansible.builtin.set_fact:
+        collections: "{{ lookup('file', ansible_code_path + '/.collections') | from_yaml | json_query('collections') }}"
+
+    - name: Find files (playbooks)
+      when: ansible_type == 'playbooks'
+      block:
+
+        - name: Get playbooks from root directory
+          ansible.builtin.find:
+            path:
+              - "{{ ansible_code_path }}/"
+            patterns: '*.yml,*.yaml'
+            recurse: false
+          register: result1
+
+        - name: Get playbooks from playbooks
+          ansible.builtin.find:
+            path:
+              - "{{ ansible_code_path }}/playbooks"
+            patterns: '*.yml,*.yaml'
+            recurse: true
+          register: result2
+
+        - name: Get task lists from playbooks
+          ansible.builtin.find:
+            path:
+              - "{{ ansible_code_path }}/tasks"
+              - "{{ ansible_code_path }}/handlers"
+              - "{{ ansible_code_path }}/roles/*/tasks"
+              - "{{ ansible_code_path }}/roles/*/handlers"
+            patterns: '*.yml,*.yaml'
+            recurse: true
+          register: result3
+
+        - name: Create list with files
+          ansible.builtin.set_fact:
+            playbook_files: "{{ ((result1.files | json_query('[].path')) + (result2.files | json_query('[].path'))) | reject('search', '/vars/') | list }}"
+            task_files: "{{ result3.files | json_query('[].path') }}"
+
+      
+    - name: Find tasks files (role)
+      when: ansible_type == 'role'
+      block:
+
+        - name: Find tasks+handlers from role
+          ansible.builtin.find:
+            path:
+              - "{{ ansible_code_path }}/tasks"
+              - "{{ ansible_code_path }}/handlers"
+            patterns: '*.yml,*.yaml'
+            recurse: true
+          register: result3
+
+        - name: Create list with files 
+          ansible.builtin.set_fact:
+            task_files: "{{ result3.files | json_query('[].path') }}"
+
+
+    - name: playbooks
+      when: ansible_type == 'playbooks'
+      block:
+
+        - name: Empty list of tasks & keys
+          ansible.builtin.set_fact:
+            lft: []
+            lfk: []
+
+        - name: Create list of tasks
+          ansible.builtin.set_fact:
+            lft: "{{ lft + lookup('file', item) | from_yaml }}"
+          loop: "{{ playbook_files }}"
+
+        - name: Get list of keys
+          ansible.builtin.set_fact:
+            lfk: "{{ lfk + item.keys() |list }}"
+          loop: "{{ lft }}"
+
+        - name: Get list of keys from block/rescue/always
+          ansible.builtin.set_fact:
+            lfk: "{{ lfk + item.keys() | list }}"
+          loop: "{{ lft | json_query('[].[block, rescue, always]') | flatten }}"
+
+        - name: Define list of modules
+          ansible.builtin.set_fact:
+            modulesp: >-
+              {{ lfk 
+                 | unique
+                 | sort
+                 | difference(keywords['play'])
+                 | difference(keywords['block'])
+                 | difference(keywords['task'])
+              }}
+
+        - name: Define list of collections
+          ansible.builtin.set_fact:
+            collectionsp: "{{ modulesp | map('regex_replace', '\\.[a-z0-9_]+$') | list | unique }}"
+
+
+    - name: tasks
+      block:
+
+        - name: Empty list of tasks & keys
+          ansible.builtin.set_fact:
+            lft: []
+            lfk: []
+
+        - name: Create list of tasks
+          ansible.builtin.set_fact:
+            lft: "{{ lft + lookup('file', item) | from_yaml }}"
+          loop: "{{ task_files }}"
+
+        - name: Get list of keys
+          ansible.builtin.set_fact:
+            lfk: "{{ lfk + item.keys() | list }}"
+          loop: "{{ lft }}"
+
+        - name: Get list of keys from block/rescue/always
+          ansible.builtin.set_fact:
+            lfk: "{{ lfk + item.keys() | list }}"
+          loop: "{{ lft | json_query('[].[block, rescue, always]') | flatten }}"
+
+        - name: Define list of modules
+          ansible.builtin.set_fact:
+            modulest: >-
+              {{ lfk
+                 | unique
+                 | sort
+                 | difference(keywords['block'])
+                 | difference(keywords['task'])
+              }}
+
+        - name: Define list of collections
+          ansible.builtin.set_fact:
+            collectionst: "{{ modulest | map('regex_replace', '\\.[a-z0-9_]+$') | list | unique }}"
+
+    - name: Combine collection & module lists
+      ansible.builtin.set_fact:
+        collections: "{{ collectionsp | default([]) + collectionst }}"
+        modules: "{{ modulesp | default([]) + modulest }}"
+
+    - name: Create list of failing modules
+      ansible.builtin.set_fact:
+        failing_modules: "{{ modules | select('match', '^[a-z0-9_]+$') | list }}"
+
+    - name: Show modules
+      ansible.builtin.debug:
+        var: modules
+        verbosity: 1
+
+    - name: Show collections
+      ansible.builtin.debug:
+        var: collections
+        verbosity: 1
+
+    - name: Show failing modules
+      ansible.builtin.debug:
+        var: failing_modules
+
+    - name: Fail now
+      ansible.builtin.fail:
+        msg: "One or more non-FQCN module names found"
+      when: failing_modules | length > 0
+
+    - name: Write collections to file
+      ansible.builtin.template:
+        src: collections.j2
+        dest: "{{ ansible_code_path }}/.collections"

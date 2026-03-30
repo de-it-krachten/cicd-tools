@@ -1,0 +1,89 @@
+---
+
+# Create image using ansible and deploy an container
+- name: Create image using ansible and deploy an container
+  hosts: localhost
+  # become: true
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    docker_build_refresh: "{{ lookup('env', 'DOCKER_BUILD_REFRESH') | bool }}"
+    container_tool: "{{ lookup('env', 'DOCKER_BINARY') }}"
+
+  tasks:
+
+    - name: Load generic variables
+      ansible.builtin.include_tasks:
+        file: tasks/get-settings.yml
+
+    - name: Create temporary build directory
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: build
+      register: _build_path
+
+    - name: Defined build path
+      ansible.builtin.set_fact:
+        buildpath: "{{ _build_path.path }}"
+
+    - name: Create Dockerfile from template
+      ansible.builtin.template:
+        src: "{{ lookup('env', 'SOURCE_PATH') + '/Dockerfile.j2' }}"
+        dest: "{{ buildpath }}/Dockerfile"
+        mode: "0644"
+
+    - name: Docker build phase
+      when: docker_build_refresh
+      block:
+
+        - name: Use remote image (pull)
+          when: build_vars.image.parent_pull | default(true) | bool
+          block:
+
+            - name: Pull parent image (docker)
+              community.docker.docker_image:
+                name: "{{ build_vars.image.parent }}"
+                repository: "{{ parent_image_name }}"
+                source: pull
+
+        - name: Get parent image info
+          ansible.builtin.include_tasks:
+            file: tasks/image-info.yml
+          vars:
+            image_name: "{{ parent_image_name }}"
+            cmd: Cmd_p
+            entrypoint: Entrypoint_p
+            user: User_p
+
+        - debug:
+            msg:
+              community.docker.docker_image:
+                name: "{{ container_image_tmp1 }}"
+                source: build
+                build:
+                  path: "{{ buildpath }}"
+                  pull: "{{ build_vars.image.parent_pull | default(true) | bool }}"
+                  args: "{{ docker_container_build_args | default(omit) }}"
+
+        - name: Create image from Dockerfile (docker)
+          community.docker.docker_image:
+            name: "{{ container_image_tmp1 }}"
+            source: build
+            build:
+              path: "{{ buildpath }}"
+              pull: "{{ build_vars.image.parent_pull | default(true) | bool }}"
+              args: "{{ docker_container_build_args | default(omit) }}"
+          register: _build
+
+        - name: Show build log
+          ansible.builtin.debug:
+            msg: "{{ _build.stdout_lines }}"
+          when: _build.stdout is defined
+
+        - name: Get new image info
+          ansible.builtin.include_tasks:
+            file: tasks/image-info.yml
+          vars:
+            image_name: "{{ container_image_tmp1 }}"
+            cmd: Cmd
+            entrypoint: Entrypoint
+            user: User

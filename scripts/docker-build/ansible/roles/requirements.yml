@@ -1,0 +1,6 @@
+---
+
+- name: deitkrachten.package
+  src: https://github.com/de-it-krachten/ansible-role-package.git
+  scm: git
+  version: main

@@ -1,0 +1,10 @@
+---
+
+- name: Import playbook build-podman-pre.yml
+  ansible.builtin.import_playbook: build-podman-pre.yml
+
+- name: Import playbook build-podman-container.yml
+  ansible.builtin.import_playbook: build-podman-container.yml
+
+- name: Import playbook build-podman-post.yml
+  ansible.builtin.import_playbook: build-podman-post.yml

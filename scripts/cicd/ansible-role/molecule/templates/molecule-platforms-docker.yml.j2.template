@@ -1,0 +1,57 @@
+---
+
+<% for platform in platforms|dict2items %>
+  <% if platform.value.molecule.docker is defined %>
+- name: <= platform.key =>
+  ci: <= platform.value.ci | lower =>
+    <% if platform.value.molecule.docker.image is defined %>
+  image: <= platform.value.molecule.docker.image =>
+    <% endif %>
+    <% if platform.value.molecule.docker.memory is defined %>
+  memory: <= platform.value.molecule.docker.memory | lower =>
+    <% endif %>
+    <% if platform.value.molecule.docker.kernel_memory is defined %>
+  kernel_memory: <= platform.value.molecule.docker.kernel_memory | lower =>
+    <% endif %>
+    <% if platform.value.molecule.docker.privileged is defined %>
+  privileged: <= platform.value.molecule.docker.privileged | lower =>
+    <% endif %>
+    <% if platform.value.molecule.docker.pre_build_image is defined %>
+  pre_build_image: <= platform.value.molecule.docker.pre_build_image | lower =>
+    <% endif %>
+    <% if platform.value.molecule.docker.cgroupns_mode is defined %>
+  cgroupns_mode: <= platform.value.molecule.docker.cgroupns_mode | lower =>
+    <% endif %>
+    <% if platform.value.molecule.docker.environment is defined %>
+  environment:
+      <% for key, value in platform.value.molecule.docker.environment.items() %>
+        <% if value is search('{{') %>
+    <= key =>: "<= value =>"
+        <% else %>
+    <= key =>: <= value =>
+        <% endif %>
+      <% endfor %>
+    <% endif %>
+    <% if platform.value.molecule.docker.volumes is defined %>
+  volumes:
+      <% for volume in platform.value.molecule.docker.volumes %>
+    - <= volume =>
+      <% endfor %>
+    <% endif %>
+    <% if platform.value.molecule.docker.networks is defined %>
+  networks:
+      <% for network in platform.value.molecule.docker.networks %>
+    - <= network =>
+      <% endfor %>
+    <% endif %>
+    <% if platform.value.molecule.docker.ports is defined %>
+  ports:
+      <% for port in platform.value.molecule.docker.ports %>
+    - <= port =>
+      <% endfor %>
+    <% endif %>
+    <% if platform.value.rhsm is defined %>
+  rhsm: <= platform.value.rhsm | lower =>
+    <% endif %>
+  <% endif %>
+<% endfor %>

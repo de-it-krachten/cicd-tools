@@ -1,0 +1,5 @@
+.git.include
+/tmp/
+/scripts/python/ansible.yml
+/scripts/cicd/ansible-*/cicd-ga.yml.j2
+/scripts/cicd/ci-platforms-ga.yml

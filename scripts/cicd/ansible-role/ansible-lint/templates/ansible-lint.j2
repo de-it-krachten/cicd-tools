@@ -1,0 +1,15 @@
+---
+
+<% if cicd_vars.ansible_lint.exclude_paths|length > 0 or cicd_vars_overwrite.ansible_lint.exclude_paths|default([])|length > 0 %>
+exclude_paths:
+<% for item in (cicd_vars.ansible_lint.exclude_paths|default([]) + cicd_vars_overwrite.ansible_lint.exclude_paths|default([])) %>
+  - <= item =>
+<% endfor %>
+
+<% endif %>
+<% if cicd_vars.ansible_lint.skip_list|length > 0 or cicd_vars_overwrite.ansible_lint.skip_list|default([])|length > 0 %>
+skip_list:
+<% for item in (cicd_vars.ansible_lint.skip_list|default([]) + cicd_vars_overwrite.ansible_lint.skip_list|default([])) %>
+  - <= item =>
+<% endfor %>
+<% endif %>

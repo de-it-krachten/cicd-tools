@@ -1,0 +1,201 @@
+---
+
+# Create image using ansible and deploy an container
+- name: Create image using ansible and deploy an container
+  hosts: localhost
+  # become: true
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    docker_build_refresh: "{{ lookup('env', 'DOCKER_BUILD_REFRESH') | bool }}"
+    container_tool: "{{ lookup('env', 'DOCKER_BINARY') }}"
+
+  tasks:
+
+    - name: Load generic variables
+      ansible.builtin.include_tasks:
+        file: tasks/get-settings.yml
+
+    - name: Show settings
+      ansible.builtin.debug:
+        msg: "{{ build_vars }}"
+
+    - name: Create temporary build directory
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: build
+      register: _build_path
+
+    - name: Defined build path
+      ansible.builtin.set_fact:
+        buildpath: "{{ _build_path.path }}"
+
+    - name: Create Dockerfile from template
+      ansible.builtin.template:
+        src: "{{ lookup('env', 'SOURCE_PATH') + '/Dockerfile.j2' }}"
+        dest: "{{ buildpath }}/Dockerfile"
+        mode: "0644"
+
+    - name: Define parent image name to use
+      ansible.builtin.set_fact:
+        parent_image_name: >-
+          {{ build_vars.image.parent | regex_replace(':', ':upstream-') }}
+
+    - name: Docker build phase
+      when: docker_build_refresh
+      block:
+
+        - name: Build image (docker)
+          when: container_tool == 'docker'
+          block:
+
+            - name: Pull parent image (docker)
+              community.docker.docker_image:
+                name: "{{ build_vars.image.parent }}"
+                repository: "{{ parent_image_name }}"
+                source: pull
+
+            - name: Remove Docker image tag
+              community.docker.docker_image_remove:
+                name: "{{ build_vars.image.parent }}"
+
+            - name: Get parent image info
+              ansible.builtin.include_tasks:
+                file: tasks/image-info.yml
+              vars:
+                image_name: "{{ parent_image_name }}"
+                cmd: Cmd_p
+                entrypoint: Entrypoint_p
+                user: User_p
+
+            - name: Create image from Dockerfile (docker)
+              community.docker.docker_image:
+                name: "{{ container_image_tmp1 }}"
+                source: build
+                build:
+                  path: "{{ buildpath }}"
+                  pull: true
+                  args: "{{ docker_container_build_args | default(omit) }}"
+              register: _build
+
+            - name: Show build log
+              ansible.builtin.debug:
+                msg: "{{ _build.stdout_lines }}"
+              when: _build.stdout is defined
+
+            - name: Get new image info
+              ansible.builtin.include_tasks:
+                file: tasks/image-info.yml
+              vars:
+                image_name: "{{ container_image_tmp1 }}"
+                cmd: Cmd
+                entrypoint: Entrypoint
+                user: User
+
+            - name: Show container settings
+              ansible.builtin.debug:
+                msg:
+                  name: "{{ build_vars.container.name }}"
+                  image: "{{ container_image_tmp1 }}"
+                  container_default_behavior: no_defaults
+                  privileged: "{{ build_vars.container.priviledged | default(False) }}"
+                  volumes: "{{ build_vars.container.volumes | default(omit) }}"
+                  entrypoint: "{{ build_vars.container.entrypoint | default(omit) }}"
+                  cgroupns_mode: "{{ build_vars.container.cgroupns_mode | default(omit) }}"
+              when:
+                - build_vars.container.name is defined
+
+            - name: Deploy container from new image
+              community.docker.docker_container:
+                name: "{{ build_vars.container.name }}"
+                image: "{{ container_image_tmp1 }}"
+                container_default_behavior: no_defaults
+                privileged: "{{ build_vars.container.priviledged | default(False) }}"
+                volumes: "{{ build_vars.container.volumes | default(omit) }}"
+                entrypoint: "{{ build_vars.container.entrypoint | default(omit) }}"
+                cgroupns_mode: "{{ build_vars.container.cgroupns_mode | default(omit) }}"
+              when:
+                - build_vars.container.name is defined
+
+
+        - name: Build image (podman)
+          when: container_tool == 'podman'
+          become: "{{ 'yes' if build_vars.container.rootless | default(False) | bool else 'no' }}"
+          block:
+
+            - name: Pull parent image (podman)
+              containers.podman.podman_image:
+                name: "{{ build_vars.image.parent }}"
+                tag: "{{ parent_image_name }}"
+                state: present
+
+            - name: Remove image tag
+              containers.podman.podman_image:
+                name: "{{ build_vars.image.parent }}"
+                state: absent
+
+            - name: Get image info
+              ansible.builtin.include_tasks:
+                file: tasks/image-info.yml
+              vars:
+                image_name: "{{ parent_image_name }}"
+                cmd: Cmd_p
+                entrypoint: Entrypoint_p
+
+            - name: Create image from Dockerfile (podman)
+              containers.podman.podman_image:
+                name: "{{ build_vars.image.name }}:{{ build_vars.image.tag }}"
+                path: "{{ buildpath }}"
+                build:
+                  format: docker
+                  file: "{{ buildpath }}/Dockerfile"
+              register: _build
+
+            - name: Show build log
+              ansible.builtin.debug:
+                msg: "{{ _build.stdout_lines }}"
+              when: _build.stdout is defined
+
+            - name: Get image info
+              ansible.builtin.include_tasks:
+                file: tasks/image-info.yml
+              vars:
+                image_name: "{{ parent_image_name }}"
+                cmd: Cmd
+                entrypoint: Entrypoint
+
+            - name: Deploy container from new image
+              containers.podman.podman_container:
+                name: "{{ build_vars.container.name }}"
+                image: "{{ build_vars.image.name }}:{{ build_vars.image.tag }}"
+                privileged: "{{ build_vars.container.priviledged | default(False) }}"
+                volumes: "{{ build_vars.container.volumes | default(omit) }}"
+                entrypoint: "{{ build_vars.container.entrypoint | default(omit) }}"
+              when:
+                - build_vars.container.name is defined
+
+
+# Add container to inventory
+- name: Add container to inventory
+  hosts: localhost
+  vars:
+    docker_build_refresh: "{{ lookup('env', 'DOCKER_BUILD_REFRESH') | bool }}"
+    container_tool: "{{ lookup('env', 'DOCKER_BINARY') }}"
+  tasks:
+
+    - name: Wait for 5 seconds
+      ansible.builtin.pause:
+        seconds: 5
+
+    - name: Add container to inventory
+      ansible.builtin.add_host:
+        name: "{{ build_vars.container.name }}"
+        ansible_connection: "{{ container_tool }}"
+        ansible_host: "{{ build_vars.container.name }}"
+        ansible_user: root
+        # ansible_docker_extra_args: >-
+        #   -H tcp://127.0.0.1:2375
+        groups:
+          - containers
+      vars:
+        ansible_python_interpreter: /usr/bin/python3
+      when: build_vars.container.name is defined

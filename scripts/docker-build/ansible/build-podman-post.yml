@@ -1,0 +1,150 @@
+---
+
+- name: Post building phase
+  hosts: localhost
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    container_tool: "{{ lookup('env', 'DOCKER_BINARY') }}"
+    docker_push: "{{ lookup('env', 'DOCKER_PUSH') | default(False) }}"
+  tasks:
+
+    - name: Save container to image (docker)
+      when:
+        - container_tool == 'docker'
+        - build_vars.container.name is defined
+      block:
+
+        - name: Load generic variables 
+          ansible.builtin.include_tasks:
+            file: tasks/get-settings.yml
+
+        - name: Get image info
+          ansible.builtin.include_tasks:
+            file: tasks/image-info.yml
+          vars:
+            image_name: "{{ container_image_tmp1 }}"
+            cmd: Cmd
+            entrypoint: Entrypoint
+            user: User
+
+        - name: Save running container as image
+          ansible.builtin.command: >
+            docker commit
+            {{ build_vars.container.name }}
+            {{ container_image_tmp1 }}
+
+    - name: Restore user/cmd/entrypoint (docker)
+      when:
+        - container_tool == 'docker'
+        # - build_vars.container.name is defined
+      block:
+
+        - name: Decide where to restore from
+          ansible.builtin.set_fact:
+            Entrypoint: "{{ Entrypoint_p | default(None) }}"
+            Cmd: "{{ Cmd_p | default(None) }}"
+            User: "{{ User_p | default(None) }}"
+          when: build_vars.image.inherit_parent_settings | bool
+
+        - name: Generate Dockerfile for restoring
+          ansible.builtin.debug:
+            msg: "{{ lookup('template', 'templates/Dockerfile.restore.j2') }}"
+
+        - name: Create Dockerfile for restore
+          ansible.builtin.template:
+            src: templates/Dockerfile.restore.j2
+            dest: "{{ buildpath }}/Dockerfile.restore"
+            mode: "0640"
+
+        - name: Rebuild with original entrypoint and cmd
+          ansible.builtin.shell:
+            cmd: >-
+              docker build
+              --tag {{ container_image_tmp2 }}
+              --file Dockerfile.restore . 2>&1
+          args:
+            chdir: "{{ buildpath }}"
+          register: __build
+
+        - name: Show build log
+          ansible.builtin.debug:
+            msg: "{{ __build.stdout_lines }}"
+          when: __build.stdout is defined
+
+    - name: Squash layers
+      when:
+        - container_tool == 'docker'
+        - build_vars.container.name is defined
+      block:
+
+        - name: Squash new layers
+          ansible.builtin.include_tasks:
+            file: tasks/image-squash.yml
+
+    - name: Squash layers
+      when:
+        - container_tool == 'docker'
+        # - build_vars.container.name is defined
+      block:
+
+        - name: Delete intermediate images
+          community.docker.docker_image_remove:
+            name: "{{ item }}"
+          loop:
+            - "{{ container_image_tmp1 }}"
+            - "{{ container_image_tmp2 }}"
+
+#        - name: Add additional tags
+#          ansible.builtin.command: >-
+#            docker image tag
+#            {{ build_vars.image.name }}:{{ build_vars.image.tag }}
+#            {{ build_vars.image.name }}:{{ item }}
+#          changed_when: true
+#          loop: "{{ build_vars.image.tags | default([]) }}"
+#
+#        - name: Get image info
+#          ansible.builtin.include_tasks:
+#            file: tasks/image-info.yml
+#          vars:
+#            image_name: "{{ build_vars.image.name }}:{{ build_vars.image.tag }}"
+#            cmd: Cmd
+#            entrypoint: Entrypoint
+#            user: User
+#
+#        - name: Delete the intermediate image
+#          community.docker.docker_image:
+#            name: "{{ build_vars.image.name }}"
+#            tag: tmp
+#            state: absent
+
+    - name: Save container to image (podman)
+      when:
+        - container_tool == 'podman'
+        - build_vars.container.name is defined
+      block:
+
+        - name: Load pipeline variable from file
+          ansible.builtin.set_fact:
+            build_vars: "{{ lookup('file', 'docker-settings.yml') | from_yaml }}"
+
+        - name: Get image info
+          ansible.builtin.include_tasks:
+            file: tasks/image-info.yml
+          vars:
+            image_name: "{{ build_vars.image.name }}:{{ build_vars.image.tag }}"
+            cmd: Cmd
+            entrypoint: Entrypoint
+            user: User
+
+        - name: Save running container as image
+          ansible.builtin.command: >-
+            podman container commit
+            {{ build_vars.container.name }}
+            {{ build_vars.image.name }}:{{ build_vars.image.tag }}
+          changed_when: true
+
+        - name: Add additional tags
+          ansible.builtin.command: >-
+            podman image tag {{ build_vars.image.name }}:{{ build_vars.image.tag }} {{ build_vars.image.name }}:{{ item }}
+          changed_when: true
+          loop: "{{ build_vars.image.tags | default([]) }}"
