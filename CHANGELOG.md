@@ -1,3 +1,16 @@
+# [2.1.0](https://github.com/de-it-krachten/cicd-tools/compare/v2.0.0...v2.1.0) (2026-04-09)
+
+
+### Bug Fixes
+
+* ansible-lint.sh | Workaround for variable in hosts ([d4fc867](https://github.com/de-it-krachten/cicd-tools/commit/d4fc867770d8de1d90d2a61c4c66429465a39a3a))
+* vagrant | fix for multiple ansible runs ([784b7bf](https://github.com/de-it-krachten/cicd-tools/commit/784b7bf807e5980a1940e0fe273ec3bd87be805c))
+
+
+### Features
+
+* Add support for Ubuntu 26.04 ([a1d56c3](https://github.com/de-it-krachten/cicd-tools/commit/a1d56c317232f28291128865a7fb687d667ff6b9))
+
 # [2.0.0](https://github.com/de-it-krachten/cicd-tools-v2/compare/v1.0.0...v2.0.0) (2026-03-30)
 
 
