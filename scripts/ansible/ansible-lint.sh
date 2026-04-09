@@ -630,8 +630,34 @@ esac
 Errors=0
 Issue=0
 
+# Replace variable in hosts
+Files=$(find playbooks -type f -name \*.yml)
+for File in $Files
+do
+  File1=${File}.pre-lint
+  if [[ -f $File1 ]]
+  then
+    echo "File '$File1' already exists!" >&2
+    exit 1
+  fi
+  if grep -q -E "hosts: \"\{\{ hostvars\[.* \}\}\"" $File
+  then
+    cp -p $File ${File}.pre-lint
+    sed -i -r "s/hosts: \"\{\{ hostvars\[.* \}\}\"/hosts: localhost/" $File
+  fi
+done
+
 # Run ansible-lint
 Execute
+
+# Rollback changes
+Files=$(find . -type f -name \*.yml.pre-lint)
+for File in $Files
+do
+  File1=$(echo $File | sed "s/\.pre-lint//")
+  cp -p $File ${File1}
+  rm -f ${File}
+done
 
 # Delete messages we expect in verbose mode
 sed -i "/^Found /d;/^Examining/d;/^Unknown file type/d" ${TMPFILE}
