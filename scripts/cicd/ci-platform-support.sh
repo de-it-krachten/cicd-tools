@@ -50,7 +50,12 @@ HOSTNAME=$(hostname -s)
 #
 ##############################################################
 
-CSVFILE=~/role-support.csv
+if [[ $CUST_HOME == "" ]] ; then
+  CSVFILE=~/role-support.csv
+else
+  CSVFILE=$CUST_HOME/role-support.csv
+fi
+
 ROLE=$(basename $PWD)
 
 

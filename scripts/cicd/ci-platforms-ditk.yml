@@ -94,6 +94,9 @@ platform_defaults:
   ubuntu2404:
     ci: true
     supported: true
+  ubuntu2604:
+    ci: true
+    supported: true
   fedora37:
     ci: false
     supported: false

@@ -237,7 +237,6 @@ case $repo in
 
     # Commit all support changes
     [[ $Initial == false ]] && ${CICD_ROOT}/bin/ci-platform-support.sh --commit
-
     ;;
   ansible-playbooks-*)
 
