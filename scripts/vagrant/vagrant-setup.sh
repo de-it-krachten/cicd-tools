@@ -124,7 +124,7 @@ function Get_var
     Value=$(yq -r .${Key} ${Vagrant_definition})
     [[ $Value == null ]] && Value="$Default"
     [[ -n $Value ]] && eval export \$Var=${Value}
-  fi 
+  fi
 
 }
 
@@ -132,7 +132,7 @@ function Vagrant_box_update
 {
 
   # Get all outdated boxes
-  vagrant box prune 
+  vagrant box prune
   vagrant box outdated --global --machine-readable | awk -F',' '$4=="warn" {print $5}' | awk '{print $2, $4}' | sed "s/'//g" | \
   while read Box Provider
   do
@@ -152,7 +152,7 @@ function Vagrant_box_delete
     version=$(echo $y | sed "s/)//")
     vagrant box remove $box --provider $provider
   done
-  
+
 }
 
 
@@ -300,7 +300,7 @@ Get_var ansible vagrant_boxes.ansible
 #Get_var --no-json vm1 vagrant_boxes.vms[0].name
 #Get_var --dict extra_vars vagrant_boxes.ansible.extra_vars
 #Get_var --list groups vagrant_boxes.ansible.groups
-#Get_var --list hosts vagrant_boxes.ansible.hosts 
+#Get_var --list hosts vagrant_boxes.ansible.hosts
 Get_var playbooks vagrant_boxes.ansible.playbooks
 #Get_var --dict ansible_options vagrant_boxes.ansible.options
 
@@ -312,7 +312,7 @@ rm -fr ${Inventorydir}
 [[ ! -d ${Inventorydir}/host_vars ]] && mkdir -p ${Inventorydir}/host_vars
 [[ ! -d ${Inventorydir}/group_vars ]] && mkdir -p ${Inventorydir}/group_vars
 
-## Write ansible variables files 
+## Write ansible variables files
 [[ $verbose == true ]] && echo "Writing host variables to '${Inventorydir}/host_vars/'"
 hosts=$(yq -y .vagrant_boxes.ansible.host_vars $Vagrant_definition | yq -r 'keys[]' 2>/dev/null)
 for host in $hosts
@@ -324,8 +324,21 @@ done
 groups=$(yq -y .vagrant_boxes.ansible.group_vars $Vagrant_definition | yq -r 'keys[]' 2>/dev/null)
 for group in $groups
 do
-  yq -y '.vagrant_boxes.ansible.host_vars."'$group'"' $Vagrant_definition > ${Inventorydir}/group_vars/${group}.yml
+  yq -y '.vagrant_boxes.ansible.group_vars."'$group'"' $Vagrant_definition >> ${Inventorydir}/group_vars/${group}.yml
 done
+
+# Import external group files
+external_inventory_path=$(yq -r .vagrant_boxes.ansible.external_inventory_path $Vagrant_definition | sed "s/null//")
+if [[ -n $external_inventory_path ]]
+then
+  [[ $verbose == true ]] && echo "Importing external inventory group_vars"
+  for f1 in $external_inventory_path/group_vars/*
+  do
+    f2=$(basename $f1)
+    [[ ! $f2 =~ \.yml ]] && f2=${f2}.yml
+    yq -y . $f1 >> ${Inventorydir}/group_vars/$f2
+  done
+fi
 
 [[ $verbose == true ]] && echo "Writing extra-vars to ${Vagrantdir}/"
 yq -y .vagrant_boxes.ansible.extra_vars $Vagrant_definition > ${Vagrantdir}/ansible.extra_vars.yml
@@ -339,7 +352,7 @@ if e2j2 -m "<=" -f Vagrantfile.${Project}.j2
 then
   [[ $Verbose == true ]] && cat Vagrantfile.${Project} | grep -v "^$"
 else
-  cat Vagrantfile.${Project}.err 
+  cat Vagrantfile.${Project}.err
   exit 1
 fi
 sed -i "/^$/d" Vagrantfile.${Project}
