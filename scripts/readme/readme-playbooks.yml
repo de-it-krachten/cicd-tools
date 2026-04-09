@@ -16,6 +16,8 @@
     tasklists: {}
 
     defaults: "{{ working_dir + '/defaults/main.yml' }}"
+    dep_roles: []
+    dep_collections: []
 
   tasks:
 

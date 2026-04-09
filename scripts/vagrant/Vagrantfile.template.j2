@@ -97,40 +97,42 @@ Vagrant.configure("2") do |config|
 <% endfor %>
 <% endif %>
 
-    end
-  end
-<% endfor %>
-
+<% if loop.last %>
 <% for playbook in playbooks %>
-  config.vm.provision "<= playbook.phase =>", type: "ansible", run: "<= playbook.run|default('once') =>" do |ansible|
+      config.vm.provision "<= playbook.phase =>", type: "ansible", run: "<= playbook.run|default('once') =>" do |ansible|
 
-    # ansible.limit
-    ansible.limit = "all"
+        # ansible.limit
+        ansible.limit = "all"
 
-    # ansible.raw_arguments
-    ansible.raw_arguments = [
-      "-e", "@<= Vagrantdir + '/ansible.extra_vars.yml' =>"
-    ]
+        # ansible.raw_arguments
+        ansible.raw_arguments = [
+          "-e", "@<= Vagrantdir + '/ansible.extra_vars.yml' =>"
+        ]
 
 <%- for key, value in (ansible.options|default({})).items() %>
-    ansible.<= key => = "<= value =>"
+        ansible.<= key => = "<= value =>"
 <%- endfor %>
 
-    # ansible.verbose
+        # ansible.verbose
 <% if ansible_verbose is defined %>
-    ansible.verbose = "<= ansible_verbose =>"
+        ansible.verbose = "<= ansible_verbose =>"
 <% endif %>
 
-    # ansible.playbook
+        # ansible.playbook
 <% if playbook.file_type is defined and playbook.file_type == 'absolute' %>
-    ansible.playbook = "<= playbook.file =>"
+        ansible.playbook = "<= playbook.file =>"
 <% else %>
-    ansible.playbook = "<= Ansibledir =>/<= playbook.file =>"
+        ansible.playbook = "<= Ansibledir =>/<= playbook.file =>"
 <% endif %>
 
-    # ansible.groups
-    ansible.groups = YAML.load_file("<= Vagrantdir + '/ansible.groups.yml' =>")
+        # ansible.groups
+        ansible.groups = YAML.load_file("<= Vagrantdir + '/ansible.groups.yml' =>")
 
+      end
+<% endfor %>
+<% endif %>
+
+    end
   end
 <% endfor %>
 end

@@ -75,6 +75,9 @@ ROLES_PATH=${TMPDIR}/${BASENAME}.${RANDOM}.${RANDOM}
 COLLECTIONS_PATH=${TMPDIR}/${BASENAME}.${RANDOM}.${RANDOM}
 export ROLES_PATH COLLECTIONS_PATH
 
+DEFAULT_DISTROS=ubuntu2404,debian12,rockylinux9,fedora43
+
+
 ##############################################################
 #
 # Defining standarized functions
@@ -130,7 +133,7 @@ Flags :
    -W          : Wait for 900 seconds after failure
    -x          : Fail if deprecation warning is found
    -X          : Fail if warning is found (non-deprecation)
-   -z          : Set of default distributions (ubuntu2404,debian12,rockylinux8,fedora40)"
+   -z          : Set of default distributions ($DEFAULT_DISTROS)
    -Z <x,y>    : Distributions to test
 
 Examples:
@@ -715,7 +718,7 @@ do
      Y|shell)
         Shell=true
         ;;
-     z) Molecule_distributions="ubuntu2404,debian12,rockylinux8,fedora40"
+     z) Molecule_distributions="$DEFAULT_DISTROS"
         ;;
      Z) Molecule_distributions=$(echo $Molecule_distributions $OPTARG)
         ;;
