@@ -454,6 +454,21 @@ function Execute
 
 }
 
+function Restore
+{
+
+  # Rollback changes
+  Files=$(find . -type f -name \*.pre-lint)
+  for File in $Files
+  do
+    File1=$(echo $File | sed "s/\.pre-lint//")
+    [[ $Verbose == true ]] && echo "Restoring $File1"
+    cp -p $File ${File1}
+    rm -f ${File}
+  done
+
+}
+
 
 ##############################################################
 #
@@ -463,7 +478,7 @@ function Execute
 
 # Make sure temporary files are cleaned at exit
 # trap 'rm -f ${TMPFILE}*' EXIT
-trap 'rm -fr ${TMPFILE}* ${ANSIBLE_LIBRARY_TMP} ${COLLECTIONS_PATH}' EXIT
+trap 'Restore ; rm -fr ${TMPFILE}* ${ANSIBLE_LIBRARY_TMP} ${COLLECTIONS_PATH}' EXIT
 trap 'exit 1' HUP QUIT KILL TERM INT
 
 # Set the defaults
@@ -481,9 +496,10 @@ Prepare=true
 Output_format=table
 Sequential=false
 Mode=parallel
+Replace_vars_in_hosts=false
 
 # parse command line into arguments and check results of parsing
-while getopts :acdDf:FhopPqrsvxX-: OPT
+while getopts :acdDf:FhopPqrRsvxX-: OPT
 do
 
   # Support long options
@@ -562,6 +578,9 @@ do
         Optarg=""
         Retrieve_roles=true
         ;;
+     R|replace-vars-in-hosts)
+        Replace_vars_in_hosts=true
+        ;;
      s|sequantial)
         Mode=sequential
         Opt=s
@@ -630,34 +649,26 @@ esac
 Errors=0
 Issue=0
 
-# Replace variable in hosts
-Files=$(find playbooks -type f -name \*.yml)
-for File in $Files
-do
-  File1=${File}.pre-lint
-  if [[ -f $File1 ]]
-  then
-    echo "File '$File1' already exists!" >&2
-    exit 1
-  fi
-  if grep -q -E "hosts: \"\{\{ hostvars\[.* \}\}\"" $File
-  then
-    cp -p $File ${File}.pre-lint
-    sed -i -r "s/hosts: \"\{\{ hostvars\[.* \}\}\"/hosts: localhost/" $File
-  fi
-done
+# Replace variable in playbook hosts definition
+if [[ $Replace_vars_in_hosts == true ]]
+then
+  Files=$(find playbooks -type f -name \*.yml)
+  for File in $Files
+  do
+    cp $File ${TMPFILE}
+    sed -i "s/hosts: localhost-{{ az_env }}/hosts: localhost-{{ az_env | default('NOENV') }}/" ${TMPFILE}
+    sed -i "s/hosts: \"{{ hostvars\[.* }}\"/hosts: localhost/" ${TMPFILE}
+    if ! diff ${File} ${TMPFILE} >/dev/null 2>&1
+    then
+      [[ $Verbose == true ]] && echo "Updating $File"
+      cp -p ${File} ${File}.pre-lint
+      cp ${TMPFILE} ${File}
+    fi
+  done
+fi
 
 # Run ansible-lint
 Execute
-
-# Rollback changes
-Files=$(find . -type f -name \*.yml.pre-lint)
-for File in $Files
-do
-  File1=$(echo $File | sed "s/\.pre-lint//")
-  cp -p $File ${File1}
-  rm -f ${File}
-done
 
 # Delete messages we expect in verbose mode
 sed -i "/^Found /d;/^Examining/d;/^Unknown file type/d" ${TMPFILE}
