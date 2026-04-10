@@ -1,3 +1,10 @@
+## [2.1.1](https://github.com/de-it-krachten/cicd-tools/compare/v2.1.0...v2.1.1) (2026-04-10)
+
+
+### Bug Fixes
+
+* ansible-lint.sh | Improve temporary replacement ([a648bbc](https://github.com/de-it-krachten/cicd-tools/commit/a648bbc0940ff6b9135f733dab7d910b5498afdb))
+
 # [2.1.0](https://github.com/de-it-krachten/cicd-tools/compare/v2.0.0...v2.1.0) (2026-04-09)
 
 
