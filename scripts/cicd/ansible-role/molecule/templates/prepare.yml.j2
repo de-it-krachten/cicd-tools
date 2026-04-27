@@ -43,9 +43,10 @@
             msg: Fail
 
 <% endif %>
+
 - name: Prepare
   hosts: all
-  become: yes
+  become: true
   vars:
 
     proxy_use: "{{ True if ( https_proxy is defined and https_proxy|length > 0 ) else False }}"
