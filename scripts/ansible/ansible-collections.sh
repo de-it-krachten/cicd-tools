@@ -54,9 +54,6 @@ HOSTNAME=$(hostname -s)
 #
 ##############################################################
 
-[[ -x /usr/local/bin/e2j2 ]] && E2J2=/usr/local/bin/e2j2 || E2J2=e2j2
-[[ -x /usr/local/bin/yq ]] && YQ=/usr/local/bin/yq || YQ=yq
-
 
 ##############################################################
 #
@@ -106,110 +103,77 @@ function Template
   local Template=$1
   local File=${Template%%.j2}
 
-  if ! $E2J2 -f $Template >/dev/null 2>&1
+  # Check for supported jinja2 template tools
+  if [[ -x /usr/local/bin/jinjanate ]]
   then
-    cat ${File}.err >&2
+    if ! jinjanate --quiet $Template > $File
+    then
+      exit 1
+    fi
+  else
+    echo "Jinjanate is required!" >&2
     exit 1
   fi
+
+#  # Show result
+#  [[ $Verbose == true ]] && cat $File
 
 }
 
 function Collections_default
 {
 
-  # Write all generic requirements
-  cat <<EOF >${TMPFILE}base.j2
+  [[ $Verbose == true ]] && echo "Create list of default collection dependencies"
+
+  # Create minimal required collections
+  cat <<EOF > ${TMPFILE}base
 ---
 collections:
-  - name: ansible.posix
-  - name: ansible.windows
-  - name: community.docker
-{%- if ansible_version | regex_search('2.16') %}
-    version: "<5.0.0"
-{%- endif %}
-  - name: community.general
-{%- if ansible_version == '2.15' %}
-    version: ">10,<11"
-{%- elif ansible_version == '2.16' %}
-    version: ">11,<12"
-{%- endif %}
-  - name: community.windows
+- name: ansible.posix
+- name: ansible.windows
+- name: community.docker
+- name: community.general
+- name: community.windows
 EOF
 
-  # Create default collection list from template
-  Template ${TMPFILE}base.j2
-
-  # Create a simplified list with name only
-  collections_default="json:$(yq -jc '[.collections[].name]' ${TMPFILE}base)"
-  export collections_default
+ [[ $Verbose == true ]] && cat ${TMPFILE}base
 
 }
 
 function Collections_custom
 {
 
-  # Create emty first file
-  touch ${TMPFILE}-col1
+  [[ $Verbose == true ]] && echo "Create list of custom collection dependencies"
 
-  # Create .collections from template
-  if [[ -f .collections.j2 ]]
-  then
-    Template .collections.j2
-  fi
+  # Render all templates
+  Collection_templates=$(ls .collections.j2 ${Roledir}/*/.collections.j2 2>/dev/null)
+  for Collection_template in $Collection_templates
+  do
+    Template $Collection_template
+  done
 
   # Get all collection files
   Collection_files=$(ls .collections ${Roledir}/*/.collections 2>/dev/null)
 
-  # Convert each files
-  for Collection_file in $Collection_files
-  do
-    count=$((count+1))
-    export collections=json:$(yq -jc .collections $Collection_file)
-
-    cat <<EOF >${TMPFILE}-col${count}.j2
----
-{%- if collections | length > 0 %}
-collections:
-  {%- for collection in collections %}
-
-    {%- set name = collection.name | default(collection) %}
-    {%- set version = collection.version | default('*') %}
-    {%- set source = collection.source | default('') %}
-
-    {%- if source | length == 0 %}
-
-  - name: '{{ name }}'
-    version: '{{ version }}'
-
-    {%- else %}
-
-  - name: '{{ source }}'
-    version: '{{ version }}'
-
-    {%- endif %}
-
-  {%- endfor %}
-{%- else %}
-collections: []
-{%- endif %}
-EOF
-    Template ${TMPFILE}-col${count}.j2
-
-  done
+  # Merge all
+  yq -y -S . $Collection_files > ${TMPFILE}custom
+  [[ $Verbose == true ]] && cat ${TMPFILE}custom
 
 }
 
 function Collections_merge
 {
 
-  # Get all files to merge
-  Collection_files=$(ls ${TMPFILE}-col* 2>/dev/null | grep -v ".j2")
+  [[ $Verbose == true ]] && echo "Merge default and custom collection dependencies"
 
-  # Merge all files on key 'name'
-  yq -ys '{"collections": map(.collections[]) | unique_by(.name)}' ${TMPFILE}base $Collection_files > ${TMPFILE}.yml
+  # Merge default + explicitly defined collections
+  yq -ys '{"collections": map(.collections[]) | unique_by(.name)}' ${TMPFILE}custom ${TMPFILE}base > ${TMPFILE}.yml
 
-  # Show list of merged collections
-  cat ${TMPFILE}.yml
+  # Now get the latest version of each collection
+  [[ $Verbose == true ]] && echo "Lookup latest collection versions for ansible-core '$ansible_version'"
+  ${DIRNAME}/ansible-collections-versions.py ${TMPFILE}.yml
+
+  [[ $Verbose == true ]] && cat ${TMPFILE}.yml
 
 }
 
@@ -285,9 +249,6 @@ do
 done
 shift $(($OPTIND -1))
 
-# For specific ansible versions, fallback onto old Galaxy
-Galaxy_legacy
-
 # Get ansible version
 ansible_version_full=$(ansible --version | grep ^ansible | sed -r "s/.*core //;s/\]//")
 ansible_version_minor=$(echo $ansible_version_full | cut -f1,2 -d.)
@@ -309,7 +270,7 @@ fi
 
 # Install all collections
 echo "Installing combined list of collections"
-ansible-galaxy collection install $Galaxy_args -r ${TMPFILE}.yml 
+ansible-galaxy collection install $Galaxy_args -r ${TMPFILE}.yml
 
 # Process playbook collections
 if [[ -f collections/requirements.yml ]]
