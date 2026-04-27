@@ -4,10 +4,18 @@ default:
   python: >-
     {%- if '/usr/bin/python3.13' is is_file %}
     /usr/bin/python3.13
+    {%- elif '/opt/az/bin/python3.13' is is_file %}
+    /opt/az/bin/python3.13
     {%- elif '/usr/bin/python3.12' is is_file %}
     /usr/bin/python3.12
-    {%- else %}
+    {%- elif '/opt/az/bin/python3.12' is is_file %}
+    /opt/az/bin/python3.12
+    {%- elif '/usr/bin/python3.11' is is_file %}
     /usr/bin/python3.11
+    {%- elif '/opt/az/bin/python3.11' is is_file %}
+    /opt/az/bin/python3.11
+    {%- else %}
+    /usr/bin/python3.10
     {% endif %}
 
 yq:
