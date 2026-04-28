@@ -38,6 +38,7 @@ jobs:
             ansible: "<= item.ansible_core =>"
             ansible_lint: "<= item.ansible_lint =>"
             python: "<= item.python =>"
+            venv: "<= item.venv =>"
 
 <% endfor %>
 
@@ -160,19 +161,19 @@ jobs:
         run: |
           set -e
           [[ $(id -un) != root ]] && sudo=sudo
-          ansible=$(echo ${{ matrix.name }} | sed "s/[_\.]//g" | sed "s/ansible/ansiblecore/")
+          ansible="${{ matrix.venv }}"
           export VENV_LIST="yq e2j2 jinjanator $ansible"
           /opt/cicd-tools/python/python-setup-venvs.sh -v --sudo /usr/local/venv
 
       - name: Install required galaxy collections
         run: |
-          ansible=$(echo ${{ matrix.name }} | sed "s/[_\.]//g" | sed "s/ansible/ansiblecore/")
+          ansible="${{ matrix.venv }}"
           source /usr/local/venv/$ansible/bin/activate
           /usr/local/bin/ansible-collections.sh
 
       - name: Show component versions
         run: |
-          ansible=$(echo ${{ matrix.name }} | sed "s/[_\.]//g" | sed "s/ansible/ansiblecore/")
+          ansible="${{ matrix.venv }}"
           source /usr/local/venv/$ansible/bin/activate
           ansible --version
           ansible-lint --version
@@ -181,7 +182,7 @@ jobs:
       - name: Lint code.
         run: |
           set -e
-          ansible=$(echo ${{ matrix.name }} | sed "s/[_\.]//g" | sed "s/ansible/ansiblecore/")
+          ansible="${{ matrix.venv }}"
           source /usr/local/venv/$ansible/bin/activate
           yamllint .
           /usr/local/bin/ansible-lint.sh -f readable
@@ -327,12 +328,15 @@ jobs:
           sudo dpkg -i $file || exit 1
 
       - name: Update wrapper scripts
+        if: vars.UPDATE_CICD_TOOLS == 'yes'
         run: |
           set -e
           prefix=/opt/cicd-tools
           [[ $(id -un) != root ]] && sudo=sudo
           $sudo apt install git rsync -y
           git clone https://github.com/de-it-krachten/cicd-tools.git /tmp/cicd-tools
+          commit=$(git -C /tmp/cicd-tools rev-parse HEAD)
+          echo "commit: $commit"
           $sudo rsync -cav /tmp/cicd-tools/scripts/* ${prefix}/ | grep -v "/$"
           for f in /opt/cicd-tools/bin/*
           do
