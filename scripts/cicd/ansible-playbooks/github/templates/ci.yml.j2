@@ -66,15 +66,6 @@ jobs:
 <% endfor %>
 <% endif %>
 
-      - name: Configure deployment key
-        if: ${{ secrets.DEPLOYMENT_KEY != '' }}
-        run: |
-          [[ ! -d ~/.ssh ]] && mkdir -m 700 ~/.ssh
-          echo "$DEPLOYMENT_KEY" | base64 -d > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-        env:
-          DEPLOYMENT_KEY: ${{ secrets.DEPLOYMENT_KEY }}
-
       - name: Show runner info
         run: |
 
@@ -89,6 +80,8 @@ jobs:
           echo "user     : $user"
           echo "os       : $os"
           echo "python   : $python ($(python3 --version))"
+
+<% include snippet_path + 'deployment-key.yml.j2' %>
 
 <% include snippet_path + 'fix-runner.yml.j2' %>
 
@@ -174,15 +167,6 @@ jobs:
 <% endfor %>
 <% endif %>
 
-      - name: Configure deployment key
-        if: ${{ secrets.DEPLOYMENT_KEY != '' }}
-        run: |
-          [[ ! -d ~/.ssh ]] && mkdir -m 700 ~/.ssh
-          echo "$DEPLOYMENT_KEY" | base64 -d > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-        env:
-          DEPLOYMENT_KEY: ${{ secrets.DEPLOYMENT_KEY }}
-
       - name: Show runner info
         run: |
 
@@ -197,6 +181,8 @@ jobs:
           echo "user     : $user"
           echo "os       : $os"
           echo "python   : $python ($(python3 --version))"
+
+<% include snippet_path + 'deployment-key.yml.j2' %>
 
 <% include snippet_path + 'fix-runner.yml.j2' %>
 
