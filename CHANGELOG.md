@@ -1,3 +1,15 @@
+# [2.2.0](https://github.com/de-it-krachten/cicd-tools/compare/v2.1.1...v2.2.0) (2026-04-28)
+
+
+### Bug Fixes
+
+* Improve venv scripts ([7b6d6ed](https://github.com/de-it-krachten/cicd-tools/commit/7b6d6edf464eeeef47371fe018fc4e7d14926d7f))
+
+
+### Features
+
+* Refactor ansible-collections.sh ([d960813](https://github.com/de-it-krachten/cicd-tools/commit/d960813cc7145fcfca226703ffd6a7a7d0bb2e8f))
+
 ## [2.1.1](https://github.com/de-it-krachten/cicd-tools/compare/v2.1.0...v2.1.1) (2026-04-10)
 
 
