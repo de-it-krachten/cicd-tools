@@ -109,7 +109,7 @@ function Template
 
   if [[ -f $Template ]]
   then
-    if ! jinjanate $Template > $File
+    if ! jinjanate $Template --quiet -o $File
     then
       exit 1
     fi
