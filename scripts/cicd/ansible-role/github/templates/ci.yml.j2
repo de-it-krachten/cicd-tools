@@ -1,5 +1,7 @@
 ---
 
+<% set snippet_path = 'snippets/' %>
+
 name: CI
 
 on:
@@ -65,6 +67,7 @@ jobs:
 <% endif %>
 
       - name: Configure deployment key
+        if: ${{ secrets.DEPLOYMENT_KEY != '' }}
         run: |
           [[ ! -d ~/.ssh ]] && mkdir -m 700 ~/.ssh
           echo "$DEPLOYMENT_KEY" | base64 -d > ~/.ssh/id_rsa
@@ -87,97 +90,17 @@ jobs:
           echo "os       : $os"
           echo "python   : $python ($(python3 --version))"
 
-      - name: Disable specific apparmor profiles
-        run: |
-          sudo ln -s /etc/apparmor.d/usr.sbin.mysqld /etc/apparmor.d/disable/
-          sudo apparmor_parser -R /etc/apparmor.d/usr.sbin.mysqld
-<% for prof in github.apparmor_profiles | default([]) %>
-          sudo ln -s /etc/apparmor.d/<= prof => /etc/apparmor.d/disable/
-          sudo apparmor_parser -R /etc/apparmor.d/<= prof =>
-<% endfor %>
+<% include snippet_path + 'fix-runner.yml.j2' %>
 
-      - name: Install test dependencies.
-        run: |
-          sudo rm -f /usr/bin/yq
+<% include snippet_path + 'apparmor.yml.j2' %>
 
-      - name: Retrieve & install wrapper scripts
-        run: |
+<% include snippet_path + 'cicd-tools.yml.j2' %>
 
-          cicd_version=${{ vars.cicd_version }}
+<% include snippet_path + 'venv.yml.j2' %>
 
-          # Install requirements
-          echo "== Installing dependencies"
-          sudo apt install curl jq -y
+<% include snippet_path + 'ansible-galaxy.yml.j2' %>
 
-          # If no package version was given, get the latest
-          if [[ -z $cicd_version ]]
-          then
-            echo "== Retrieving cicd_tools version"
-
-            # API uri to query
-            api_url=https://api.github.com/repos/de-it-krachten/cicd-tools/releases/latest
-
-            # Get latest release download URL for .deb asset
-            cicd_version=$(curl -s $api_url | jq -r '.tag_name' | sed "s/null//" | sed "s/^v//")
-
-          fi
-
-          # If still no version found, fall back onto a default
-          if [[ -z $cicd_version ]]
-          then
-            echo "== Fallback to default version '2.0.0'"
-            cicd_version=2.0.0
-          fi
-
-          # Construct url
-          release_url=https://github.com/de-it-krachten/cicd-tools/releases/download/v${cicd_version}/cicd-tools_${cicd_version}.deb
-
-          # Download package
-          echo "== Downloading package '$release_url'"
-          file=$(basename $release_url)
-          curl -s -L -o $file -s $release_url || exit 1
-
-          echo "== Installing package '$file'"
-          sudo dpkg -i $file || exit 1
-
-      - name: Update wrapper scripts
-        if: vars.UPDATE_CICD_TOOLS == 'yes'
-        run: |
-          set -e
-          prefix=/opt/cicd-tools
-          [[ $(id -un) != root ]] && sudo=sudo
-          $sudo apt install git rsync -y
-          git clone https://github.com/de-it-krachten/cicd-tools.git /tmp/cicd-tools
-          commit=$(git -C /tmp/cicd-tools rev-parse HEAD)
-          echo "commit: $commit"
-          $sudo rsync -cav /tmp/cicd-tools/scripts/* ${prefix}/ | grep -v "/$"
-          for f in /opt/cicd-tools/bin/*
-          do
-            $sudo ln -fs $f /usr/local/bin/$(basename $f)
-          done
-          $sudo chown -h -R root:root ${prefix}
-
-      - name: Install tools in their virtual environments
-        run: |
-          set -e
-          [[ $(id -un) != root ]] && sudo=sudo
-          ansible="${{ matrix.venv }}"
-          export VENV_LIST="yq e2j2 jinjanator $ansible"
-          /opt/cicd-tools/python/python-setup-venvs.sh -v --sudo /usr/local/venv
-
-      - name: Install required galaxy collections
-        run: |
-          ansible="${{ matrix.venv }}"
-          source /usr/local/venv/$ansible/bin/activate
-          /usr/local/bin/ansible-collections.sh
-
-      - name: Show component versions
-        run: |
-          ansible="${{ matrix.venv }}"
-          source /usr/local/venv/$ansible/bin/activate
-          ansible --version
-          ansible-lint --version
-          yamllint --version
+<% include snippet_path + 'show-versions.yml.j2' %>
 
       - name: Lint code.
         run: |
@@ -252,6 +175,7 @@ jobs:
 <% endif %>
 
       - name: Configure deployment key
+        if: ${{ secrets.DEPLOYMENT_KEY != '' }}
         run: |
           [[ ! -d ~/.ssh ]] && mkdir -m 700 ~/.ssh
           echo "$DEPLOYMENT_KEY" | base64 -d > ~/.ssh/id_rsa
@@ -274,106 +198,17 @@ jobs:
           echo "os       : $os"
           echo "python   : $python ($(python3 --version))"
 
-      - name: Disable specific apparmor profiles
-        run: |
-          sudo ln -s /etc/apparmor.d/usr.sbin.mysqld /etc/apparmor.d/disable/
-          sudo apparmor_parser -R /etc/apparmor.d/usr.sbin.mysqld
-<% for prof in github.apparmor_profiles | default([]) %>
-          sudo ln -s /etc/apparmor.d/<= prof => /etc/apparmor.d/disable/
-          sudo apparmor_parser -R /etc/apparmor.d/<= prof =>
-<% endfor %>
+<% include snippet_path + 'fix-runner.yml.j2' %>
 
-      - name: Install test dependencies.
-        run: |
-          sudo rm -f /usr/bin/yq
+<% include snippet_path + 'apparmor.yml.j2' %>
 
-      - name: Retrieve & install wrapper scripts
-        run: |
+<% include snippet_path + 'cicd-tools.yml.j2' %>
 
-          cicd_version=${{ vars.cicd_version }}
+<% include snippet_path + 'venv.yml.j2' %>
 
-          # Install requirements
-          echo "== Installing dependencies"
-          sudo apt install curl jq -y
+<% include snippet_path + 'ansible-galaxy.yml.j2' %>
 
-          # If no package version was given, get the latest
-          if [[ -z $cicd_version ]]
-          then
-            echo "== Retrieving cicd_tools version"
-
-            # API uri to query
-            api_url=https://api.github.com/repos/de-it-krachten/cicd-tools/releases/latest
-
-            # Get latest release download URL for .deb asset
-            cicd_version=$(curl -s $api_url | jq -r '.tag_name' | sed "s/null//" | sed "s/^v//")
-
-          fi
-
-          # If still no version found, fall back onto a default
-          if [[ -z $cicd_version ]]
-          then
-            echo "== Fallback to default version '2.0.0'"
-            cicd_version=2.0.0
-          fi
-
-          # Construct url
-          release_url=https://github.com/de-it-krachten/cicd-tools/releases/download/v${cicd_version}/cicd-tools_${cicd_version}.deb
-
-          # Download package
-          echo "== Downloading package '$release_url'"
-          file=$(basename $release_url)
-          curl -s -L -o $file -s $release_url || exit 1
-
-          echo "== Installing package '$file'"
-          sudo dpkg -i $file || exit 1
-
-      - name: Update wrapper scripts
-        if: vars.UPDATE_CICD_TOOLS == 'yes'
-        run: |
-          set -e
-          prefix=/opt/cicd-tools
-          [[ $(id -un) != root ]] && sudo=sudo
-          $sudo apt install git rsync -y
-          git clone https://github.com/de-it-krachten/cicd-tools.git /tmp/cicd-tools
-          commit=$(git -C /tmp/cicd-tools rev-parse HEAD)
-          echo "commit: $commit"
-          $sudo rsync -cav /tmp/cicd-tools/scripts/* ${prefix}/ | grep -v "/$"
-          for f in /opt/cicd-tools/bin/*
-          do
-            $sudo ln -fs $f /usr/local/bin/$(basename $f)
-          done
-          $sudo chown -h -R root:root ${prefix}
-
-      - name: Install tools in their virtual environments
-        run: |
-          set -e
-          [[ $(id -un) != root ]] && sudo=sudo
-          ansible="${{ matrix.venv }}"
-          export VENV_LIST="yq e2j2 jinjanator $ansible"
-          /opt/cicd-tools/python/python-setup-venvs.sh --sudo /usr/local/venv
-
-      - name: Install required galaxy collections
-        run: |
-          ansible="${{ matrix.venv }}"
-          source /usr/local/venv/$ansible/bin/activate
-          /usr/local/bin/ansible-collections.sh
-
-      - name: Set-up github runner
-        run: |
-          sudo modprobe ip6table_filter
-
-      - name: Show component versions
-        run: |
-          ansible="${{ matrix.venv }}"
-          source /usr/local/venv/$ansible/bin/activate
-          set -vx
-          pip3 list
-          ansible-galaxy collection list
-          python3 --version
-          ansible --version
-          ansible-lint --version
-          yamllint --version
-          molecule --version
+<% include snippet_path + 'show-versions.yml.j2' %>
 
       - name: Run Molecule tests.
         run: |

@@ -1,0 +1,12 @@
+      - name: Show component versions
+        run: |
+          ansible="${{ matrix.venv }}"
+          source /usr/local/venv/$ansible/bin/activate
+          set -vx
+          pip3 list
+          ansible-galaxy collection list
+          python3 --version
+          ansible --version
+          ansible-lint --version
+          yamllint --version
+          molecule --version

@@ -1,0 +1,4 @@
+      - name: Fix known issues
+        run: |
+          sudo rm -f /usr/bin/yq
+          sudo modprobe ip6table_filter
