@@ -1,3 +1,15 @@
+# [2.3.0](https://github.com/de-it-krachten/cicd-tools/compare/v2.2.0...v2.3.0) (2026-04-28)
+
+
+### Bug Fixes
+
+* Set correct venv for lint/molecule ([e2dc108](https://github.com/de-it-krachten/cicd-tools/commit/e2dc1088e0095b8c0ef779b17fcf109423b55b5f))
+
+
+### Features
+
+* Refactor Github CI templates to re-use code ([e409503](https://github.com/de-it-krachten/cicd-tools/commit/e4095033a6253a30c132bbc197362b69f43b871d))
+
 # [2.2.0](https://github.com/de-it-krachten/cicd-tools/compare/v2.1.1...v2.2.0) (2026-04-28)
 
 
