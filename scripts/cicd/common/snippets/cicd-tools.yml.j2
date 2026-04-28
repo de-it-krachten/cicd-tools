@@ -1,0 +1,57 @@
+      - name: Retrieve & install wrapper scripts
+        run: |
+
+          cicd_version=${{ vars.CICD_TOOLS_VERSION }}
+
+          # Install requirements
+          echo "== Installing dependencies"
+          sudo apt install curl jq -y
+
+          # If no package version was given, get the latest
+          if [[ -z $cicd_version ]]
+          then
+            echo "== Retrieving cicd_tools version"
+
+            # API uri to query
+            api_url=https://api.github.com/repos/de-it-krachten/cicd-tools/releases/latest
+
+            # Get latest release download URL for .deb asset
+            cicd_version=$(curl -s $api_url | jq -r '.tag_name' | sed "s/null//" | sed "s/^v//")
+
+          fi
+
+          # If still no version found, fall back onto a default
+          if [[ -z $cicd_version ]]
+          then
+            echo "== Fallback to default version '2.2.0'"
+            cicd_version=2.2.0
+          fi
+
+          # Construct url
+          release_url=https://github.com/de-it-krachten/cicd-tools/releases/download/v${cicd_version}/cicd-tools_${cicd_version}.deb
+
+          # Download package
+          echo "== Downloading package '$release_url'"
+          file=$(basename $release_url)
+          curl -s -L -o $file -s $release_url || exit 1
+
+          echo "== Installing package '$file'"
+          sudo dpkg -i $file || exit 1
+
+      - name: Update wrapper scripts
+        if: vars.CICD_TOOLS_UPDATE == 'yes'
+        run: |
+          set -e
+          prefix=/opt/cicd-tools
+          [[ $(id -un) != root ]] && sudo=sudo
+          $sudo apt install git rsync -y
+          git clone https://github.com/de-it-krachten/cicd-tools.git /tmp/cicd-tools
+          commit=$(git -C /tmp/cicd-tools rev-parse HEAD)
+          echo "commit: $commit"
+          $sudo rsync -cav /tmp/cicd-tools/scripts/* ${prefix}/ | grep -v "/$"
+          for f in /opt/cicd-tools/bin/*
+          do
+            $sudo ln -fs $f /usr/local/bin/$(basename $f)
+          done
+          $sudo chown -h -R root:root ${prefix}
+

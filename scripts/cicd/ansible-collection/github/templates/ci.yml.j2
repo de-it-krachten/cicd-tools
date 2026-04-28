@@ -1,5 +1,7 @@
 ---
 
+<% set snippet_path = 'snippets/' %>
+
 name: CI
 
 on:
@@ -37,18 +39,22 @@ jobs:
             # ansible: "<= item.ansible =>"
             ansible: "<= item.ansible_core =>"
             ansible_lint: "<= item.ansible_lint =>"
+            python: "<= item.python =>"
+            venv: "<= item.venv =>"
+
 <% endfor %>
 
     steps:
+
       - name: Check out the codebase.
         uses: actions/checkout@v6
         with:
           path: "${{ github.repository }}"
 
-      - name: Set up Python 3.
+      - name: Set up Python3.
         uses: actions/setup-python@v6
         with:
-          python-version: '3.13'
+          python-version: "${{ matrix.python }}"
 
 <% if github.deploy_keys is defined %>
       - name: Set-up SSH agent
@@ -59,6 +65,15 @@ jobs:
             ${{ secrets.<= key => }}
 <% endfor %>
 <% endif %>
+
+      - name: Configure deployment key
+        if: ${{ secrets.DEPLOYMENT_KEY != '' }}
+        run: |
+          [[ ! -d ~/.ssh ]] && mkdir -m 700 ~/.ssh
+          echo "$DEPLOYMENT_KEY" | base64 -d > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+        env:
+          DEPLOYMENT_KEY: ${{ secrets.DEPLOYMENT_KEY }}
 
       - name: Show runner info
         run: |
@@ -75,100 +90,25 @@ jobs:
           echo "os       : $os"
           echo "python   : $python ($(python3 --version))"
 
-      - name: Disable specific apparmor profiles
-        run: |
-          sudo ln -s /etc/apparmor.d/usr.sbin.mysqld /etc/apparmor.d/disable/
-          sudo apparmor_parser -R /etc/apparmor.d/usr.sbin.mysqld
-<% for prof in github.apparmor_profiles | default([]) %>
-          sudo ln -s /etc/apparmor.d/<= prof => /etc/apparmor.d/disable/
-          sudo apparmor_parser -R /etc/apparmor.d/<= prof =>
-<% endfor %>
+<% include snippet_path + 'fix-runner.yml.j2' %>
 
-      - name: Install test dependencies.
-        run: |
-          sudo rm -f /usr/bin/yq
-          python3 -m venv ~/.venv
-          source ~/.venv/bin/activate
-          pip3 install pip wheel setuptools --upgrade
-          pip3 install "${{ matrix.ansible }}" "${{ matrix.ansible_lint }}" yamllint jmespath yq e2j2 jinja2-ansible-filters
-          pip3 list
+<% include snippet_path + 'apparmor.yml.j2' %>
 
-      - name: Retrieve & install wrapper scripts
-        run: |
+<% include snippet_path + 'cicd-tools.yml.j2' %>
 
-          cicd_version=${{ vars.cicd_version }}
+<% include snippet_path + 'venv.yml.j2' %>
 
-          # Install requirements
-          echo "== Installing dependencies"
-          sudo apt install curl jq -y
+<% include snippet_path + 'ansible-galaxy.yml.j2' %>
 
-          # If no package version was given, get the latest
-          if [[ -z $cicd_version ]]
-          then
-            echo "== Retrieving cicd_tools version"
-
-            # API uri to query
-            api_url=https://api.github.com/repos/de-it-krachten/cicd-tools/releases/latest
-
-            # Get latest release download URL for .deb asset
-            cicd_version=$(curl -s $api_url | jq -r '.tag_name' | sed "s/null//" | sed "s/^v//")
-
-          fi
-
-          # If still no version found, fall back onto a default
-          if [[ -z $cicd_version ]]
-          then
-            echo "== Fallback to default version '2.0.0'"
-            cicd_version=2.0.0
-          fi
-
-          # Construct url
-          release_url=https://github.com/de-it-krachten/cicd-tools/releases/download/v${cicd_version}/cicd-tools_${cicd_version}.deb
-
-          # Download package
-          echo "== Downloading package '$release_url'"
-          file=$(basename $release_url)
-          curl -s -L -o $file -s $release_url || exit 1
- 
-          echo "== Installing package '$file'"
-          sudo dpkg -i $file || exit 1
-
-      - name: Install required galaxy collections
-        run: |
-          source ~/.venv/bin/activate
-          /usr/local/bin/ansible-collections.sh
-
-      - name: For ansible 2.9, we need to perform some tweaking
-        run: |
-          source ~/.venv/bin/activate
-          ansible=$(pip show ansible 2>/dev/null | awk '/Version:/ {print $2}')
-          ansible_core=$(pip show ansible-core 2>/dev/null | awk '/Version:/ {print $2}')
-          ansible=${ansible:-$ansible_core}
-          echo "Ansible version = $ansible"
-          if [[ $ansible =~ 2.9.* ]]
-          then
-            echo "Patching for Rocky support"
-            site=$(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")
-            sed -i "s/'AlmaLinux'\],/'AlmaLinux', 'Rocky'\],/" $site/ansible/module_utils/facts/system/distribution.py
-            echo "Downgrading 'community.general' to '3.8.3'"
-            ansible-galaxy collection install community.general:3.8.3 --force
-          else
-            echo "No need to patch it"
-          fi
-
-      - name: Show component versions
-        run: |
-          source ~/.venv/bin/activate
-          ansible --version
-          ansible-lint --version
-          yamllint --version
+<% include snippet_path + 'show-versions.yml.j2' %>
 
       - name: Lint code.
         run: |
           set -e
-          source ~/.venv/bin/activate
+          ansible="${{ matrix.venv }}"
+          source /usr/local/venv/$ansible/bin/activate
           yamllint .
-          ansible-lint.sh
+          /usr/local/bin/ansible-lint.sh -f readable
 
 <% if github.molecule|bool %>
   molecule:
@@ -187,11 +127,15 @@ jobs:
             distro: <= distro.key =>
             playbook: converge.yml
 <% if distro.key | regex_search('(rhel8|centos8|oraclelinux8|almalinux8|rockylinux8|olam8|opensuse15|sles15)') %>
+            venv: "ansiblecore216"
             ansible: "ansible-core>2.16,<2.17"
             ansible_lint: "ansible-lint>6,<7"
+            python: "3.12"
 <% else %>
+            venv: "ansiblecore218"
             ansible: "ansible-core>2.18,<2.19"
             ansible_lint: "ansible-lint"
+            python: "3.13"
 <% endif %>
             hetznercloud: <= True if distro.value.molecule.hetznercloud is defined else False =>
 
@@ -215,10 +159,10 @@ jobs:
           # limit-access-to-users: mark-it-kracht
 <% endif %>
 
-      - name: Set up Python 3.
+      - name: Set up Python3.
         uses: actions/setup-python@v6
         with:
-          python-version: '3.13'
+          python-version: "${{ matrix.python }}"
 
 <% if github.deploy_keys is defined %>
       - name: Set-up SSH agent
@@ -229,6 +173,15 @@ jobs:
             ${{ secrets.<= key => }}
 <% endfor %>
 <% endif %>
+
+      - name: Configure deployment key
+        if: ${{ secrets.DEPLOYMENT_KEY != '' }}
+        run: |
+          [[ ! -d ~/.ssh ]] && mkdir -m 700 ~/.ssh
+          echo "$DEPLOYMENT_KEY" | base64 -d > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+        env:
+          DEPLOYMENT_KEY: ${{ secrets.DEPLOYMENT_KEY }}
 
       - name: Show runner info
         run: |
@@ -245,127 +198,23 @@ jobs:
           echo "os       : $os"
           echo "python   : $python ($(python3 --version))"
 
-      - name: Disable specific apparmor profiles
-        run: |
-          sudo ln -s /etc/apparmor.d/usr.sbin.mysqld /etc/apparmor.d/disable/
-          sudo apparmor_parser -R /etc/apparmor.d/usr.sbin.mysqld
-<% for prof in github.apparmor_profiles | default([]) %>
-          sudo ln -s /etc/apparmor.d/<= prof => /etc/apparmor.d/disable/
-          sudo apparmor_parser -R /etc/apparmor.d/<= prof =>
-<% endfor %>
+<% include snippet_path + 'fix-runner.yml.j2' %>
 
-      - name: Install test dependencies.
-        run: |
-          sudo rm -f /usr/bin/yq
-          python3 -m venv ~/.venv
-          source ~/.venv/bin/activate
-          pip3 install pip wheel setuptools --upgrade
-          pip3 install yq e2j2 jinja2-ansible-filters passlib
-          # pip3 install "${{ matrix.ansible }}" "${{ matrix.ansible_lint }}" "ansible-compat<4" "molecule<5" yamllint jmespath
-          pip3 install "${{ matrix.ansible }}" "${{ matrix.ansible_lint }}" yamllint jmespath molecule
+<% include snippet_path + 'apparmor.yml.j2' %>
 
-          echo "MOLECULE_DRIVER = $MOLECULE_DRIVER"
-          if [[ $MOLECULE_DRIVER == 'hetznercloud' ]] ; then
-            pip3 install molecule-hetznercloud
-            ansible-galaxy collection install hetzner.hcloud community.crypto
-            site=$(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")
-            createyml_file=$site/molecule_hetznercloud/playbooks/create.yml
-            createyml_url=https://raw.githubusercontent.com/de-it-krachten/molecule-hetznercloud/sshkey/molecule_hetznercloud/playbooks/create.yml
-            sudo apt install curl
-            curl -s -o $createyml_file $createyml_url
-          elif [[ $MOLECULE_DRIVER == 'vagrant' ]] ; then
-            pip3 install molecule-vagrant
-          elif [[ $MOLECULE_DRIVER == 'podman' ]] ; then
-            pip3 install molecule-podman
-          else
-            pip3 install molecule-docker
-          fi
+<% include snippet_path + 'cicd-tools.yml.j2' %>
 
-          pip3 install "requests<2.29" "urllib3<2"
+<% include snippet_path + 'venv.yml.j2' %>
 
-          pip3 list
-        env:
-          MOLECULE_DRIVER: ${{ vars.MOLECULE_DRIVER }}
+<% include snippet_path + 'ansible-galaxy.yml.j2' %>
 
-      - name: Retrieve & install wrapper scripts
-        run: |
-
-          cicd_version=${{ vars.cicd_version }}
-
-          # Install requirements
-          echo "== Installing dependencies"
-          sudo apt install curl jq -y
-
-          # If no package version was given, get the latest
-          if [[ -z $cicd_version ]]
-          then
-            echo "== Retrieving cicd_tools version"
-
-            # API uri to query
-            api_url=https://api.github.com/repos/de-it-krachten/cicd-tools/releases/latest
-
-            # Get latest release download URL for .deb asset
-            cicd_version=$(curl -s $api_url | jq -r '.tag_name' | sed "s/null//" | sed "s/^v//")
-
-          fi
-
-          # If still no version found, fall back onto a default
-          if [[ -z $cicd_version ]]
-          then
-            echo "== Fallback to default version '2.0.0'"
-            cicd_version=2.0.0
-          fi
-
-          # Construct url
-          release_url=https://github.com/de-it-krachten/cicd-tools/releases/download/v${cicd_version}/cicd-tools_${cicd_version}.deb
-
-          # Download package
-          echo "== Downloading package '$release_url'"
-          file=$(basename $release_url)
-          curl -s -L -o $file -s $release_url || exit 1
- 
-          echo "== Installing package '$file'"
-          sudo dpkg -i $file || exit 1
-
-      - name: Install required galaxy collections
-        run: |
-          source ~/.venv/bin/activate
-          /usr/local/bin/ansible-collections.sh
-
-      - name: For ansible 2.9, we need to perform some tweaking
-        run: |
-          source ~/.venv/bin/activate
-          ansible=$(pip show ansible 2>/dev/null | awk '/Version:/ {print $2}')
-          ansible_core=$(pip show ansible-core 2>/dev/null | awk '/Version:/ {print $2}')
-          ansible=${ansible:-$ansible_core}
-          echo "Ansible version = $ansible"
-          if [[ $ansible =~ 2.9.* ]]
-          then
-            echo "Patching for Rocky support"
-            site=$(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")
-            sed -i "s/'AlmaLinux'\],/'AlmaLinux', 'Rocky'\],/" $site/ansible/module_utils/facts/system/distribution.py
-            echo "Downgrading 'community.general' to '3.8.3'"
-            ansible-galaxy collection install community.general:3.8.3 --force
-          else
-            echo "No need to patch it"
-          fi
-
-      - name: Set-up github runner
-        run: |
-          sudo modprobe ip6table_filter
-
-      - name: Show component versions
-        run: |
-          source ~/.venv/bin/activate
-          ansible --version
-          ansible-lint --version
-          yamllint --version
-          molecule --version
+<% include snippet_path + 'show-versions.yml.j2' %>
 
       - name: Run Molecule tests.
         run: |
-          source ~/.venv/bin/activate
-          molecule-test.sh -A
+          ansible="${{ matrix.venv }}"
+          source /usr/local/venv/$ansible/bin/activate
+          /usr/local/bin/molecule-test.sh -A
         env:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'

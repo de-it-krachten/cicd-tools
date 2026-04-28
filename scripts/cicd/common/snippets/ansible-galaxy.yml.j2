@@ -1,0 +1,5 @@
+      - name: Install required galaxy collections
+        run: |
+          ansible="${{ matrix.venv }}"
+          source /usr/local/venv/$ansible/bin/activate
+          /usr/local/bin/ansible-collections.sh
