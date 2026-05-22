@@ -16,12 +16,11 @@ jinjanator
 pproxy
 docker-squash
 ansible-navigator
-ansible9
-ansible11
-ansible12
 ansiblecore216
 ansiblecore218
 ansiblecore219
+ansiblecore220
+ansiblecore221
 awxkit
 "
 
