@@ -1,3 +1,10 @@
+# [2.4.0](https://github.com/de-it-krachten/cicd-tools/compare/v2.3.1...v2.4.0) (2026-05-22)
+
+
+### Features
+
+* Add support for ansible 2.21 ([b7d7b68](https://github.com/de-it-krachten/cicd-tools/commit/b7d7b6875fa3e1080ecc03d77f09870e2cd9ca42))
+
 ## [2.3.1](https://github.com/de-it-krachten/cicd-tools/compare/v2.3.0...v2.3.1) (2026-04-28)
 
 
