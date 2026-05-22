@@ -2,7 +2,11 @@
 
 default:
   python: >-
-    {%- if '/usr/bin/python3.13' is is_file %}
+    {%- if '/usr/bin/python3.14' is is_file %}
+    /usr/bin/python3.14
+    {%- elif '/opt/az/bin/python3.14' is is_file %}
+    /opt/az/bin/python3.14
+    {%- elif '/usr/bin/python3.13' is is_file %}
     /usr/bin/python3.13
     {%- elif '/opt/az/bin/python3.13' is is_file %}
     /opt/az/bin/python3.13
@@ -73,6 +77,7 @@ pproxy:
   { "name": "ansiblecore218", "version": "ansible-core>=2.18,<2.19" },
   { "name": "ansiblecore219", "version": "ansible-core>=2.19,<2.20" },
   { "name": "ansiblecore220", "version": "ansible-core>=2.20,<2.21" }
+  { "name": "ansiblecore221", "version": "ansible-core>=2.21,<2.22" }
 ] %}
 
 {% for env in ansible_envs %}

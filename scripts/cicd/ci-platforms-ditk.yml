@@ -113,10 +113,13 @@ platform_defaults:
     ci: false
     supported: false
   fedora42:
-    ci: true
-    supported: true
+    ci: false
+    supported: false
   fedora43:
     ci: true
+    supported: true
+  fedora44:
+    ci: false
     supported: true
   alpine3:
     ci: false

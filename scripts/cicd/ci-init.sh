@@ -350,6 +350,8 @@ then
   export fedora=$Fedora
   Update_from_template cicd-${Customer}.yml .cicd
   [[ ! -f .cicd.overwrite ]] && Update_from_template cicd.overwrite.yml .cicd.overwrite
+  [[ ! -f .collections ]] && echo -e "---\ncollections: []" > .collections
+  [[ ! -f .roles ]] && echo -e "---\nroles: []" > .roles
   exit 0
 fi
 

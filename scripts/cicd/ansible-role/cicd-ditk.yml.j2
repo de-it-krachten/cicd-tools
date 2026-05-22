@@ -62,18 +62,22 @@ github:
   # https://docs.ansible.com/ansible/latest/reference_appendices/release_and_maintenance.html
   image: ubuntu2204
   lint_matrix:
-    - name: ansible_2.17
-      ansible: "ansible>10,<11"
-      ansible_core: "ansible-core>2.17,<2.18"
+# 2.16 is latest version to supports python3.6 (rhel8)
+{%- for v in [ '2.16', '2.18', '2.19', '2.20', '2.21' ] %}
+{%- set parts = v.split('.') %}
+{#- ansible-core #}
+{%- set v1 = parts[0] %}
+{%- set v2 = (parts[1] | int) + 1 %}
+{#- ansible #}
+{%- set v3 = (parts[1] | int) -7 %}
+{%- set v4 = (parts[1] | int) -6 %}
+    - name: ansible_{{ v }}
+      ansible: "ansible>{{ v3 }},<{{ v4 }}"
+      ansible_core: "ansible-core>{{ v }},<{{ v1 }}.{{ v2 }}"
       ansible_lint: "ansible-lint"
-      python: "3.13"
-      venv: "ansiblecore217"
-    - name: ansible_2.18
-      ansible: "ansible>11,<12"
-      ansible_core: "ansible-core>2.18,<2.19"
-      ansible_lint: "ansible-lint"
-      python: "3.13"
-      venv: "ansiblecore218"
+      python: "3.12"
+      venv: "ansiblecore{{ v | regex_replace('\.') }}"
+{%- endfor %}
 
 # Gitlab
 gitlab:
