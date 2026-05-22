@@ -1,3 +1,10 @@
+## [2.4.1](https://github.com/de-it-krachten/cicd-tools/compare/v2.4.0...v2.4.1) (2026-05-22)
+
+
+### Bug Fixes
+
+* Fix ansible environments ([7cb9f90](https://github.com/de-it-krachten/cicd-tools/commit/7cb9f90ebc3062321e5d4bb4f49bfe220abe0d0b))
+
 # [2.4.0](https://github.com/de-it-krachten/cicd-tools/compare/v2.3.1...v2.4.0) (2026-05-22)
 
 
