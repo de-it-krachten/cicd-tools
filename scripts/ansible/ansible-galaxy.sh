@@ -103,7 +103,7 @@ function Get_roles
   fi
 
   [[ -n $Path ]] && Args="-p ${Path}" || Args=
-  [[ $Clean == true ]] && ${DIRNAME}/ansible-requirements-clean.sh ${Args} ${Clean_args} ${Reqfile}
+  [[ $Clean == true ]] && ${DIRNAME}/ansible-requirements-clean.sh ${Sudo1} ${Args} ${Clean_args} ${Reqfile}
   [[ $Clean_only == true ]] && exit 0
 
   $Echo ansible-galaxy install -r $Reqfile -p ${Path}roles --ignore-errors
@@ -150,7 +150,7 @@ Collections_yaml=collections/requirements.yml
 Roles_yaml=roles/requirements.yml
 
 # parse command line into arguments and check results of parsing
-while getopts :cCdDGhop:qrv-: OPT
+while getopts :cCdDGhop:qrsv-: OPT
 do
 
   # Support long options
@@ -199,6 +199,9 @@ do
     r|refresh)
       Refresh=true
       Clean=true
+      ;;
+    s|sudo)
+      Sudo1="-s"
       ;;
     v|verbose)
       Verbose=true

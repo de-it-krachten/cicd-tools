@@ -114,14 +114,14 @@ function Clean_role
     then
       if [[ $Force == true ]]
       then
-        $Echo rm -fr ${Path}roles/$Role
+        $Echo $Sudo rm -fr ${Path}roles/$Role
       else
         [[ $Verbose_level -gt 0 ]] && echo "Leaving repository '${Path}roles/$Role' due to presence of .git directory" >&2
       fi
     elif [[ -d ${Path}roles/$Role ]]
     then
       [[ $Verbose_level -gt 0 ]] && echo "Removing '${Path}role/$Role'" >&2
-      $Echo rm -fr ${Path}roles/$Role
+      $Echo $Sudo rm -fr ${Path}roles/$Role
     fi
   else
     [[ $Verbose_level -gt 0 ]] && echo "Role '${Path}${Role}' not found"
@@ -157,7 +157,7 @@ Gitignore=false
 Ansible_lint=false
 
 # parse command line into arguments and check results of parsing
-while getopts :aAdDFgGhp:qv-: OPT
+while getopts :aAdDFgGhp:qsv-: OPT
 do
 
   # Support long options
@@ -202,6 +202,9 @@ do
       ;;
     q|quiet)
       Verbose_level=-1
+      ;;
+    s|sudo)
+      Sudo=sudo
       ;;
     v|verbose)
       Verbose=true
