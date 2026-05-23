@@ -21,7 +21,14 @@ $Debug
 ##############################################################
 
 # Set temporary PATH
-export PATH=/bin:/usr/bin:/sbin:/usr/sbin:$PATH
+__PYTHON_VENV=$(which python3 | sed "s|/bin/python3||")
+if [[ $__PYTHON_VENV =~ ^(|/usr)$ ]]
+then
+  export PATH=/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:$PATH
+else
+  export PATH=${__PYTHON_VENV}/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:$PATH
+fi
+unset __PYTHON_VENV
 
 # Get the name of the calling script
 FILENAME=$(readlink -f $0)
@@ -136,7 +143,7 @@ collections:
 - name: community.windows
 EOF
 
- [[ $Verbose == true ]] && cat ${TMPFILE}base
+ [[ $Verbosity_level -gt 1 ]] && cat ${TMPFILE}base
 
 }
 
@@ -157,7 +164,7 @@ function Collections_custom
 
   # Merge all
   yq -y -S . $Collection_files > ${TMPFILE}custom
-  [[ $Verbose == true ]] && cat ${TMPFILE}custom
+  [[ $Verbosity_level -gt 1 ]] && cat ${TMPFILE}custom
 
 }
 
@@ -173,7 +180,14 @@ function Collections_merge
   [[ $Verbose == true ]] && echo "Lookup latest collection versions for ansible-core '$ansible_version'"
   ${DIRNAME}/ansible-collections-versions.py ${TMPFILE}.yml
 
-  [[ $Verbose == true ]] && cat ${TMPFILE}.yml
+  [[ $Verbosity_level -gt 1 ]] && cat ${TMPFILE}.yml
+
+}
+
+function Collections_fix
+{
+
+  sed -i "s/: 1\.0\.0/: v1.0.0/" ${TMPFILE}.yml
 
 }
 
@@ -236,6 +250,7 @@ do
     v|verbose)
       Verbose=true
       Verbose1="-v"
+      Verbosity_level=$((Verbosity_level+1))
       ;;
     *)
       echo "Unknown flag -$OPT given!" >&2
@@ -260,6 +275,7 @@ echo "ansible version = $ansible_version_full"
 Collections_default
 Collections_custom
 Collections_merge
+Collections_fix
 
 # Activate custom collections location
 if [[ -n $Coldir ]]
@@ -270,13 +286,24 @@ fi
 
 # Install all collections
 echo "Installing combined list of collections"
-ansible-galaxy collection install $Galaxy_args -r ${TMPFILE}.yml
+if [[ $Verbose == true ]]
+then
+  ansible-galaxy collection install $Galaxy_args -r ${TMPFILE}.yml
+else
+  ansible-galaxy collection install $Galaxy_args -r ${TMPFILE}.yml >/dev/null
+fi
 
 # Process playbook collections
 if [[ -f collections/requirements.yml ]]
 then
-  echo "Installing collections from 'collections/requirements.yml'"
-  ansible-galaxy collection install $Galaxy_args -r collections/requirements.yml
+  if [[ $Verbose == true ]]
+  then
+    echo "Installing collections from 'collections/requirements.yml'"
+    ansible-galaxy collection install $Galaxy_args -r collections/requirements.yml
+  else
+    echo "Installing collections from 'collections/requirements.yml'"
+    ansible-galaxy collection install $Galaxy_args -r collections/requirements.yml >/dev/null
+  fi
 fi
 
 # Exit cleanly

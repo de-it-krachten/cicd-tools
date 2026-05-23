@@ -74,11 +74,13 @@
         path: "{{ item.path }}"
         state: directory
         mode: "0755"
-      when: item.platform is undefined or vars[item.platform]
+      when: item.platform is undefined or lookup('vars', item.platform) | bool
       loop:
         - { path: "{{ base_path }}/meta" }
         - { path: "{{ base_path }}/.github", platform: github }
         - { path: "{{ base_path }}/.github/workflows", platform: github }
+
+    - debug: var=cicd.ci_templates
 
     - name: Distribute all templates (nested jinja)
       ansible.builtin.template:
@@ -90,5 +92,5 @@
         block_start_string: "<%"
         block_end_string: "%>"
         mode: "0644"
-      when: item.value.when is undefined or vars[item.value.when]|bool
-      loop: "{{ cicd.ci_templates|dict2items }}"
+      when: item.value.when is undefined or lookup('vars', item.value.when) | bool
+      loop: "{{ cicd.ci_templates | dict2items }}"

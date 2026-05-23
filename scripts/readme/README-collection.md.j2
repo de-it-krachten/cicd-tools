@@ -1,0 +1,15 @@
+[![CI]({{ generic.repository }}/workflows/CI/badge.svg?event=push)]({{ generic.repository }}/actions?query=workflow%3ACI)
+
+
+# {{ generic.namespace }}.{{ generic.name }}
+
+{{ generic.description }}
+
+## Dependencies
+
+{% if 'README-original.md' is is_file %}
+## Other documentation
+
+[README-original.md](README-original.md)
+
+{% endif %}
