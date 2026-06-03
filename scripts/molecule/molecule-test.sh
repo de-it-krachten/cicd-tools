@@ -466,6 +466,9 @@ function Execute_molecule
     export ANSIBLE_FORCE_COLOR=0
   fi
 
+  # Do not support legacy facts
+  export ANSIBLE_INJECT_FACT_VARS=False
+
   Molecule_args="--scenario-name=$Scenario"
   [[ $Mode == test ]] && Molecule_args+=" --destroy=$Destroy"
 

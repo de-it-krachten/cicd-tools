@@ -46,6 +46,7 @@
 
 - name: Prepare
   hosts: all
+  gather_facts: no
   become: true
   vars:
 
@@ -96,10 +97,11 @@
     <= key =>: <= value =>
 <% endif %>
 <% endfor %>
-  roles:
-    - { role: deitkrachten.facts, when: ansible_facts.os_family != 'Windows' }
-    - deitkrachten.showinfo
-  tasks:
+
+  pre_tasks:
+
+    - name: Get facts
+      ansible.builtin.setup:
 
     - name: Create remote_tmp
       ansible.builtin.file:
@@ -120,6 +122,39 @@
           {%- else -%}
           {{ (ansible_facts.distribution | lower) + ansible_facts.distribution_major_version }}
           {%- endif -%}
+
+    # Switch to CentOS vault mirrors
+    - name: Get all repo files
+      ansible.builtin.find:
+        paths: /etc/yum.repos.d
+        patterns: 'CentOS-*'
+      register: _repo
+      when: molecule_distro is search('^centos(6|7|8)')
+
+    - name: Update repo files to point to CentOS vault mirror (1)
+      ansible.builtin.replace:
+        path: "{{ item.path }}"
+        regexp: "^mirrorlist"
+        replace: "#mirrorlist"
+      loop: "{{ _repo.files }}"
+      loop_control:
+        label: "{{ item.path }}"
+      when: molecule_distro is search('^centos(6|7|8)')
+
+    - name: Update repo files to point to CentOS vault mirror (2)
+      ansible.builtin.replace:
+        path: "{{ item.path }}"
+        regexp: "^#baseurl=http://mirror.centos.org"
+        replace: "baseurl=http://vault.centos.org"
+      loop: "{{ _repo.files }}"
+      loop_control:
+        label: "{{ item.path }}"
+      when: molecule_distro is search('^centos(6|7|8)')
+
+  roles:
+    - { role: deitkrachten.facts, when: ansible_facts.os_family != 'Windows' }
+    - deitkrachten.showinfo
+  tasks:
 
     - name: Show settings
       ansible.builtin.debug:
@@ -280,54 +315,6 @@
               - python3-apt
             state: present
 
-    - name: Family RedHat (generic)
-      when:
-        - ansible_facts.os_family == 'RedHat'
-      block:
-
-        # Switch to CentOS vault mirrors
-        - name: Get all repo files
-          ansible.builtin.find:
-            paths: /etc/yum.repos.d
-            patterns: 'CentOS-*'
-          register: _repo
-          when: molecule_distro is search('^centos(6|8)$')
-
-        - name: Update repo files to point to CentOS vault mirror (1)
-          ansible.builtin.replace:
-            path: "{{ item.path }}"
-            regexp: "^mirrorlist"
-            replace: "#mirrorlist"
-          loop: "{{ _repo.files }}"
-          loop_control:
-            label: "{{ item.path }}"
-          when: molecule_distro is search('^centos(6|8)$')
-
-        - name: Update repo files to point to CentOS vault mirror (2)
-          ansible.builtin.replace:
-            path: "{{ item.path }}"
-            regexp: "^#baseurl=http://mirror.centos.org"
-            replace: "baseurl=http://vault.centos.org"
-          loop: "{{ _repo.files }}"
-          loop_control:
-            label: "{{ item.path }}"
-          when: molecule_distro is search('^centos(6|8)$')
-
-        # Switch to CentOS epel mirrors
-        - name: Switch to CentOS epel mirrors
-          ansible.builtin.replace:
-            path: "/etc/yum.repos.d/epel.repo"
-            regexp: "{{ item.regexp }}"
-            replace: "{{ item.replace }}"
-          loop:
-            - regexp: "^mirrorlist="
-              replace: "#mirrorlist="
-            - regexp: "^#baseurl=http://download.fedoraproject.org/pub/epel"
-              replace: "baseurl=https://archives.fedoraproject.org/pub/archive/epel"
-          loop_control:
-            label: /etc/yum.repos.d/epel.repo
-          when: molecule_distro is search('^centos6$')
-
     - name: Family RedHat < 8
       when:
         - ansible_facts.os_family == 'RedHat'
@@ -434,8 +421,15 @@
               - gnupg2
               - policycoreutils
               - policycoreutils-python-utils
-              - python3-packaging
             state: present
+
+        - name: Install OS spcific packages
+          ansible.builtin.package:
+            name:
+              - python3-packaging
+          when:
+            - ansible_facts.distribution == 'RedHat'
+            - ansible_facts.distribution_major_version == '10'
 
         - name: Activate epel repository
           ansible.builtin.include_role:
