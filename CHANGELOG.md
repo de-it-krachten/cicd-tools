@@ -1,3 +1,11 @@
+## [2.4.2](https://github.com/de-it-krachten/cicd-tools/compare/v2.4.1...v2.4.2) (2026-06-07)
+
+
+### Bug Fixes
+
+* Fix for collections merge ([74383fb](https://github.com/de-it-krachten/cicd-tools/commit/74383fbd6258c8a08322b47c4da16fbd45c324b8))
+* Update code to reflect ansible 2.20 ([17802ec](https://github.com/de-it-krachten/cicd-tools/commit/17802ec24f87f19d6d12383c7c2d06dc2e3c6c03))
+
 ## [2.4.1](https://github.com/de-it-krachten/cicd-tools/compare/v2.4.0...v2.4.1) (2026-05-22)
 
 
