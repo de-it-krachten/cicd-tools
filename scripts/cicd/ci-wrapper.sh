@@ -7,7 +7,14 @@
 ##############################################################
 
 # Set temporary PATH
-export PATH=/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:$PATH
+__PYTHON_VENV=$(which python3 | sed "s|/bin/python3||")
+if [[ $__PYTHON_VENV =~ ^(|/usr)$ ]]
+then
+  export PATH=/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:$PATH
+else
+  export PATH=${__PYTHON_VENV}/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:$PATH
+fi
+unset __PYTHON_VENV
 
 # Get the name of the calling script
 FILENAME=$(readlink -f $0)
@@ -69,7 +76,7 @@ CICD_ROOT=/opt/cicd-tools
 # fi
 
 # Activate ansible venv
-source /usr/local/venv/ansible12/bin/activate
+source /usr/local/venv/ansiblecore219/bin/activate
 
 
 
@@ -91,9 +98,12 @@ Usage : $BASENAME <flags> <arguments>
 Flags :
 
    -d|--debug           : Debug mode (set -x)
-   -D|--dry-run         : Dry run mode
    -h|--help            : Prints this help message
-   -v|--verbose         : Verbose output
+
+   -i|--initial         : Initial setup
+   -p|--phase=#         : Phase to execute
+   -s|-silent           : Run in silent mode
+   -w|--windows         : Execute for Windows
 
 EOF
 
@@ -149,7 +159,7 @@ Initial=false
 Platforms=${CICD_ORGANIZATION}
 
 # parse command line into arguments and check results of parsing
-while getopts :dip:sw-: OPT
+while getopts :dhip:sw-: OPT
 do
 
   # Support long options
@@ -173,11 +183,11 @@ do
     p|phase)
       Phase=$OPTARG
       ;;
-    w|windows)
-      Platforms=windows
-      ;;
     s|silent)
       Silent=true
+      ;;
+    w|windows)
+      Platforms=windows
       ;;
     *)
       echo "Unknown flag -$OPT given!" >&2

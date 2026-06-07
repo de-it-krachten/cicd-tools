@@ -216,7 +216,7 @@ function Setup
   ansible-galaxy install -r molecule/default/requirements.yml -p $ROLES_PATH || exit 1
 
   # Get all collections needed by molecule
-  ${DIRNAME1}/ansible-collections.sh -c $COLLECTIONS_PATH -r $ROLES_PATH || exit 1
+  ${DIRNAME1}/ansible-collections.sh $Verbose1 -c $COLLECTIONS_PATH -r $ROLES_PATH || exit 1
   [[ $ansible_navigator != true ]] && export ANSIBLE_COLLECTIONS_PATH=$COLLECTIONS_PATH
 
   # Make this step not run a second time
@@ -465,6 +465,9 @@ function Execute_molecule
     export PY_COLORS=0
     export ANSIBLE_FORCE_COLOR=0
   fi
+
+  # Do not support legacy facts
+  export ANSIBLE_INJECT_FACT_VARS=False
 
   Molecule_args="--scenario-name=$Scenario"
   [[ $Mode == test ]] && Molecule_args+=" --destroy=$Destroy"

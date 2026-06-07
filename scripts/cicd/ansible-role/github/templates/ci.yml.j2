@@ -122,11 +122,16 @@ jobs:
 <% if distro.key | regex_search('(rhel8|centos8|oraclelinux8|almalinux8|rockylinux8|olam8|opensuse15|sles15)') %>
             venv: "ansiblecore216"
             ansible: "ansible-core>2.16,<2.17"
-            ansible_lint: "ansible-lint>6,<7"
+            ansible_lint: "ansible-lint>25,<25.11"
+            python: "3.12"
+<% elif distro.key | regex_search('(ubuntu2004)') %>
+            venv: "ansiblecore219"
+            ansible: "ansible-core>2.19,<2.20"
+            ansible_lint: "ansible-lint"
             python: "3.12"
 <% else %>
-            venv: "ansiblecore218"
-            ansible: "ansible-core>2.18,<2.19"
+            venv: "ansiblecore220"
+            ansible: "ansible-core>2.20,<2.21"
             ansible_lint: "ansible-lint"
             python: "3.13"
 <% endif %>

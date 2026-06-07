@@ -1,18 +1,4 @@
 #!/bin/bash
-#
-#=====================================================================
-#
-# Name        :
-# Version     :
-# Author      :
-# Description :
-#
-#
-#=====================================================================
-unset Debug
-#export Debug="set -x"
-$Debug
-
 
 ##############################################################
 #
@@ -21,7 +7,14 @@ $Debug
 ##############################################################
 
 # Set temporary PATH
-export PATH=/bin:/usr/bin:/sbin:/usr/sbin:$PATH
+__PYTHON_VENV=$(which python3 | sed "s|/bin/python3||")
+if [[ $__PYTHON_VENV =~ ^(|/usr)$ ]]
+then
+  export PATH=/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:$PATH
+else
+  export PATH=${__PYTHON_VENV}/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:$PATH
+fi
+unset __PYTHON_VENV
 
 # Get the name of the calling script
 FILENAME=$(readlink -f $0)
@@ -46,7 +39,6 @@ OS=$(uname -s)
 
 # Get the hostname
 HOSTNAME=$(hostname -s)
-
 
 ##############################################################
 #
@@ -129,14 +121,20 @@ function Collections_default
   cat <<EOF > ${TMPFILE}base
 ---
 collections:
-- name: ansible.posix
-- name: ansible.windows
-- name: community.docker
-- name: community.general
-- name: community.windows
+  - name: ansible.posix
+  - name: ansible.windows
+  - name: community.docker
+  - name: community.general
+  - name: community.windows
 EOF
 
- [[ $Verbose == true ]] && cat ${TMPFILE}base
+  if [[ $Verbosity_level -gt 1 ]]
+  then
+    echo "================================" >&2
+    echo "Default collections" >&2
+    echo "================================" >&2
+    cat ${TMPFILE}base >&2
+  fi
 
 }
 
@@ -153,11 +151,21 @@ function Collections_custom
   done
 
   # Get all collection files
-  Collection_files=$(ls .collections ${Roledir}/*/.collections 2>/dev/null)
+  Collection_files=$(ls .collections ${Roledir}/*/.collections collections/requirements.yml 2>/dev/null)
 
-  # Merge all
-  yq -y -S . $Collection_files > ${TMPFILE}custom
-  [[ $Verbose == true ]] && cat ${TMPFILE}custom
+  # Convert all collections
+  Files_merge $Collection_files | yq -y . > ${TMPFILE}custom
+
+  # Strip amsterdam
+  sed -i '/name: amsterdam\./d' ${TMPFILE}custom
+
+  if [[ $Verbosity_level -gt 1 ]]
+  then
+    echo "================================" >&2
+    echo "Custom collections" >&2
+    echo "================================" >&2
+    cat ${TMPFILE}custom >&2
+  fi
 
 }
 
@@ -173,9 +181,45 @@ function Collections_merge
   [[ $Verbose == true ]] && echo "Lookup latest collection versions for ansible-core '$ansible_version'"
   ${DIRNAME}/ansible-collections-versions.py ${TMPFILE}.yml
 
-  [[ $Verbose == true ]] && cat ${TMPFILE}.yml
+  if [[ $Verbosity_level -gt 1 ]]
+  then
+    echo "================================" >&2
+    echo "Merged collections" >&2
+    echo "================================" >&2
+    cat ${TMPFILE}.yml | yq -y . >&2
+  fi
 
 }
+
+function Collections_fix
+{
+
+  sed -i "s/: 1\.0\.0/: v1.0.0/" ${TMPFILE}.yml
+
+}
+
+function Files_merge
+{
+
+  yaml_files="$@"
+
+  # Convert collections v1 -> v2 and into json
+  for f in $yaml_files
+  do
+
+    $DIRNAME/ansible-convert-collections.py $f | yq -j . > ${f}.json
+    json_files="$json_files ${f}.json"
+
+  done
+
+  # Merge all json files
+  jq -s 'reduce .[] as $file ({}; .collections += ($file.collections // [])) | .collections |= unique_by(.name)' $json_files
+
+  # Delete files
+  rm -f $json_files
+
+}
+
 
 
 ##############################################################
@@ -236,6 +280,7 @@ do
     v|verbose)
       Verbose=true
       Verbose1="-v"
+      Verbosity_level=$((Verbosity_level+1))
       ;;
     *)
       echo "Unknown flag -$OPT given!" >&2
@@ -260,6 +305,7 @@ echo "ansible version = $ansible_version_full"
 Collections_default
 Collections_custom
 Collections_merge
+Collections_fix
 
 # Activate custom collections location
 if [[ -n $Coldir ]]
@@ -270,13 +316,11 @@ fi
 
 # Install all collections
 echo "Installing combined list of collections"
-ansible-galaxy collection install $Galaxy_args -r ${TMPFILE}.yml
-
-# Process playbook collections
-if [[ -f collections/requirements.yml ]]
+if [[ $Verbose == true ]]
 then
-  echo "Installing collections from 'collections/requirements.yml'"
-  ansible-galaxy collection install $Galaxy_args -r collections/requirements.yml
+  ansible-galaxy collection install $Galaxy_args -r ${TMPFILE}.yml
+else
+  ansible-galaxy collection install $Galaxy_args -r ${TMPFILE}.yml >/dev/null
 fi
 
 # Exit cleanly
