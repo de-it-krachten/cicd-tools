@@ -1,9 +1,9 @@
 #!/bin/bash
 
 vars="
-ansible_distribution_major_version
 ansible_distribution
 ansible_os_family
+ansible_env
 "
 
 if [[ $# -eq 0 ]]
