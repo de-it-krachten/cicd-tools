@@ -156,6 +156,9 @@ function Collections_custom
   # Convert all collections
   Files_merge $Collection_files | yq -y . > ${TMPFILE}custom
 
+  # Strip amsterdam
+  sed -i '/name: amsterdam\./d' ${TMPFILE}custom
+
   if [[ $Verbosity_level -gt 1 ]]
   then
     echo "================================" >&2
