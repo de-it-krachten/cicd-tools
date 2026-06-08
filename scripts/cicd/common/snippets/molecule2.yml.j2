@@ -101,7 +101,7 @@
         run: |
           ansible="${{ matrix.venv }}"
           source /usr/local/venv/$ansible/bin/activate
-          /usr/local/bin/molecule-test.sh -A -x
+          /usr/local/bin/molecule-test.sh -A -x -v
         env:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'
