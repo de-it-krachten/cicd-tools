@@ -4,11 +4,17 @@ vars="
 ansible_distribution
 ansible_os_family
 ansible_env
+ansible_virtualization_type
+ansible_selinux
+ansible_architecture
+ansible_system
+ansible_pkg_mgr
+ansible_interfaces
 "
 
 if [[ $# -eq 0 ]]
 then
-  files=$(find tasks handlers defaults vars -type f)
+  files=$(find tasks handlers defaults vars -type f 2>/dev/null)
 else
   files="$@"
 fi

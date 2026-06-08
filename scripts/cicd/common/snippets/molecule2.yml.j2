@@ -1,0 +1,114 @@
+  molecule2:
+    name: "${{ matrix.name }}"
+    runs-on: "${{ matrix.runs_on }}"
+    needs: molecule1
+    # continue-on-error: ${{ matrix.continue_on_error }}
+    strategy:
+      fail-fast: <= github.fail_fast | default(True) | lower =>
+      matrix:
+        include:
+<% for distro in platforms|dict2items %>
+<% if distro.key not in (molecule.phase1 | default([])) %>
+<% if distro.value.ci|bool %>
+          - name: <= distro.key =>
+            runs_on: <= distro.value.github.runs_on | default('ubuntu-22.04') =>
+            distro: <= distro.key =>
+            playbook: converge.yml
+<% if distro.key | regex_search('(rhel8|centos8|oraclelinux8|almalinux8|rockylinux8|olam8|opensuse15|sles15)') %>
+            venv: "ansiblecore216"
+            ansible: "ansible-core>2.16,<2.17"
+            ansible_lint: "ansible-lint>25,<25.11"
+            python: "3.12"
+<% elif distro.key | regex_search('(ubuntu2004)') %>
+            venv: "ansiblecore219"
+            ansible: "ansible-core>2.19,<2.20"
+            ansible_lint: "ansible-lint"
+            python: "3.12"
+<% else %>
+            venv: "ansiblecore220"
+            ansible: "ansible-core>2.20,<2.21"
+            ansible_lint: "ansible-lint"
+            python: "3.13"
+<% endif %>
+            hetznercloud: <= True if distro.value.molecule.hetznercloud is defined else False =>
+
+<% endif %>
+<% endif %>
+<% endfor %>
+
+    steps:
+
+      - name: Check out the codebase.
+        uses: actions/checkout@v6
+        with:
+          path: "${{ github.repository }}"
+
+<% if github.ssh_access is defined and github.ssh_access | bool %>
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
+        with:
+          ## limits ssh access and adds the ssh public key for the user which triggered the workflow
+          limit-access-to-actor: true
+          ## limits ssh access and adds the ssh public keys of the listed GitHub users
+          # limit-access-to-users: mark-it-kracht
+<% endif %>
+
+      - name: Set up Python3.
+        uses: actions/setup-python@v6
+        with:
+          python-version: "${{ matrix.python }}"
+
+<% if github.deploy_keys is defined %>
+      - name: Set-up SSH agent
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: |
+<% for key in github.deploy_keys %>
+            ${{ secrets.<= key => }}
+<% endfor %>
+<% endif %>
+
+      - name: Show runner info
+        run: |
+
+          hostname="$(hostname -f)"
+          eval os_name=$(awk -F= '/^NAME=/ {print $2}' /etc/os-release)
+          eval os_version=$(awk -F= '/^VERSION=/ {print $2}' /etc/os-release)
+          os="$os_name $os_version"
+          user="$(id -un)"
+          python=$(which python3)
+
+          echo "hostname : $hostname"
+          echo "user     : $user"
+          echo "os       : $os"
+          echo "python   : $python ($(python3 --version))"
+
+<% include snippet_path + 'deployment-key.yml.j2' %>
+
+<% include snippet_path + 'fix-runner.yml.j2' %>
+
+<% include snippet_path + 'apparmor.yml.j2' %>
+
+<% include snippet_path + 'cicd-tools.yml.j2' %>
+
+<% include snippet_path + 'venv.yml.j2' %>
+
+<% include snippet_path + 'ansible-galaxy.yml.j2' %>
+
+<% include snippet_path + 'show-versions.yml.j2' %>
+
+      - name: Run Molecule tests.
+        run: |
+          ansible="${{ matrix.venv }}"
+          source /usr/local/venv/$ansible/bin/activate
+          /usr/local/bin/molecule-test.sh -A -x
+        env:
+          PY_COLORS: '1'
+          ANSIBLE_FORCE_COLOR: '1'
+          MOLECULE_DISTRO: ${{ matrix.distro }}
+          MOLECULE_PLAYBOOK: ${{ matrix.playbook }}
+<% if github.ssh_access is defined and github.ssh_access | bool %>
+          MOLECULE_WAIT_AFTER_ERROR: '900'
+<% endif %>
+          HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
+          MOLECULE_DRIVER: ${{ vars.MOLECULE_DRIVER }}

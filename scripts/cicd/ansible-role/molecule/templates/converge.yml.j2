@@ -13,7 +13,7 @@
   vars:
     molecule_driver: "{{ lookup('env', 'MOLECULE_DRIVER_NAME') }}"
 <% for key, value in molecule['converge']['vars'].items() %>
-<% if value is search('{{') or key is search('_mode') %>
+<% if value is search('^{{') or key is search('_mode') %>
     <= key =>: "<= value =>"
 <% else %>
     <= key =>: <= value =>
