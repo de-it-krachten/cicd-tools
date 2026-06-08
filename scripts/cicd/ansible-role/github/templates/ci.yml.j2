@@ -31,11 +31,15 @@ jobs:
 
 <% if github.molecule | bool %>
 
+<% if platforms_phase1 | length > 0 %>
+
 <% include snippet_path + 'molecule1.yml.j2' %>
 
-<% if molecule.phase1 | default([]) | length > 0 %>
-
 <% include snippet_path + 'molecule2.yml.j2' %>
+
+<% else %>
+
+<% include snippet_path + 'molecule.yml.j2' %>
 
 <% endif %>
 

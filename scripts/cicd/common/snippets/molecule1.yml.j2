@@ -7,19 +7,17 @@
       fail-fast: <= github.fail_fast | default(True) | lower =>
       matrix:
         include:
-<% for distro in platforms|dict2items %>
-<% if distro.value.ci|bool %>
-<% if distro.key in (molecule.phase1 | default([])) %>
-          - name: <= distro.key =>
+<% for distro in platforms_phase1 | sort | unique %>
+          - name: <= distro =>
             runs_on: <= distro.value.github.runs_on | default('ubuntu-22.04') =>
-            distro: <= distro.key =>
+            distro: <= distro =>
             playbook: converge.yml
-<% if distro.key | regex_search('(rhel8|centos8|oraclelinux8|almalinux8|rockylinux8|olam8|opensuse15|sles15)') %>
+<% if distro | regex_search('(rhel8|centos8|oraclelinux8|almalinux8|rockylinux8|olam8|opensuse15|sles15)') %>
             venv: "ansiblecore216"
             ansible: "ansible-core>2.16,<2.17"
             ansible_lint: "ansible-lint>25,<25.11"
             python: "3.12"
-<% elif distro.key | regex_search('(ubuntu2004)') %>
+<% elif distro | regex_search('(ubuntu2004)') %>
             venv: "ansiblecore219"
             ansible: "ansible-core>2.19,<2.20"
             ansible_lint: "ansible-lint"
@@ -32,8 +30,6 @@
 <% endif %>
             hetznercloud: <= True if distro.value.molecule.hetznercloud is defined else False =>
 
-<% endif %>
-<% endif %>
 <% endfor %>
 
     steps:
