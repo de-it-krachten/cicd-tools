@@ -35,12 +35,13 @@ function Print_separator
 function Jinjanator
 {
 
-  venv=${root_dir}/jinjanator
+  # venv=${root_dir}/jinjanator
+  venv=/tmp/jinjanator
 
   $sudo python3 -m venv $venv
   $sudo $venv/bin/pip3 install pip wheel setuptools --upgrade
   $sudo $venv/bin/pip3 install jinjanator jinjanator-plugin-ansible
-  $sudo ln -fs $venv/bin/jinjanate /usr/local/bin/jinjanate
+  #$sudo ln -fs $venv/bin/jinjanate /usr/local/bin/jinjanate
 
 }
 
@@ -49,7 +50,7 @@ function Template
 
   if [[ -f ${TEMPLATEFILE} ]]
   then
-    $sudo jinjanate ${TEMPLATEFILE} --quiet -o ${CONFIGFILE}
+    $sudo $venv/jinjanate ${TEMPLATEFILE} --quiet -o ${CONFIGFILE}
   fi
 
 }

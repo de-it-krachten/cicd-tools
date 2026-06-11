@@ -272,7 +272,7 @@ then
   do
     echo "Delete all dockers volumes (attempt $Try)"
     [[ $Docker == docker ]] && Volumes=$($Sudo $Docker volume ls --format json | jq -r .Name)
-    [[ $Docker == podman ]] && Volumes=$($Sudo $Docker volume ls --format json | jq -r '.[].Id')
+    [[ $Docker == podman ]] && Volumes=$($Sudo $Docker volume ls --format json | jq -r '.[].Name')
     [[ $Docker == docker ]] && echo "$Volumes" | xargs -r $Echo $Sudo $Docker volume rm
     [[ $Docker == podman ]] && echo "$Volumes" | xargs -r $Echo $Sudo $Docker volume rm
     Try=$(($Try+1))

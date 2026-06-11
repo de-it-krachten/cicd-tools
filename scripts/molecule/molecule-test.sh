@@ -750,17 +750,9 @@ export Ansible_driver_libary
 
 # Variable file
 Vars_file=${Vars_file:-${TMPFILE}vars}
-echo "ansible_python_interpreter: /usr/bin/python3" >> $Vars_file
-if [[ -n $Vars_file ]]
-then
-  [[ $Vars_file =~ ^/ ]] || Vars_file=${PWD}/${Vars_file}
-  if [[ ! -f $Vars_file ]]
-  then
-    echo "Variable file '$Vars_file' not found!" >&2
-    exit 2
-  fi
-  export MOLECULE_ANSIBLE_ARGS="json:[\"--extra-vars=@${Vars_file}\"]"
-fi
+[[ ! -f $Vars_file ]] && echo -e "---\ndummy_var: xxx" > $Vars_file
+[[ $Vars_file =~ ^/ ]] || Vars_file=${PWD}/${Vars_file}
+export MOLECULE_ANSIBLE_ARGS="json:[\"--extra-vars=@${Vars_file}\"]"
 
 # Fall back onto old galaxy
 Galaxy_legacy
