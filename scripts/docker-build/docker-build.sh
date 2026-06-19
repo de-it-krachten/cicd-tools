@@ -21,7 +21,14 @@ $Debug
 ##############################################################
 
 # Set temporary PATH
-export PATH=/bin:/usr/bin:/sbin:/usr/sbin:$PATH
+__PYTHON_VENV=$(which python3 | sed "s|/bin/python3||")
+if [[ $__PYTHON_VENV =~ ^(|/usr)$ ]]
+then
+  export PATH=/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:$PATH
+else
+  export PATH=${__PYTHON_VENV}/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:$PATH
+fi
+unset __PYTHON_VENV
 
 # Get the name of the calling script
 FILENAME=$(readlink -f $0)
@@ -147,6 +154,7 @@ function Setup
   rsync -av ${TEMPLATEDIR}/ansible ${TMPDIR}
   cp docker-settings.yml ${TMPDIR}/ansible
   [[ -f requirements.yml ]] && cp requirements.yml ${TMPDIR}/ansible/roles
+  [[ -f requirements.yml ]] && cp requirements.yml ${TMPDIR}/ansible/collections
   [[ -f build-custom.yml ]] && cp build-custom.yml ${TMPDIR}/ansible
   [[ -d additional_files ]] && rsync -av additional_files/ ${TMPDIR}/ansible
 
@@ -163,7 +171,10 @@ function Setup
 
   cd ${TMPDIR}/ansible
   Ansible_args="-i localhost, -c local $Verbose1"
-  ansible-galaxy install -r ${TMPDIR}/ansible/roles/requirements.yml -p ${TMPDIR}/ansible/roles/ --ignore-errors
+  echo "Install ansible roles"
+  ansible-galaxy role install -r ${TMPDIR}/ansible/roles/requirements.yml -p ${TMPDIR}/ansible/roles/ --ignore-errors
+  echo "Install ansible collections"
+  ansible-galaxy collection install -r ${TMPDIR}/ansible/collections/requirements.yml --ignore-errors
 
 }
 

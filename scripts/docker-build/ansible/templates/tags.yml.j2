@@ -1,0 +1,7 @@
+---
+
+{% for registry in registries %}
+{% for tag in [build_vars.image.tag] + (build_vars.image.tags | default([])) %}
+- "{{ registry }}/{{ build_vars.image.name }}:{{ tag }}"
+{% endfor %}
+{% endfor %}
