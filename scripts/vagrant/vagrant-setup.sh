@@ -10,7 +10,14 @@
 ##############################################################
 
 # Set temporary PATH
-export PATH=/bin:/usr/bin:/sbin:/usr/sbin:$PATH
+__PYTHON_VENV=$(which python3 | sed "s|/bin/python3||")
+if [[ $__PYTHON_VENV =~ ^(|/usr)$ ]]
+then
+  export PATH=/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:$PATH
+else
+  export PATH=${__PYTHON_VENV}/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:$PATH
+fi
+unset __PYTHON_VENV
 
 # Get the name of the calling script
 FILENAME=$(readlink -f $0)
@@ -258,11 +265,11 @@ shift $(($OPTIND -1))
 # Make sure the input file exists
 if [[ ${Vagrant_definition} =~ \.j2$ ]]
 then
-  e2j2 -f ${Vagrant_definition} || exit 1
+  e2j2 -m "<=" -f ${Vagrant_definition} || exit 1
   Vagrant_definition=${Vagrant_definition%%.j2}
 elif [[ -f ${Vagrant_definition}.j2 ]]
 then
-  e2j2 -f ${Vagrant_definition}.j2 || exit 1
+  e2j2 -m "<=" -f ${Vagrant_definition}.j2 || exit 1
 elif [[ ! -f $Vagrant_definition ]]
 then
   echo "File '$Vagrant_definition' not found!" >&2

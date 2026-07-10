@@ -45,6 +45,9 @@ Vagrant.configure("2") do |config|
 <% if vm.nested_hw_virt is defined %>
       vb.customize ['modifyvm', :id, '--nested-hw-virt', '<= vm.nested_hw_virt =>']
 <% endif %>
+<% if vm.group is defined %>
+      vb.customize ['modifyvm', :id, '--groups', '/<= vm.group =>']
+<% endif %>
       vb.memory = <= vm.memory =>
       vb.cpus = <= vm.cpus =>
 
@@ -61,6 +64,8 @@ Vagrant.configure("2") do |config|
 <% endif %>
 <% if disk.type is defined and disk.type == 'ide' %>
       vb.customize ['storageattach', :id, '--storagectl', 'IDE Controller', '--port', <= loop.index =>, '--device', 0, '--type', 'hdd', '--medium', file_to_disk]
+<% elif disk.type is defined and disk.type == 'virtio' %>
+      vb.customize ['storageattach', :id, '--storagectl', 'VirtIO Controller', '--port', <= loop.index =>, '--device', 0, '--type', 'hdd', '--medium', file_to_disk]
 <% else %>
       vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', <= loop.index =>, '--device', 0, '--type', 'hdd', '--medium', file_to_disk]
 <% endif %>
