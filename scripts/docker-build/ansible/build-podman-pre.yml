@@ -124,8 +124,8 @@
 
             - name: Pull parent image (podman)
               containers.podman.podman_image:
-                name: "{{ build_vars.image.parent }}"
-                tag: "{{ parent_image_name }}"
+                name: "{{ build_vars.image.parent | regex_replace(':.*') }}"
+                tag: "{{ build_vars.image.parent | regex_replace('.*:') }}"
                 state: present
 
             - name: Remove image tag
