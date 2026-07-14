@@ -8,12 +8,19 @@
     docker_push: "{{ lookup('env', 'DOCKER_PUSH') | default(False) }}"
   tasks:
 
-    - name: Decide where to restore from
+    - name: Restore iamge setings to parent
       ansible.builtin.set_fact:
         Entrypoint: "{{ Entrypoint_p | default(None) }}"
         Cmd: "{{ Cmd_p | default(None) }}"
         User: "{{ User_p | default(None) }}"
       when: build_vars.image.inherit_parent_settings | bool
+
+    - name: Show settings
+      ansible.builtin.debug:
+        msg:
+          Entrypoint: "{{ Entrypoint }}"
+          Cmd: "{{ Cmd }}"
+          User: "{{ User }}"
 
     - name: Generate Dockerfile for restoring
       ansible.builtin.debug:

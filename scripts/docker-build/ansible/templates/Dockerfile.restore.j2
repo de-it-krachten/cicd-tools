@@ -10,20 +10,20 @@ RUN {{ cmd }}{{ ' \\' if not loop.last }}
 {% endfor %}
 {% endif %}
 
-{% if User | length > 0 %}
+{% if User | default('', true) | length > 0 %}
 USER {{ User }}
 {% endif %}
 
-{% if Entrypoint | length > 0 %}
+{% if Entrypoint | default('', true) | length > 0 %}
 ENTRYPOINT {{ Entrypoint | to_json }}
 {% else %}
 ENTRYPOINT []
 {% endif %}
 
-{% if Cmd | length > 0 %}
+{% if Cmd | default('', true) | length > 0 %}
 CMD {{ Cmd | to_json }}
 {% endif %}
 
-{% if User | length > 0 %}
+{% if User | default('', true) | length > 0 %}
 USER {{ User }}
 {% endif %}
