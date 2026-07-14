@@ -1,0 +1,51 @@
+packer:
+  required_plugins:
+    docker:
+      source: github.com/hashicorp/docker
+      version: '>= 1.0.0'
+    ansible:
+      source: github.com/hashicorp/ansible
+      version: '>= 1.1.0'
+source:
+  docker:
+    ubuntu:
+      image: '<= image.parent =>'
+      pull: <= false if custom_image.build | bool else true =>
+      export_path: container-flat.tar
+      changes: <= image.changes =>
+build:
+  name: '<= image.name =>'
+  sources:
+    - source.docker.ubuntu
+  provisioner:
+<% if image.pre | default([]) | length > 0 %>
+    - shell:
+        environment_vars:
+          - DEBIAN_FRONTEND=noninteractive
+          - TZ=UTC
+        inline: <= image.pre =>
+<% endif %>
+    - ansible:
+        playbook_file: <= env("ansible_dir") =>/playbook.yml
+        use_proxy: false
+        user: root
+        inventory_file_template: "default ansible_host={{ .ID }}\n"
+        extra_arguments:
+          - -e
+          - ansible_connection=community.docker.docker
+          - -e
+          - ansible_remote_tmp=/tmp/.ansible/tmp
+          - -e
+          - ansible_python_interpreter=/usr/bin/python3
+<% if image.post | default([]) | length > 0 %>
+    - shell:
+        environment_vars:
+          - DEBIAN_FRONTEND=noninteractive
+          - TZ=UTC
+        inline: <= image.post =>
+<% endif %>
+  post-processor:
+    docker-import:
+      repository: <= image.name =>
+      tag: '<= image.tag =>'
+      changes: <= image.changes =>
