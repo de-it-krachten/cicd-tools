@@ -1,0 +1,51 @@
+---
+- name: Provision container image
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    - shell: |
+        set -vx
+        id
+        ls -ld /tmp
+      register: x
+    - debug: var=x
+ 
+    - name: Update apt cache
+      apt:
+        update_cache: true
+
+    - name: Install dependencies
+      apt:
+        name:
+          - python3
+          - python3-pip
+          - nginx
+          - curl
+        state: present
+
+    - name: Create app directory
+      file:
+        path: /app
+        state: directory
+        mode: "0755"
+
+    - name: Copy application code
+      copy:
+        src: ./app/
+        dest: /app/
+
+    - name: Install Python packages
+      pip:
+        requirements: /app/requirements.txt
+        virtualenv: /app/.venv
+        virtualenv_command: 'python3 -m venv'
+
+    - name: Clean up apt cache
+      apt:
+        clean: true
+
+    - name: Remove apt lists (reduce image size)
+      file:
+        path: /var/lib/apt/lists
+        state: absent
