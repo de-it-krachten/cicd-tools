@@ -21,7 +21,14 @@ $Debug
 ##############################################################
 
 # Set temporary PATH
-export PATH=/bin:/usr/bin:/sbin:/usr/sbin:$PATH
+__PYTHON_VENV=$(which python3 | sed "s|/bin/python3||")
+if [[ $__PYTHON_VENV =~ ^(|/usr)$ ]]
+then
+  export PATH=/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:$PATH
+else
+  export PATH=${__PYTHON_VENV}/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:$PATH
+fi
+unset __PYTHON_VENV
 
 # Get the name of the calling script
 FILENAME=$(readlink -f $0)

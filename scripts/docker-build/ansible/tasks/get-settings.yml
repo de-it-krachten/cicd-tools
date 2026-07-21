@@ -17,13 +17,10 @@
 
 - name: Create of image tags
   ansible.builtin.set_fact:
-    build_tags: >-
-      [
-        {%- for registry in registries -%}
-        {%- for tag in [build_vars.image.tag] + (build_vars.image.tags | default([])) -%}
-        "{{ registry }}/{{ build_vars.image.name }}:{{ tag }}",
-        {%- endfor -%}
-        {%- endfor -%}
-      ]
+    build_tags: "{{ lookup('template', 'tags.yml.j2') | from_yaml | sort | unique }}"
   vars:
     registries: "{{ build_vars.image.registries | default([build_vars.image.registry]) }}"
+
+- name: Show build tags
+  ansible.builtin.debug:
+    var: build_tags

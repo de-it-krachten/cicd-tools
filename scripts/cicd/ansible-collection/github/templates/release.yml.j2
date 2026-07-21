@@ -16,13 +16,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - name: Checkout
-        uses: actions/checkout@v6
-
       - name: Use Node.js 24
         uses: actions/setup-node@v6
         with:
           node-version: 24
+
+<% set github_branch_protection = github.branch_protection | default(false) %>
+<% if github_branch_protection | bool %>
+      - uses: actions/create-github-app-token@v3
+        id: app-token
+        with:
+          client-id: ${{ secrets.<= github.client_id | default('dummy') => }}
+          private-key: ${{ secrets.<= github.private_key | default('dummy') => }}
+
+      - uses: actions/checkout@v6
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+
+<% else %>
+      - name: Checkout
+        uses: actions/checkout@v6
+
+<% endif %>
 
       - name: Install package dependencies
         run: |

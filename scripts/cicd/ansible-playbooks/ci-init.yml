@@ -89,6 +89,8 @@
         variable_end_string: "=>"
         block_start_string: "<%"
         block_end_string: "%>"
+        comment_start_string: "<#"
+        comment_end_string: "#>"
         mode: "0644"
       when: item.value.when is undefined or lookup('vars', item.value.when) | bool
       loop: "{{ cicd.ci_templates | dict2items }}"

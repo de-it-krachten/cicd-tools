@@ -16,13 +16,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
+      - name: Use Node.js 24
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
 <% set github_branch_protection = github.branch_protection | default(false) %>
 <% if github_branch_protection | bool %>
-
-      - uses: actions/create-github-app-token@v1
+      - uses: actions/create-github-app-token@v3
         id: app-token
         with:
-          app-id: ${{ secrets.<= github.app_id | default('dummy') => }}
+          client-id: ${{ secrets.<= github.client_id | default('dummy') => }}
           private-key: ${{ secrets.<= github.private_key | default('dummy') => }}
 
       - uses: actions/checkout@v6
@@ -60,16 +64,10 @@ jobs:
           exit 0
 
 <% else %>
-
       - name: Checkout
         uses: actions/checkout@v6
 
 <% endif %>
-
-      - name: Use Node.js 24
-        uses: actions/setup-node@v6
-        with:
-          node-version: 24
 
       - name: Install package dependencies
         run: |

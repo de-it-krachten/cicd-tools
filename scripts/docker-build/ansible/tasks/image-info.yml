@@ -22,6 +22,6 @@
   ansible.builtin.debug:
     msg:
       image_name: "{{ image_name }}"
-      Cmd: "{{ vars[cmd] }}"
-      Entrypoint: "{{ vars[entrypoint] }}"
-      User: "{{ vars[user] }}"
+      Cmd: "{{ lookup('vars', 'cmd') }}"
+      Entrypoint: "{{ lookup('vars', 'entrypoint') }}"
+      User: "{{ lookup('vars', 'user') }}"

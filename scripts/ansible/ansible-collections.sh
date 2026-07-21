@@ -123,6 +123,7 @@ function Collections_default
 collections:
   - name: ansible.posix
   - name: ansible.windows
+  - name: community.crypto
   - name: community.docker
   - name: community.general
   - name: community.windows
@@ -152,6 +153,13 @@ function Collections_custom
 
   # Get all collection files
   Collection_files=$(ls .collections ${Roledir}/*/.collections collections/requirements.yml 2>/dev/null)
+
+  # No need to continue if nothing found
+  if [[ -z $Collection_files ]]
+  then
+    echo -e "---\ncollections: []" > ${TMPFILE}custom 
+    return 0
+  fi
 
   # Convert all collections
   Files_merge $Collection_files | yq -y . > ${TMPFILE}custom
@@ -314,6 +322,8 @@ then
   Galaxy_args="-p $Coldir"
 fi
 
+[[ $Verbosity_level -gt 1 ]] && Galaxy_args="-vvvv $Galaxy_args"
+
 # Install all collections
 echo "Installing combined list of collections"
 if [[ $Verbose == true ]]
@@ -321,6 +331,11 @@ then
   ansible-galaxy collection install $Galaxy_args -r ${TMPFILE}.yml
 else
   ansible-galaxy collection install $Galaxy_args -r ${TMPFILE}.yml >/dev/null
+fi
+
+if [[ -f collections/requirements.yml ]]
+then
+  ansible-galaxy collection install $Galaxy_args -r collections/requirements.yml
 fi
 
 # Exit cleanly
