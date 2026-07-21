@@ -16,7 +16,7 @@ $BASENAME
 
 Sets up a Python environment
 
-Usage : $BASENAME <flags> 
+Usage : $BASENAME <flags>
 
 Flags:
 
@@ -28,11 +28,11 @@ Flags:
    -e <exe>  : Python executable to use within virtualenv
    -g        : Set-up python environment globally
    -r        : Delete existing virtualenv before creating it
-   -p <prof> : Profile 
+   -p <prof> : Profile
    -s        : Include site-packages in virtualenv
    -u        : Set-up python environment in user-space
    -V <path> : Set-up a virtuals python environment
-   
+
 Examples:
 
 Set-up python environment globally :
@@ -54,7 +54,7 @@ function Get_executables
 
   Python=${Python:-`readlink -f /usr/bin/python3`}
   Python_version=`$Python --version | awk '{print $2}' | cut -f1,2 -d.`
-  
+
 }
 
 function Setup
@@ -167,7 +167,7 @@ do
 
    # Set flag to be use by Test_flag
    eval ${OPT}flag=1
-   
+
 done
 shift $(($OPTIND -1))
 
@@ -193,9 +193,9 @@ profile=$(Get_key $Profile)
 # Get list of packages
 Pip_packages1=$(Get_key generic packages)
 Pip_packages2=$(Get_key $Profile packages)
-Python=$(Get_key $Profile python)
+Python=${Python:-$(Get_key $Profile python)}
 Python=${Python:-$Python_default}
-Python=${Python:-`readlink -f /usr/bin/python3`}
+Python=${Python:-$(readlink -f $(which python3))}
 
 # Find the python & virtualenv to use
 Get_executables
