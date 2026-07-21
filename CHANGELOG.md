@@ -1,3 +1,19 @@
+# [2.5.0](https://github.com/de-it-krachten/cicd-tools/compare/v2.4.2...v2.5.0) (2026-07-21)
+
+
+### Bug Fixes
+
+* CI ordering ([edb8b66](https://github.com/de-it-krachten/cicd-tools/commit/edb8b663f46294ca6f0f42b1563580c5e6868a2f))
+* Extend podman config for all platforms ([12a37ba](https://github.com/de-it-krachten/cicd-tools/commit/12a37ba49670b2622e2cc3c224fda0a7801a9c06))
+* Fix branch protection issues ([0443142](https://github.com/de-it-krachten/cicd-tools/commit/0443142dbe5aeab2e938bd6117cceb3abc8f7684))
+* Fix image restore ([62c3718](https://github.com/de-it-krachten/cicd-tools/commit/62c3718bfb4cd4cc3c004ac9e00b55a8f016606d))
+* vagrant | Add support VM grouping ([712b668](https://github.com/de-it-krachten/cicd-tools/commit/712b668684aa01dd1a0bd3e940569600f5eedb09))
+
+
+### Features
+
+* Split molecule into 2 phases ([8ff4d72](https://github.com/de-it-krachten/cicd-tools/commit/8ff4d7290d1488ddc55c26da2831fde28c643eb3))
+
 ## [2.4.2](https://github.com/de-it-krachten/cicd-tools/compare/v2.4.1...v2.4.2) (2026-06-07)
 
 
