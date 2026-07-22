@@ -1,3 +1,10 @@
+## [2.5.2](https://github.com/de-it-krachten/cicd-tools/compare/v2.5.1...v2.5.2) (2026-07-22)
+
+
+### Bug Fixes
+
+* Fix python executable support ([3b014ea](https://github.com/de-it-krachten/cicd-tools/commit/3b014eacfd4b26acd62c4c3538bc671d2d464841))
+
 ## [2.5.1](https://github.com/de-it-krachten/cicd-tools/compare/v2.5.0...v2.5.1) (2026-07-22)
 
 
