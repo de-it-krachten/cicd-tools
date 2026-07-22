@@ -38,10 +38,10 @@ function Jinjanator
   # venv=${root_dir}/jinjanator
   venv=/tmp/jinjanator
 
-  $sudo python3 -m venv $venv
-  $sudo $venv/bin/pip3 install pip wheel setuptools --upgrade
-  $sudo $venv/bin/pip3 install jinjanator jinjanator-plugin-ansible
-  #$sudo ln -fs $venv/bin/jinjanate /usr/local/bin/jinjanate
+  $Sudo python3 -m venv $venv
+  $Sudo $venv/bin/pip3 install pip wheel setuptools --upgrade
+  $Sudo $venv/bin/pip3 install jinjanator jinjanator-plugin-ansible
+  #$Sudo ln -fs $venv/bin/jinjanate /usr/local/bin/jinjanate
 
 }
 
@@ -50,7 +50,7 @@ function Template
 
   if [[ -f ${TEMPLATEFILE} ]]
   then
-    $sudo $venv/jinjanate ${TEMPLATEFILE} --quiet -o ${CONFIGFILE}
+    $Sudo $venv/jinjanate ${TEMPLATEFILE} --quiet -o ${CONFIGFILE}
   fi
 
 }
@@ -58,19 +58,21 @@ function Template
 function Venv
 {
 
+  [[ -n $Python_executable ]] && Args="-e $Python_executable"
+
   Print_separator
   echo "$venv"
   Print_separator
-  echo "$sudo ${DIRNAME}/python.sh $Verbose1 -c ${DIRNAME}/ansible.yml -p $venv -V $root_dir/$venv"
+  echo "$Sudo ${DIRNAME}/python.sh $Args $Verbose1 -c ${DIRNAME}/ansible.yml -p $venv -V $root_dir/$venv"
   Print_separator
-  $sudo ${DIRNAME}/python.sh $Verbose1 -c ${DIRNAME}/ansible.yml -p $venv -V $root_dir/$venv
-  $sudo rm -fr $root_dir/$venv/lib/python3.*/site-packages/selinux
+  $Sudo ${DIRNAME}/python.sh $Args $Verbose1 -c ${DIRNAME}/ansible.yml -p $venv -V $root_dir/$venv
+  $Sudo rm -fr $root_dir/$venv/lib/python3.*/site-packages/selinux
 
 }
 
 
 # parse command line into arguments and check results of parsing
-while getopts :dhsv-: OPT
+while getopts :dhp:sv-: OPT
 do
 
   # Support long options
@@ -89,8 +91,11 @@ do
       Usage
       exit 0
       ;;
+    p|python)
+      Python_executable=$OPTARG
+      ;;
     s|sudo)
-      sudo=sudo
+      Sudo=sudo
       ;;
     v|verbose)
       Verbose=true
