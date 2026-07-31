@@ -8,9 +8,6 @@
 #
 #
 #=====================================================================
-unset Debug
-#export Debug="set -x"
-$Debug
 
 
 ##############################################################
@@ -20,7 +17,14 @@ $Debug
 ##############################################################
 
 # Set temporary PATH
-#export PATH=/bin:/usr/bin:/sbin:/usr/sbin:$PATH
+__PYTHON_VENV=$(which python3 | sed "s|/bin/python3||")
+if [[ $__PYTHON_VENV =~ ^(|/usr)$ ]]
+then
+  export PATH=/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:$PATH
+else
+  export PATH=${__PYTHON_VENV}/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:$PATH
+fi
+unset __PYTHON_VENV
 
 # Get the name of the calling script
 FILENAME=$(readlink -f $0)
@@ -148,7 +152,7 @@ Only create containers
 \$ $BASENAME -m create
 
 Run on all platforms as found in .molecule-platforms.yml
-\$ $BASENAME -z ALL
+\$ $BASENAME -Z ALL
 
 EOF
 
@@ -467,7 +471,7 @@ function Execute_molecule
   fi
 
   # Do not support legacy facts
-  export ANSIBLE_INJECT_FACT_VARS=False
+  export ANSIBLE_INJECT_FACT_VARS=${ANSIBLE_INJECT_FACT_VARS:-'False'}
 
   Molecule_args="--scenario-name=$Scenario"
   [[ $Mode == test ]] && Molecule_args+=" --destroy=$Destroy"
@@ -583,6 +587,10 @@ function Render_molecule_yaml
     # Quick fix for nested jinja host_vars
     sed -i -r "s/(hostvars\[.*)/\"{{ \\1 }}\"/" molecule.yml
 
+    # Show molecule.yml
+    [[ $Debug == true ]] && cat molecule.yml
+
+    # Move back yo the previous directory
     cd - >/dev/null
   fi
 
