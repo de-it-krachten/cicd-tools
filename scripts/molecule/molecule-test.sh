@@ -152,7 +152,7 @@ Only create containers
 \$ $BASENAME -m create
 
 Run on all platforms as found in .molecule-platforms.yml
-\$ $BASENAME -z ALL
+\$ $BASENAME -Z ALL
 
 EOF
 
@@ -471,7 +471,7 @@ function Execute_molecule
   fi
 
   # Do not support legacy facts
-  export ANSIBLE_INJECT_FACT_VARS=False
+  export ANSIBLE_INJECT_FACT_VARS=${ANSIBLE_INJECT_FACT_VARS:-'False'}
 
   Molecule_args="--scenario-name=$Scenario"
   [[ $Mode == test ]] && Molecule_args+=" --destroy=$Destroy"
