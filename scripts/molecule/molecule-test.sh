@@ -473,6 +473,10 @@ function Execute_molecule
   # Do not support legacy facts
   export ANSIBLE_INJECT_FACT_VARS=${ANSIBLE_INJECT_FACT_VARS:-'False'}
 
+  # Show all ANSIBLE related variables
+  echo "Show ansible variables:"
+  set | grep -E "^(ANSIBLE_|PY_COLORS)"
+
   Molecule_args="--scenario-name=$Scenario"
   [[ $Mode == test ]] && Molecule_args+=" --destroy=$Destroy"
 
