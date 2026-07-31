@@ -33,6 +33,7 @@
 
 - name: Copy docker-squash script
   ansible.builtin.copy:
+    # src: files/docker-squash.sh
     src: files/docker-squash.sh
     dest: /usr/local/bin/docker-squash.sh
     mode: "0555"
@@ -41,7 +42,12 @@
 - name: Execute docker-squash script
   ansible.builtin.command:
     cmd: >-
-      /usr/local/bin/docker-squash.sh
+      /usr/local/bin/docker-squash.sh -v
       "{{ parent_image_name }}" \
       "{{ container_image_tmp2 }}" \
       "{{ container_image_name }}"
+
+- command: docker image ls
+  register: xxx
+
+- debug: var=xxx
