@@ -1,3 +1,12 @@
+## [2.5.3](https://github.com/de-it-krachten/cicd-tools/compare/v2.5.2...v2.5.3) (2026-07-31)
+
+
+### Bug Fixes
+
+* Extend list of facts to conver ([e920f1a](https://github.com/de-it-krachten/cicd-tools/commit/e920f1a065de486b0f718e62f17e96ff7983cd5c))
+* Honor ANSIBLE_INJECT_FACT_VARS when externally set ([2331e85](https://github.com/de-it-krachten/cicd-tools/commit/2331e85021ac4f5b7cf7a7fbe0ca05c0622bf899))
+* Support for latest molecule v26 ([8c3af3f](https://github.com/de-it-krachten/cicd-tools/commit/8c3af3fe5f5c58746d17e9c29b548cd35e96478c))
+
 ## [2.5.2](https://github.com/de-it-krachten/cicd-tools/compare/v2.5.1...v2.5.2) (2026-07-22)
 
 
