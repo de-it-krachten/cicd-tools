@@ -123,6 +123,7 @@ Flags :
    -c <path>   : Path where role is located (default=current path)
    -C          : Disable colors in output
    -e <file>   : File with extra vars to use
+   -f          : Inject legacy fact vars (eg. ansible_os_family)
    -k          : Do not destroy the container
    -K          : Destroy any running containers
    -L          : Disable logging to file
@@ -659,7 +660,7 @@ Use_old_galaxy=false
 [[ `id -un` != root ]] && Sudo=sudo
 
 # parse command line into arguments and check results of parsing
-while getopts :Ac:Cde:DhGkKLm:npPr:R:s:SvWxXyYzZ:-: OPT
+while getopts :Ac:Cde:DfhGkKLm:npPr:R:s:SvWxXyYzZ:-: OPT
 do
 
   # Support long options
@@ -684,6 +685,8 @@ do
         Verbose=true
         ;;
      e) Vars_file="$OPTARG"
+        ;;
+     f) export ANSIBLE_INJECT_FACT_VARS=True
         ;;
      G) Use_old_galaxy=true
         ;;
