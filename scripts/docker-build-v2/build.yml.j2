@@ -2,10 +2,10 @@ packer:
   required_plugins:
     docker:
       source: github.com/hashicorp/docker
-      version: '>= 1.0.0'
+      version: '>= 1.1.4'
     ansible:
       source: github.com/hashicorp/ansible
-      version: '>= 1.1.0'
+      version: '>= 1.1.6'
 source:
   docker:
     ubuntu:
@@ -13,20 +13,64 @@ source:
       pull: <= false if custom_image.build | bool else true =>
       export_path: container-flat.tar
       changes: <= image.changes =>
+<% if container.systemd | bool %>
+      privileged: true
+      run_command:
+        - -d
+        - -i
+        - -t
+<% if container.user is defined %>
+        - --user
+        - <= container.user =>
+<% endif %>
+        - --privileged
+        - --cgroupns=host
+        - --tmpfs
+        - /tmp
+        - --tmpfs
+        - /run
+        - --tmpfs
+        - /run/lock
+        - -v
+        - /sys/fs/cgroup:/sys/fs/cgroup:rw
+        - --entrypoint
+        - /usr/sbin/init
+        - '{{.Image}}'
+<% else %>
+      run_command:
+        - -d
+        - -i
+        - -t
+<% if container.user is defined %>
+        - --user
+        - <= container.user =>
+<% endif %>
+<% if container.entrypoint is defined %>
+        - --entrypoint
+        - <= container.entrypoint[0] =>
+        - '{{.Image}}'
+<% for arg in container.entrypoint[1:] %>
+        - <= arg =>
+<% endfor %>
+<% else %>
+        - '{{.Image}}'
+<% endif %>
+<% endif %>
+
 build:
   name: '<= image.name =>'
   sources:
     - source.docker.ubuntu
   provisioner:
-<% if image.pre | default([]) | length > 0 %>
+<% if ansible.pre | default([]) | length > 0 %>
     - shell:
         environment_vars:
           - DEBIAN_FRONTEND=noninteractive
           - TZ=UTC
-        inline: <= image.pre =>
+        inline: <= ansible.pre =>
 <% endif %>
     - ansible:
-        playbook_file: <= env("ansible_dir") =>/playbook.yml
+        playbook_file: <= env("ansible_dir") =>/<= ansible.playbook =>
         use_proxy: false
         user: root
         inventory_file_template: "default ansible_host={{ .ID }}\n"
@@ -37,15 +81,21 @@ build:
           - ansible_remote_tmp=/tmp/.ansible/tmp
           - -e
           - ansible_python_interpreter=/usr/bin/python3
-<% if image.post | default([]) | length > 0 %>
+<% if ansible.post | default([]) | length > 0 %>
     - shell:
         environment_vars:
           - DEBIAN_FRONTEND=noninteractive
           - TZ=UTC
-        inline: <= image.post =>
+        inline: <= ansible.post =>
 <% endif %>
-  post-processor:
-    docker-import:
-      repository: <= image.name =>
-      tag: '<= image.tag =>'
-      changes: <= image.changes =>
+  post-processors:
+    post-processor:
+      - docker-import:
+          repository: <= image.name =>
+          tag: '<= image.tag =>'
+          changes: <= parent_settings if (image.inherit_parent_settings | default(false) | bool) else image.changes =>
+<% for registry in image.registries %>
+      - docker-tag:
+          repository: <= registry =>/<= image.name =>
+          tags: <= image.tags =>
+<% endfor %>

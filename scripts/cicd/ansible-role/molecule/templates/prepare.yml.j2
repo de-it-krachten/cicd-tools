@@ -67,25 +67,32 @@
       - debian10
       - debian11
       - debian12
+      - debian13
       - ubuntu1804
       - ubuntu2004
       - ubuntu2204
+      - ubuntu2404
+      - ubuntu2604
 
     firewalld_distros:
       - rhel8
       - rhel9
-      - fedora36
-      - fedora37
-      - fedora38
+      - rhel10
+      - fedora43
+      - fedora44
       - centos8
       - centos8s
       - centos9s
+      - centos10s
       - oraclelinux8
       - oraclelinux9
+      - oraclelinux10
       - rocky8
       - rocky9
+      - rocky10
       - almalinux8
       - almalinux9
+      - almalinux10
       - sles15
       - sles16
       - opensuse15
@@ -434,13 +441,20 @@
               - policycoreutils-python-utils
             state: present
 
-        - name: Install OS spcific packages
+        - name: Install OS specific packages (RHEL)
           ansible.builtin.package:
             name:
               - python3-packaging
           when:
             - ansible_facts.distribution == 'RedHat'
             - ansible_facts.distribution_major_version == '10'
+
+        - name: Install OS specific packages (Fedora)
+          ansible.builtin.package:
+            name:
+              - procps-ng
+          when:
+            - ansible_facts.distribution == 'Fedora'
 
         - name: Activate epel repository
           ansible.builtin.include_role:

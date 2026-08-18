@@ -154,7 +154,7 @@ def j2_environment_params():
         lstrip_blocks=True,
         # Enable line statements:
         # http://jinja.pocoo.org/docs/2.10/templates/#line-statements
-        line_statement_prefix='#',
+        line_statement_prefix=None,
         # Keep \n at the end of a file
         keep_trailing_newline=True,
         # Enable custom extensions
@@ -169,6 +169,7 @@ function Template
 {
 
   [[ -n $Output ]] && Args="--output-file $Output"
+  [[ $Quiet == true ]] && Args="$Args --quiet"
   
   jinjanate $Args --customize ${TMPFILE}.py $Template $Varsfile
 
@@ -192,6 +193,7 @@ Dry_run=false
 Echo=
 
 String="{{"
+Quiet=true
 
 # parse command line into arguments and check results of parsing
 while getopts :dDho:s:v-: OPT
@@ -228,6 +230,7 @@ do
     v|verbose)
       Verbose=true
       Verbose1="-v"
+      Quiet=false
       ;;
     *)
       echo "Unknown flag -$OPT given!" >&2

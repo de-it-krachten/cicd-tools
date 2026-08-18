@@ -5,10 +5,9 @@
 # image3 = final image (after ansible)
 
 exec >/tmp/docker-squash.log 2>&1
-set -vx
 
-__TMPFILE=/data/tmp/.tmpfile.$$
-__TMPDIR=/data/tmp/.tmpdir.$$
+__TMPFILE=/tmp/.tmpfile.$$
+__TMPDIR=/tmp/.tmpdir.$$
 __VERSION=0
 
 [[ $1 == -V ]] && __VERSION=$2 && shift 2

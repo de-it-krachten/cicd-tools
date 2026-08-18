@@ -1,0 +1,16 @@
+---
+
+# Container preparation
+- hosts: all
+  gather_facts: true
+  become: false
+  vars:
+    # packages
+    package_mode: upgrade-verbose
+    package_become: false
+    # rootca
+    rootca_certificates: []
+  roles:
+    - deitkrachten.showinfo
+    - deitkrachten.rootca
+    - deitkrachten.package

@@ -12,7 +12,7 @@
     extra_args: "--upgrade"
   become: yes
 
-- name: Install awxkit via pip
+- name: Install docker-squash via pip
   ansible.builtin.pip:
     name:
       - docker-squash
@@ -33,21 +33,29 @@
 
 - name: Copy docker-squash script
   ansible.builtin.copy:
-    # src: files/docker-squash.sh
     src: files/docker-squash.sh
     dest: /usr/local/bin/docker-squash.sh
     mode: "0555"
   become: yes
 
-- name: Execute docker-squash script
-  ansible.builtin.command:
-    cmd: >-
-      /usr/local/bin/docker-squash.sh -v
-      "{{ parent_image_name }}" \
-      "{{ container_image_tmp2 }}" \
-      "{{ container_image_name }}"
+- name: Execute docker-squash
+  block:
 
-- command: docker image ls
-  register: xxx
+    - name: Execute docker-squash script
+      ansible.builtin.command:
+        cmd: >-
+          /usr/local/bin/docker-squash.sh -v
+          "{{ parent_image_name }}" \
+          "{{ container_image_tmp2 }}" \
+          "{{ container_image_name }}"
 
-- debug: var=xxx
+  rescue:
+
+    - name: Get docker-squash output
+      ansible.builtin.slurp:
+        src: /tmp/docker-squash.log
+      register: __docker_squash_log
+
+    - name: Show docker-squash
+      ansible.builtin.debug:
+        msg: "{{ (__docker_squash_log['content'] | b64decode).split('\n') }}"

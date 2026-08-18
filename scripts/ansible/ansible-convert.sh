@@ -8,6 +8,7 @@ ansible_env
 ansible_virtualization_type
 ansible_selinux
 ansible_architecture
+ansible_processor
 ansible_system
 ansible_pkg_mgr
 ansible_interfaces
@@ -34,9 +35,10 @@ fi
 echo "$vars" | grep -v "^$" | \
 while read var
 do
-  var2=$(echo $var | sed "s/^ansible_/ansible_facts\./")
+
+  var1=$(echo $var | sed "s/^ansible_/ansible_facts\./")
   for file in $files
   do
-    sed -i "s/$var/$var2/g" $file
+    sed -i "s/$var/$var1/g" $file
   done
 done
