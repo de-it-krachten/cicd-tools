@@ -171,7 +171,7 @@ function Template
   [[ -n $Output ]] && Args="--output-file $Output"
   [[ $Quiet == true ]] && Args="$Args --quiet"
   
-  jinjanate $Args --customize ${TMPFILE}.py $Template $Varsfile
+  jinjanate $Args --customize ${TMPFILE}.py $Template $Varsfile || exit $?
 
 }
 

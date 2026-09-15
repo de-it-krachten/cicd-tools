@@ -112,7 +112,8 @@
       ansible.builtin.set_fact:
         __prepare_firewall: "{{ prepare_firewall | default(False) | bool }}"
         __register_hosts: "{{ register_hosts | default(False) | bool }}"
-        __update_all: "{{ (true if (activate_epel | default(false)) else (update_all | default(False))) | bool }}"
+        __update_all: >-
+          {{ true if (activate_epel | default(false) or molecule_driver == 'vagrant') else update_all | default(False) | bool }}
         __activate_epel: "{{ activate_epel | default(False) | bool }}"
         __install_python: "{{ install_python | default(False) | bool }}"
         __auto_logon: "{{ auto_logon | default(False) | bool }}"
@@ -353,6 +354,7 @@
               - gnupg
               - ssh
               - python3-apt
+              - python3-packaging
             state: present
 
     - name: Family RedHat < 8

@@ -165,7 +165,7 @@ function Collections_custom
   Files_merge $Collection_files | yq -y . > ${TMPFILE}custom
 
   # Strip amsterdam
-  sed -i '/name: amsterdam\./d' ${TMPFILE}custom
+  yq -y -i 'del(.collections[] | select(.name | test("^amsterdam\\.")))' ${TMPFILE}custom
 
   if [[ $Verbosity_level -gt 1 ]]
   then
