@@ -396,7 +396,7 @@ do
   [[ $Phase == bootstrap && $Initial != true ]] && continue
 
   # Run the ansible provisioner
-  ${DIRNAME}/vagrant.sh "${Project}" provision --provision-with $Phase $vm1
+  ${DIRNAME}/vagrant.sh "${Project}" provision --provision-with $Phase $vm1 || exit 1
 
   # Find out if a snapshot is required
   Snapshot=`yq -r .vagrant_boxes.ansible.playbooks $Vagrant_definition | jq '.[] | select(.phase=="'$Phase'") | .snapshot'`
