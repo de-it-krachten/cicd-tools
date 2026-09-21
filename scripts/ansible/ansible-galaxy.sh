@@ -13,7 +13,7 @@ then
   export PATH=/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:$PATH
 else
   export PATH=${__PYTHON_VENV}/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:$PATH
-fi  
+fi
 unset __PYTHON_VENV
 
 # Get the name of the calling script
@@ -93,6 +93,16 @@ Flags :
    -h|--help            : Prints this help message
    -v|--verbose         : Verbose output
 
+   -c|--collections     : Run on collections
+   -r|--roles           : Run on roles (default)
+
+   -C|--clean-only      : Cleans target location and exits
+   -g|--git-source      : Skips galaxy and retrieves from github
+#   -G|-no-git-ignore    : ???
+   -p|--path <path>     : Target location to write roles or collections to
+#   -q|--quiet           : supress common messages
+   -s|--sudo            : Run using sudo
+
 Arguments:
    \$1 : Requirements file (optional)
 
@@ -126,7 +136,24 @@ function Get_collections
     exit ${Exit:-1}
   fi
 
-  [[ -n $Path ]] && Galaxy_args="-p ${Path}"
+  # Use git(hub) sources instead of Galaxy
+  if [[ $Git_source == true ]]
+  then
+    yq -y '
+      .collections |= map(
+        if (.name | test("^[a-z0-9_-]+\\.[a-z0-9_-]+$")) then
+          .name = ("https://github.com/ansible-collections/" + .name + ".git") | .type = "git"
+        else . end
+      )' $Reqfile > ${TMPFILE}
+    Reqfile=${TMPFILE}
+
+    Galaxy_args="--no-deps"
+
+  fi
+
+  [[ $Debug == true ]] && Galaxy_args="$Galaxy_args -vvvv"
+  [[ -n $Path ]] && Galaxy_args="$Galaxy_args -p ${Path}"
+
   $Echo ansible-galaxy collection install $Galaxy_args -r $Reqfile --ignore-errors
 
 }
@@ -155,9 +182,10 @@ Exit=
 Mode=roles
 Collections_yaml=collections/requirements.yml
 Roles_yaml=roles/requirements.yml
+Git_source=false
 
 # parse command line into arguments and check results of parsing
-while getopts :cCdDGhop:qrsv-: OPT
+while getopts :cCdDgGhp:qrsv-: OPT
 do
 
   # Support long options
@@ -168,8 +196,8 @@ do
   fi
 
   case $OPT in
-    c|clean)
-      Clean=true
+    c|collections)
+      Mode=collections
       ;;
     C|clean-only)
       Clean=true
@@ -178,6 +206,7 @@ do
     d|debug)
       Verbose=true
       Verbose1="-v"
+      Debug=true
       set -vx
       ;;
     D|dry-run)
@@ -185,15 +214,15 @@ do
       Dry_run1="-D"
       Echo=echo
       ;;
+    g|git-source)
+      Git_source=true
+      ;;
     G|no-git-ignore)
       Clean_args="${Clean_args} -G"
       ;;
     h|help)
       Usage
       exit 0
-      ;;
-    o|collections)
-      Mode=collections
       ;;
     p|path)
       Path=$OPTARG
@@ -203,9 +232,8 @@ do
       Clean_args="${Clean_args} -q"
       Exit=0
       ;;
-    r|refresh)
-      Refresh=true
-      Clean=true
+    r|roles)
+      Mode=roles
       ;;
     s|sudo)
       Sudo1="-s"
