@@ -1,12 +1,87 @@
 #!/bin/bash
 
-PATH=/usr/bin:/bin:/usr/sbin:/sbin:$PATH
-BASENAME=$(basename $(readlink -f $0))
-DIRNAME=$(dirname $(readlink -f $0))
+##############################################################
+#
+# Defining standard variables
+#
+##############################################################
+
+# Set temporary PATH
+__PYTHON_VENV=$(which python3 | sed "s|/bin/python3||")
+if [[ $__PYTHON_VENV =~ ^(|/usr)$ ]]
+then
+  export PATH=/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:$PATH
+else
+  export PATH=${__PYTHON_VENV}/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:$PATH
+fi
+unset __PYTHON_VENV
+
+# Get the name of the calling script
+FILENAME=$(readlink -f $0)
+BASENAME="${FILENAME##*/}"
 BASENAME_ROOT=${BASENAME%%.*}
+DIRNAME="${FILENAME%/*}"
+
+# Get name of symlink used to execute
+FILENAME1=$(realpath -s $0)
+BASENAME1="${FILENAME1##*/}"
+BASENAME1_ROOT=${BASENAME1%%.*}
+DIRNAME1="${FILENAME1%/*}"
+
+# Define temorary files, debug direcotory, config and lock file
+TMPDIR=$(mktemp -d)
+VARTMPDIR=/var/tmp
+TMPFILE=${TMPDIR}/${BASENAME}.${RANDOM}.${RANDOM}
+DEBUGDIR=${TMPDIR}/${BASENAME_ROOT}_${USER}
 CONFIGFILE=${DIRNAME}/${BASENAME_ROOT}.yml
-HOSTNAME=`hostname -f`
-TMPFILE=$(mktemp)
+LOCKFILE=${VARTMP}/${BASENAME_ROOT}.lck
+
+# Logfile & directory
+LOGDIR=$DIRNAME
+LOGFILE=${LOGDIR}/${BASENAME_ROOT}.log
+
+# Set date/time related variables
+DATESTAMP=$(date "+%Y%m%d")
+TIMESTAMP=$(date "+%Y%m%d.%H%M%S")
+
+# Figure out the platform
+OS=$(uname -s)
+
+# Get the hostname
+HOSTNAME=$(hostname -f)
+
+
+##############################################################
+#
+# Defining custom variables
+#
+##############################################################
+
+
+##############################################################
+#
+# Defining standardized functions
+#
+#############################################################
+
+#FUNCTIONS=${DIRNAME}/functions.sh
+#for Function in $FUNCTIONS
+#do
+#  if [[ -f ${Function} ]]
+#  then
+#    . ${Function}
+#  else
+#    echo "Functions file '${Function}' could not be found!" >&2
+#    exit 1
+#  fi
+#done
+
+
+##############################################################
+#
+# Defining customized functions
+#
+#############################################################
 
 function Usage
 {
@@ -67,8 +142,9 @@ function Setup
   then
     venv_tmp=/tmp/venv_tmp
     rm -fr $venv_tmp
-    python3 -m venv $venv_tmp >/dev/null
-    $venv_tmp/bin/pip3 install yq jinjanator jinjanator-plugin-ansible >/dev/null
+    echo "Setup temporary venv '$venv_tmp'"
+    python3 -m venv $venv_tmp
+    $venv_tmp/bin/pip3 install yq jinjanator jinjanator-plugin-ansible
     export PATH=$PATH:$venv_tmp/bin
   fi
 
@@ -118,9 +194,22 @@ function Template
 }
 
 
-trap 'rm -f ${TMPFILE}*' EXIT
+##############################################################
+#
+# Main programs
+#
+#############################################################
 
+# Make sure temporary files are cleaned at exit
+trap 'rm -fr ${TMPDIR}' EXIT
+trap 'exit 1' HUP QUIT KILL TERM INT
+
+# Set the defaults
+Debug_level=0
 Verbose=false
+Verbose_level=0
+Dry_run=false
+Echo=
 
 Virtenv=false
 Global=false
@@ -202,23 +291,29 @@ Get_executables
 
 # Show settings
 cat <<EOF
-===============================================
+================================================================================
 virtualenv            : $Venv
 python executable     : $Python
-===============================================
+================================================================================
 EOF
 
 sleep 2
 
 if [[ $Virtenv == true ]]
 then
-  [[ $Delete == true ]] && rm -fr $Venv
-  echo "Virtual environment : $Venv"
+  if [[ $Delete == true && -d $Venv ]]
+  then
+    echo "Deleting virtualenv as it already exists"
+    rm -fr $Venv
+  fi
+
+  echo "Creating virtualenv"
   Setup_venv $Venv $Python
+
 fi
 
-echo "$Pip_packages1" | sed "/^#/d" > ${TMPFILE}1
-echo "$Pip_packages2" | sed "/^#/d" > ${TMPFILE}2
+echo "$Pip_packages1" | sed "/^#/d;/---/d" > ${TMPFILE}1
+echo "$Pip_packages2" | sed "/^#/d;/---/d" > ${TMPFILE}2
 
 # Install pypi packages
 if [[ $Verbose == true ]]
@@ -231,9 +326,11 @@ else
 fi
 
 # Setup symlinks
-symlinks=$(yq -y '."'$Profile'".links' $Configfile | sed '/\.\.\./d;/null/d;/\[\]/d;s/^- //')
+echo "Creating symlinks"
+symlinks=$(yq -y '."'$Profile'".links' $Configfile | sed '/\.\.\./d;/---/d;/null/d;/\[\]/d;s/^- //')
 for symlink in $symlinks
 do
+  echo "  > Creating symboc link '/usr/local/bin/$symlink' -> '$Venv/bin/$symlink'"
   ln -fs $Venv/bin/$symlink /usr/local/bin/$symlink
 done
 
@@ -244,7 +341,6 @@ do
   reqfile=$Venv/lib/$(basename $Python)/site-packages/ansible_collections/$req
   [[ -f $reqfile && $Verbose == true ]] && $Venv/bin/pip3 install -r $reqfile
   [[ -f $reqfile && $Verbose == false ]] && $Venv/bin/pip3 install -r $reqfile >/dev/null
-
 done
 
 # Show result

@@ -183,7 +183,7 @@ function Collections_merge
   [[ $Verbose == true ]] && echo "Merge default and custom collection dependencies"
 
   # Merge default + explicitly defined collections
-  yq -ys '{"collections": map(.collections[]) | unique_by(.name)}' ${TMPFILE}custom ${TMPFILE}base > ${TMPFILE}.yml
+  yq -y -s '{"collections": map(.collections[]) | unique_by(.name)}' ${TMPFILE}custom ${TMPFILE}base > ${TMPFILE}.yml
 
   # Now get the latest version of each collection
   [[ $Verbose == true ]] && echo "Lookup latest collection versions for ansible-core '$ansible_version'"
@@ -268,6 +268,7 @@ do
       ;;
     d|debug)
       Verbose=true
+      Verbosity_level=4
       set -vx
       ;;
     D|dry-run)
