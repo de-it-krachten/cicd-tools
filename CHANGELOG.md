@@ -1,3 +1,23 @@
+# [2.6.0](https://github.com/de-it-krachten/cicd-tools/compare/v2.5.3...v2.6.0) (2026-09-25)
+
+
+### Bug Fixes
+
+* Add option '-f' to molecule-test.sh to inject legacy vars ([65abf29](https://github.com/de-it-krachten/cicd-tools/commit/65abf2959eb4589c188788264c46e171dca7f6ba))
+* ci-init.sh | Fix for newer yq output ([967bde7](https://github.com/de-it-krachten/cicd-tools/commit/967bde770ce27937864d4b46968251a3819e6b41))
+* Fix ansible-collection install ([669d092](https://github.com/de-it-krachten/cicd-tools/commit/669d0922362cc990bf61addc002967a6a01fb6d6))
+* Fix collection retrieval for fixed requirements files ([50ef226](https://github.com/de-it-krachten/cicd-tools/commit/50ef22619bb353adf668e22140a448204e62df2a))
+* Fix docker-build v2 ([f798bdf](https://github.com/de-it-krachten/cicd-tools/commit/f798bdfc698aae948bd579b69fe08017427ae410))
+* Fix issue with new yq version ([5a6c24a](https://github.com/de-it-krachten/cicd-tools/commit/5a6c24ae5669599fbd86861ae7538ed5b3052e86))
+* Make vagrant-setup.sh fail if provision step fails ([991d012](https://github.com/de-it-krachten/cicd-tools/commit/991d012f616a18c6f2ae3e3b8dfa42bbbcb300b0))
+* Reset passwords on vagrant boxes ([38bac3f](https://github.com/de-it-krachten/cicd-tools/commit/38bac3ff3e0e5709059e453d7834f133099d1139))
+* Support for providing 'ANSIBLE_INJECT_FACT_VARS' as Github var ([e0be687](https://github.com/de-it-krachten/cicd-tools/commit/e0be68740b56360de26d729bace103ea4f2f70a5))
+
+
+### Features
+
+* make ansible-galaxy.sh support collections ([1b085e5](https://github.com/de-it-krachten/cicd-tools/commit/1b085e5443192dbf88763ff84f4acaab17abfa1c))
+
 ## [2.5.3](https://github.com/de-it-krachten/cicd-tools/compare/v2.5.2...v2.5.3) (2026-07-31)
 
 
