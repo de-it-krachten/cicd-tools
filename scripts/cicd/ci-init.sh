@@ -132,10 +132,11 @@ function Executable_test
 function Format_yaml
 {
 
-  yq -y . $1 > /tmp/`basename $1`
-  Header=$(head -1 /tmp/`basename $1`)
-  [[ $Header != "---" ]] && echo -e "---\n" > $1
-  cat /tmp/`basename $1` >> $1
+  local Yamlfile=$1
+  yq -y . $Yamlfile > ${TMPFILE}yml
+  Header=$(head -1 ${TMPFILE}yml)
+  [[ $Header != "---" ]] && echo -e "---\n" > $Yamlfile || truncate -s0 $Yamlfile
+  cat ${TMPFILE}yml >> $Yamlfile
 
 }
 
