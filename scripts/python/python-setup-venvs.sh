@@ -144,7 +144,7 @@ EOF
   $Sudo python3 -m venv $venv
   $Sudo $venv/bin/pip3 install pip wheel setuptools --upgrade
   $Sudo $venv/bin/pip3 install jinjanator jinjanator-plugin-ansible
-  [[ $venv =~ $root_dir ]] && ln -fs $venv/bin/jinjanate /usr/local/bin/jinjanate
+  [[ $venv =~ $root_dir ]] && $Sudo ln -fs $venv/bin/jinjanate /usr/local/bin/jinjanate
 
 }
 
@@ -165,7 +165,7 @@ EOF
   $Sudo python3 -m venv $venv
   $Sudo $venv/bin/pip3 install pip wheel setuptools --upgrade
   $Sudo $venv/bin/pip3 install yq
-  [[ $venv =~ $root_dir ]] && ln -fs $venv/bin/yq /usr/local/bin/yq
+  [[ $venv =~ $root_dir ]] && $Sudo ln -fs $venv/bin/yq /usr/local/bin/yq
 
 }
 
