@@ -19,7 +19,7 @@
       - debian11
       - ubuntu2004
       - ubuntu2204
-  
+
     firewalld_distros:
       - fedora35
       - fedora36
@@ -128,3 +128,19 @@
             name: hosts
 
       when: register_hosts is defined and register_hosts|bool
+
+    - name: Reset root password
+      ansible.builtin.user:
+        name: root
+        state: present
+        password: "{{ 'root' | password_hash('sha512', 65534 | random(seed=inventory_hostname) | string) }}"
+        update_password: always
+      when: molecule_driver == 'vagrant'
+
+    - name: Reset vagrant password
+      ansible.builtin.user:
+        name: vagrant
+        state: present
+        password: "{{ 'vagrant' | password_hash('sha512', 65534 | random(seed=inventory_hostname) | string) }}"
+        update_password: always
+      when: molecule_driver == 'vagrant'

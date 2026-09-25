@@ -1,0 +1,13 @@
+FROM {{ custom_image.parent }}
+
+# USER root
+
+RUN export HTTPS_PROXY={{ environment.proxy | default('') }} && \
+    export  HTTP_PROXY={{ environment.proxy | default('') }} && \
+    export    NO_PROXY={{ environment.no_proxy | default('') }} && \
+    export https_proxy={{ environment.proxy | default('') }} && \
+    export  http_proxy={{ environment.proxy | default('') }} && \
+    export    no_proxy={{ environment.no_proxy | default('') }} && \
+    apk add --no-cache bash python3
+
+ENTRYPOINT [ "tail", "-f", "/dev/null" ]

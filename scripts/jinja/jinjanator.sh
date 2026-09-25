@@ -57,25 +57,6 @@ HOSTNAME=$(hostname -s)
 #
 ##############################################################
 
-CONFIGFILE=${DIRNAME}/ansible.yml
-TEMPLATEFILE=${DIRNAME}/ansible.yml.j2
-
-VENV_LIST_DEFAULT="
-yq
-e2j2
-jinjanator
-pproxy
-docker-squash
-ansible-navigator
-ansiblecore216
-ansiblecore218
-ansiblecore219
-ansiblecore220
-ansiblecore221
-awxkit
-"
-
-VENV_LIST=${VENV_LIST:-$VENV_LIST_DEFAULT}
 
 ##############################################################
 #
@@ -83,17 +64,14 @@ VENV_LIST=${VENV_LIST:-$VENV_LIST_DEFAULT}
 #
 #############################################################
 
-#FUNCTIONS=${DIRNAME}/functions.sh
-#for Function in $FUNCTIONS
-#do
-#  if [[ -f ${Function} ]]
-#  then
-#    . ${Function}
-#  else
-#    echo "Functions file '${Function}' could not be found!" >&2
+# FUNCTIONS=${DIRNAME}/functions.sh
+# if [[ -f ${FUNCTIONS} ]]
+# then
+#    . ${FUNCTIONS}
+# else
+#    echo "Functions file '${FUNCTIONS}' could not be found!" >&2
 #    exit 1
-#  fi
-#done
+# fi
 
 
 ##############################################################
@@ -118,85 +96,84 @@ Flags :
    -h|--help            : Prints this help message
    -v|--verbose         : Verbose output
 
+   -o|--output <file>   : File to write output to
+   -s|--string <string> : Block & variable identifiers to use (e.g. '{{', '<=')
+
 EOF
 
 }
 
-function Print_separator
-{ 
-  printf "%80s\n" | tr ' ' '-'
-}
-
-function Jinjanator
+function Config
 {
 
-  venv=${root_dir}/jinjanator
-  python=$(which python3)
+  case $String in
+    '{{')
+       variable_start_string="{{"
+       variable_end_string="}}"
+       block_start_string="{%"
+       block_end_string="%}"
+       ;;
+    '<=')
+       variable_start_string="<="
+       variable_end_string="=>"
+       block_start_string="<%"
+       block_end_string="%>"
+       ;;
+    '<<')
+       variable_start_string="<<"
+       variable_end_string=">>"
+       block_start_string="<%"
+       block_end_string="%>"
+       ;;
+    *)
+      echo "Unknown string '$String' used" >&2
+      exit 1
+      ;;
+  esac
 
-  # Show settings
-  cat <<EOF 
-================================================================================
-virtualenv            : $venv
-python executable     : $python
-================================================================================
+  cat <<EOF > ${TMPFILE}.py
+#
+# Example customization.py file for jinjanator
+# Contains hooks that modify the way Jinja2 is initialized and used
+
+def j2_environment_params():
+    """ Extra parameters for the Jinja2 Environment """
+    # Jinja2 Environment configuration
+    # https://jinja.pocoo.org/docs/2.10/api/#jinja2.Environment
+    return dict(
+        # Just some examples
+
+        # Change block start/end strings
+        block_start_string='$block_start_string',
+        block_end_string='$block_end_string',
+        # Change variable strings
+        variable_start_string='$variable_start_string',
+        variable_end_string='$variable_end_string',
+        # Remove whitespace around blocks
+        trim_blocks=True,
+        lstrip_blocks=True,
+        # Enable line statements:
+        # http://jinja.pocoo.org/docs/2.10/templates/#line-statements
+        line_statement_prefix=None,
+        # Keep \n at the end of a file
+        keep_trailing_newline=True,
+        # Enable custom extensions
+        # http://jinja.pocoo.org/docs/2.10/extensions/#jinja-extensions
+        extensions=('jinja2.ext.i18n',),
+    )
 EOF
 
-  $Sudo python3 -m venv $venv
-  $Sudo $venv/bin/pip3 install pip wheel setuptools --upgrade
-  $Sudo $venv/bin/pip3 install jinjanator jinjanator-plugin-ansible
-  [[ $venv =~ $root_dir ]] && ln -fs $venv/bin/jinjanate /usr/local/bin/jinjanate
-
 }
-
-function Yq
-{
-
-  venv=${root_dir}/yq
-  python=$(which python3)
-
-  # Show settings
-  cat <<EOF 
-================================================================================
-virtualenv            : $venv
-python executable     : $python
-================================================================================
-EOF
-
-  $Sudo python3 -m venv $venv
-  $Sudo $venv/bin/pip3 install pip wheel setuptools --upgrade
-  $Sudo $venv/bin/pip3 install yq
-  [[ $venv =~ $root_dir ]] && ln -fs $venv/bin/yq /usr/local/bin/yq
-
-}
-
-
 
 function Template
 {
 
-  if [[ -f ${TEMPLATEFILE} ]]
-  then
-    $Sudo $venv/bin/jinjanate ${TEMPLATEFILE} --quiet -o ${CONFIGFILE}
-  fi
+  [[ -n $Output ]] && Args="--output-file $Output"
+  [[ $Quiet == true ]] && Args="$Args --quiet"
+  
+  jinjanate $Args --customize ${TMPFILE}.py $Template $Varsfile || exit $?
 
 }
-
-function Venv
-{
-
-  [[ -n $Python_executable ]] && Args="-e $Python_executable"
-
-#  Print_separator
-#  echo "$venv"
-  Print_separator
-  echo "$Sudo ${DIRNAME}/python.sh $Args $Verbose1 -c ${DIRNAME}/ansible.yml -p $venv -V $root_dir/$venv"
-  Print_separator
-  $Sudo ${DIRNAME}/python.sh $Args $Verbose1 -c ${DIRNAME}/ansible.yml -p $venv -V $root_dir/$venv
-  $Sudo rm -fr $root_dir/$venv/lib/python3.*/site-packages/selinux
-
-}
-
-
 
 ##############################################################
 #
@@ -215,8 +192,11 @@ Verbose_level=0
 Dry_run=false
 Echo=
 
+String="{{"
+Quiet=true
+
 # parse command line into arguments and check results of parsing
-while getopts :dhp:sv-: OPT
+while getopts :dDho:s:v-: OPT
 do
 
   # Support long options
@@ -229,21 +209,28 @@ do
   case $OPT in
     d|debug)
       Verbose=true
+      Verbose1="-v"
       set -vx
+      ;;
+    D|dry-run)
+      Dry_run=true
+      Dry_run1="-D"
+      Echo=echo
       ;;
     h|help)
       Usage
       exit 0
       ;;
-    p|python)
-      Python_executable=$OPTARG
+    o|output)
+      Output=$OPTARG
       ;;
-    s|sudo)
-      Sudo=sudo
+    s|string)
+      String="$OPTARG"
       ;;
     v|verbose)
       Verbose=true
       Verbose1="-v"
+      Quiet=false
       ;;
     *)
       echo "Unknown flag -$OPT given!" >&2
@@ -251,27 +238,17 @@ do
       ;;
   esac
 
+  # Set flag to be use by Test_flag
+  eval ${OPT}flag=1
+
 done
 shift $(($OPTIND -1))
 
-root_dir=$1
+Template=$1
+Varsfile=$2
 
-if [[ -z $root_dir ]]
-then
-  echo "Usage   : $0 <venv-root-dir>" >&2
-  echo "Example : $0 /usr/local/venv" >&2
-  exit 1
-fi
-
-# Setup yq & jinjanator
-Yq
-Jinjanator
-
-# Create from template
+Config
 Template
 
-# Setup generic
-for venv in $VENV_LIST
-do
-  Venv
-done
+# Now exit
+exit 0

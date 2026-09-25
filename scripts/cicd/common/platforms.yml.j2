@@ -107,11 +107,7 @@ platforms:
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
-        box: "generic/centos7"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
-            auto_config: true
+        box: "cloud-image/centos-7"
       hetznercloud:
         image: centos-7
         server_type: cx23
@@ -137,11 +133,7 @@ platforms:
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
-        box: "generic/centos8"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
-            auto_config: true
+        box: "cloud-image/centos-8"
   centos8s:
     name: CentOS Stream 8
     ci: {{ platform_defaults.centos8s.ci | lower }}
@@ -164,11 +156,7 @@ platforms:
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
-        box: "generic/centos8s"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
-            auto_config: true
+        box: "cloud-image/centos-8-stream"
       hetznercloud:
         image: centos-stream-8
         server_type: cx23
@@ -194,11 +182,7 @@ platforms:
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
-        box: "generic/centos9s"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
-            auto_config: true
+        box: "cloud-image/centos-9-stream"
       hetznercloud:
         image: centos-stream-9
         server_type: cx23
@@ -224,11 +208,7 @@ platforms:
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
-        box: "generic/centos10s"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
-            auto_config: true
+        box: "cloud-image/centos-10-stream"
       hetznercloud:
         image: centos-stream-10
         server_type: cx23
@@ -254,11 +234,7 @@ platforms:
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
-        box: "generic/rocky8"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
-            auto_config: true
+        box: "cloud-image/rocky-8"
       hetznercloud:
         image: rocky-8
         server_type: cx23
@@ -284,11 +260,7 @@ platforms:
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
-        box: "generic/rocky9"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
-            auto_config: true
+        box: "cloud-image/rocky-9"
       hetznercloud:
         image: rocky-9
         server_type: cx23
@@ -314,11 +286,7 @@ platforms:
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
-        box: "generic/rocky10"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
-            auto_config: true
+        box: "cloud-image/rocky-10"
       hetznercloud:
         image: rocky-10
         server_type: cx23
@@ -344,11 +312,7 @@ platforms:
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
-        box: "generic/oracle8"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
-            auto_config: true
+        box: "cloud-image/oracle-linux-8"
   oraclelinux9:
     name: OracleLinux 9
     ci: {{ platform_defaults.oraclelinux9.ci | lower }}
@@ -371,11 +335,7 @@ platforms:
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
-        box: "generic/oracle9"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
-            auto_config: true
+        box: "cloud-image/oracle-linux-9"
   oraclelinux10:
     name: OracleLinux 10
     ci: {{ platform_defaults.oraclelinux10.ci | lower }}
@@ -398,11 +358,7 @@ platforms:
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
-        box: "generic/oracle10"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
-            auto_config: true
+        box: "cloud-image/oracle-linux-10"
   olam8:
     name: Oracle Linux Automation Manager 8
     ci: false
@@ -449,11 +405,7 @@ platforms:
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
-        box: "generic/alma8"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
-            auto_config: true
+        box: "cloud-image/almalinux-8"
   almalinux9:
     name: AlmaLinux 9
     ci: {{ platform_defaults.almalinux9.ci | lower }}
@@ -476,11 +428,7 @@ platforms:
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
-        box: "generic/alma9"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
-            auto_config: true
+        box: "cloud-image/almalinux-9"
   almalinux10:
     name: AlmaLinux 10
     ci: {{ platform_defaults.almalinux10.ci | lower }}
@@ -503,11 +451,7 @@ platforms:
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
-        box: "generic/alma10"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
-            auto_config: true
+        box: "cloud-image/almalinux-10"
   sles15:
     name: SUSE Linux Enterprise 15
     ci: {{ platform_defaults.sles15.ci | lower }}
@@ -527,10 +471,6 @@ platforms:
 #        image: "docker.io/robertdebock/opensuse"
 #      vagrant:
 #        box: "generic/opensuse15"
-#        interfaces:
-#          - network_name: private_network
-#            type: dhcp
-#            auto_config: true
   sles16:
     name: SUSE Linux Enterprise 16
     ci: {{ platform_defaults.sles16.ci | lower }}
@@ -550,10 +490,6 @@ platforms:
 #        image: "docker.io/robertdebock/opensuse"
 #      vagrant:
 #        box: "generic/opensuse16"
-#        interfaces:
-#          - network_name: private_network
-#            type: dhcp
-#            auto_config: true
   opensuse15:
     name: openSUSE Leap 15
     ci: {{ platform_defaults.opensuse15.ci | lower }}
@@ -577,10 +513,6 @@ platforms:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "generic/opensuse15"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
-            auto_config: true
   opensuse16:
     name: openSUSE Leap 16
     ci: {{ platform_defaults.opensuse16.ci | lower }}
@@ -604,10 +536,6 @@ platforms:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "generic/opensuse16"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
-            auto_config: true
   opensusetumbleweed:
     name: openSUSE Tumbleweed
     ci: {{ platform_defaults.opensusetumbleweed.ci | lower }}
@@ -627,10 +555,6 @@ platforms:
 #        image: "docker.io/robertdebock/opensuse"
 #      vagrant:
 #        box: "generic/opensuse15"
-#        interfaces:
-#          - network_name: private_network
-#            type: dhcp
-#            auto_config: true
   debian10:
     name: Debian 10 (Buster)
     ci: {{ platform_defaults.debian10.ci | lower }}
@@ -653,11 +577,7 @@ platforms:
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
-        box: "generic/debian10"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
-            auto_config: true
+        box: "cloud-image/debian-10"
       hetznercloud:
         image: debian-10
         server_type: cx23
@@ -683,11 +603,7 @@ platforms:
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
-        box: "generic/debian11"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
-            auto_config: true
+        box: "cloud-image/debian-11"
       hetznercloud:
         image: debian-11
         server_type: cx23
@@ -713,11 +629,7 @@ platforms:
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
-        box: "debian/bookworm64"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
-            auto_config: true
+        box: "cloud-image/debian-12"
       hetznercloud:
         image: debian-12
         server_type: cx23
@@ -743,11 +655,7 @@ platforms:
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
-        box: "debian/trixie64"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
-            auto_config: true
+        box: "cloud-image/debian-13"
       hetznercloud:
         image: debian-13
         server_type: cx23
@@ -773,11 +681,7 @@ platforms:
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
-        box: "generic/ubuntu1804"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
-            auto_config: true
+        box: "cloud-image/ubuntu-18.04"
       hetznercloud:
         image: ubuntu-18.04
         server_type: cx23
@@ -803,11 +707,7 @@ platforms:
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
-        box: "generic/ubuntu2004"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
-            auto_config: true
+        box: "cloud-image/ubuntu-20.04"
       hetznercloud:
         image: ubuntu-20.04
         server_type: cx23
@@ -833,10 +733,7 @@ platforms:
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
-        box: "generic/ubuntu2204"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
+        box: "cloud-image/ubuntu-22.04"
       hetznercloud:
         image: ubuntu-22.04
         server_type: cx23
@@ -862,10 +759,7 @@ platforms:
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
-        box: "generic/ubuntu2404"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
+        box: "cloud-image/ubuntu-24.04"
       hetznercloud:
         image: ubuntu-24.04
         server_type: cx23
@@ -891,10 +785,7 @@ platforms:
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
-        box: "generic/ubuntu2604"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
+        box: "cloud-image/ubuntu-26.04"
       hetznercloud:
         image: ubuntu-26.04
         server_type: cx23
@@ -921,9 +812,6 @@ platforms:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "generic/fedora37"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
       hetznercloud:
         image: fedora-37
         server_type: cx23
@@ -949,10 +837,7 @@ platforms:
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
-        box: "generic/fedora38"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
+        box: "cloud-image/fedora-38"
       hetznercloud:
         image: fedora-38
         server_type: cx23
@@ -978,10 +863,7 @@ platforms:
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
-        box: "generic/fedora39"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
+        box: "cloud-image/fedora-39"
       hetznercloud:
         image: fedora-39
         server_type: cx23
@@ -1007,10 +889,7 @@ platforms:
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
-        box: "generic/fedora40"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
+        box: "cloud-image/fedora-40"
       hetznercloud:
         image: fedora-40
         server_type: cx23
@@ -1036,10 +915,7 @@ platforms:
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
-        box: "generic/fedora41"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
+        box: "cloud-image/fedora-41"
       hetznercloud:
         image: fedora-41
         server_type: cx23
@@ -1065,10 +941,7 @@ platforms:
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
-        box: "generic/fedora42"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
+        box: "cloud-image/fedora-42"
       hetznercloud:
         image: fedora-42
         server_type: cx23
@@ -1094,10 +967,7 @@ platforms:
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
-        box: "generic/fedora43"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
+        box: "cloud-image/fedora-43"
       hetznercloud:
         image: fedora-43
         server_type: cx23
@@ -1123,10 +993,7 @@ platforms:
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
-        box: "generic/fedora44"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
+        box: "cloud-image/fedora-44"
       hetznercloud:
         image: fedora-44
         server_type: cx23
@@ -1152,10 +1019,7 @@ platforms:
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
-        box: "generic/alpine312"
-        interfaces:
-          - network_name: private_network
-            type: dhcp
+        box: "cloud-image/alpine-3.24"
   docker:
     name: Docker dind (CI only)
     ci: {{ platform_defaults.docker.ci | lower }}
@@ -1186,9 +1050,6 @@ platforms:
         box: jborean93/WindowsServer2012R2
         groups:
           - windows
-        interfaces:
-          - network_name: private_network
-            type: dhcp
   win2016:
     name: Windows Server 2016
     ci: {{ platform_defaults.win2016.ci | lower }}
@@ -1201,9 +1062,6 @@ platforms:
         box: jborean93/WindowsServer2016
         groups:
           - windows
-        interfaces:
-          - network_name: private_network
-            type: dhcp
   win2019:
     name: Windows Server 2019
     ci: {{ platform_defaults.win2019.ci | lower }}
@@ -1216,9 +1074,6 @@ platforms:
         box: jborean93/WindowsServer2019
         groups:
           - windows
-        interfaces:
-          - network_name: private_network
-            type: dhcp
   win2022:
     name: Windows Server 2022
     ci: {{ platform_defaults.win2022.ci | lower }}
@@ -1231,9 +1086,6 @@ platforms:
         box: jborean93/WindowsServer2022
         groups:
           - windows
-        interfaces:
-          - network_name: private_network
-            type: dhcp
   win2025:
     name: Windows Server 2025
     ci: {{ platform_defaults.win2025.ci | lower }}
@@ -1246,6 +1098,3 @@ platforms:
         box: jborean93/WindowsServer2025
         groups:
           - windows
-        interfaces:
-          - network_name: private_network
-            type: dhcp

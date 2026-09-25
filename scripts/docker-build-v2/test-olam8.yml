@@ -1,0 +1,17 @@
+---
+
+# Create custom image using 'docker build'
+custom_image:
+  # build: true
+  build: false
+  parent: 'alpine:latest'
+  dockerfile: Dockerfile.j2
+  name: 'alpine:custom' 
+image:
+  parent: 'dropveter/oraclelinux8-ansible:latest'
+  name: olam8
+  tag: latest
+  changes: []
+  pre:
+    - mkdir -p /tmp/.ansible/tmp
+  post: []

@@ -1,0 +1,72 @@
+---
+
+# Creates a custom base image from Dockerfile
+custom_image:
+
+  # Should we create a custom base image?
+  build: false
+
+  # Name of the image to create
+  name: 'alpine:custom'
+
+  # Parent to use for creating the custom base image
+  parent: 'alpine:latest'
+
+  # Dockerfile to use (can be a jinja2 file ending with .j2)
+  dockerfile: Dockerfile.j2
+
+
+image:
+
+  # image to use as startingpoint for our image
+  parent: alpine:latest
+
+  # docker registry to push image to
+  registries: <= registries | default(["docker.io"]) =>
+
+  # name of the image
+  name: my-org/my-image
+
+  # tag of the image
+  tag: latest
+
+  # additional tags for the image
+  tags: []
+
+  # Should the image inherit cmd, entrypoint & user from parent
+  inherit_parent_settings: true
+
+  # Command to execute during iamge create (Dockerfile style)
+  changes: []
+
+
+container:
+
+  # name of the temporary container
+  name: mytest-container
+
+  # Systemd enabled container
+  systemd: false
+
+ansible:
+
+  # Command to execute before ansible playbook
+  # pre:
+  #   - apk add python3 --no-cache
+  pre: []
+
+
+  # Ansible playbook to run
+  playbook: playbook.yml
+
+  # Commands to run after ansible playbook
+  # post: 
+  #  - apk del --purge bash
+  #  - apk del --purge python3
+  #  - rm -fr /var/cache/apk/*
+  post: []
+
+# dict of key/values to pass as environment variables
+environment:
+  # proxy: 'http://127.0.0.1:3128'
+  var1: value1

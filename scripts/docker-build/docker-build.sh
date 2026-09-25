@@ -174,7 +174,10 @@ function Setup
   echo "Install ansible roles"
   ansible-galaxy role install -r ${TMPDIR}/ansible/roles/requirements.yml -p ${TMPDIR}/ansible/roles/ --ignore-errors
   echo "Install ansible collections"
-  ansible-galaxy collection install -r ${TMPDIR}/ansible/collections/requirements.yml --ignore-errors
+  #ansible-galaxy collection install -r ${TMPDIR}/ansible/collections/requirements.yml --ignore-errors
+  cd ${TMPDIR}/ansible
+  ansible-collections.sh
+  cd - >/dev/null
 
 }
 

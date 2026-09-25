@@ -15,7 +15,7 @@ default:
     {%- elif '/opt/az/bin/python3.11' is is_file %}
     /opt/az/bin/python3.11
     {%- else %}
-    /usr/bin/python3.10
+    /usr/bin/python3
     {% endif %}
 
 yq:
@@ -129,4 +129,11 @@ awxkit:
     - pysocks
   links:
     - awx
+  requirements: []
+
+azure-pipeline-validator:
+  packages:
+    - azure-pipeline-validator
+  links:
+    - azure-pipeline-validator
   requirements: []

@@ -204,11 +204,12 @@ jobs:
         env:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'
+          ANSIBLE_INJECT_FACT_VARS: ${{ vars.ANSIBLE_INJECT_FACT_VARS || 'False' }}
           MOLECULE_DISTRO: ${{ matrix.distro }}
+          MOLECULE_DRIVER: ${{ vars.MOLECULE_DRIVER }}
           MOLECULE_PLAYBOOK: ${{ matrix.playbook }}
 <% if github.ssh_access is defined and github.ssh_access | bool %>
           MOLECULE_WAIT_AFTER_ERROR: '900'
 <% endif %>
           HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
-          MOLECULE_DRIVER: ${{ vars.MOLECULE_DRIVER }}
 <% endif %>
