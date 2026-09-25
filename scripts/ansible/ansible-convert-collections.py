@@ -4,42 +4,35 @@ import sys
 import yaml
 import os
 
+
 def convert_item(item):
     """
-    Recursively checks if an item is a list of strings and converts it.
-    Returns the converted item or the original if no conversion is needed.
+    Recursively normalize a YAML structure so that any bare string that is an
+    element of a list becomes a {'name': <string>} dict.
+
+    - Dict values are recursed into, but a scalar string value (e.g. version:
+      "24.6.1") is left untouched because it is not a list element.
+    - List elements that are strings are converted to {'name': <string>}.
+    - Existing dict entries in a list keep all their keys (name, version, type...).
+    - The operation is idempotent: running it again produces the same result.
     """
-    # Case 1: Item is a list of strings -> Convert it
-    if isinstance(item, list) and all(isinstance(x, str) for x in item):
-        # Check if already converted
-        if all(isinstance(x, dict) and 'name' in x for x in item):
-            return item 
-        return [{'name': x} for x in item]
-    
-    # Case 2: Item is a dictionary -> Recurse into its values
+    # Dict -> recurse into values
     if isinstance(item, dict):
-        new_dict = {}
-        changed = False
-        for k, v in item.items():
-            new_val = convert_item(v)
-            new_dict[k] = new_val
-            if new_val is not v:
-                changed = True
-        return new_dict if changed else item
+        return {k: convert_item(v) for k, v in item.items()}
 
-    # Case 3: Item is a list of mixed types or dicts -> Recurse into list items
+    # List -> turn bare string elements into {'name': str}, recurse into the rest
     if isinstance(item, list):
-        new_list = []
-        changed = False
+        out = []
         for x in item:
-            new_val = convert_item(x)
-            new_list.append(new_val)
-            if new_val is not x:
-                changed = True
-        return new_list if changed else item
+            if isinstance(x, str):
+                out.append({'name': x})
+            else:
+                out.append(convert_item(x))
+        return out
 
-    # Case 4: Scalar -> Return as is
+    # Scalar -> unchanged
     return item
+
 
 def process_yaml_to_stdout(filename):
     if not os.path.exists(filename):
@@ -62,11 +55,13 @@ def process_yaml_to_stdout(filename):
 
     # Write to STDOUT instead of file
     # default_flow_style=False ensures block style (vertical lists)
-    yaml.dump(new_data, sys.stdout, default_flow_style=False, sort_keys=False, allow_unicode=True)
+    yaml.dump(new_data, sys.stdout, default_flow_style=False,
+              sort_keys=False, allow_unicode=True)
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python script.py <filename.yaml>", file=sys.stderr)
         sys.exit(1)
-    
-    process_yaml_to_stdout(sys.argv[1])   
+
+    process_yaml_to_stdout(sys.argv[1])

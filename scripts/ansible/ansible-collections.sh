@@ -167,7 +167,7 @@ function Collections_custom
   # Strip amsterdam
   yq -y -i 'del(.collections[] | select(.name | test("^amsterdam\\.")))' ${TMPFILE}custom
 
-  if [[ $Verbosity_level -gt 1 ]]
+  if [[ $Verbosity_level -ge 2 ]]
   then
     echo "================================" >&2
     echo "Custom collections" >&2
