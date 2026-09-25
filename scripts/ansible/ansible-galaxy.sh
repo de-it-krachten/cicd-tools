@@ -95,8 +95,9 @@ Flags :
 
    -c|--collections     : Run on collections
    -r|--roles           : Run on roles (default)
+   --clean              : Delete roles before collectiong them
+   -C|--clean-only      : Delete roles and does no collection
 
-   -C|--clean-only      : Cleans target location and exits
    -g|--git-source      : Skips galaxy and retrieves from github
 #   -G|-no-git-ignore    : ???
    -p|--path <path>     : Target location to write roles or collections to
@@ -198,6 +199,9 @@ do
   case $OPT in
     c|collections)
       Mode=collections
+      ;;
+    clean)
+      Clean=true
       ;;
     C|clean-only)
       Clean=true
