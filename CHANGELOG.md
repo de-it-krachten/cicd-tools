@@ -1,3 +1,13 @@
+## [2.6.1](https://github.com/de-it-krachten/cicd-tools/compare/v2.6.0...v2.6.1) (2026-10-03)
+
+
+### Bug Fixes
+
+* Add facts names to be replaced ([88892aa](https://github.com/de-it-krachten/cicd-tools/commit/88892aa91144f3848b23be0d9daae1b4cee8932e))
+* ansible-galaxy.sh | re-introduce role cleaning before collection ([3b183ef](https://github.com/de-it-krachten/cicd-tools/commit/3b183ef4b514eda2f37a7d247337c52abdafd515))
+* Make it possible to set alternative collections path ([9181d72](https://github.com/de-it-krachten/cicd-tools/commit/9181d72dddcd737d89e88ce709348295768acb00))
+* python-venv | Fix script due to yq output change ([4de52bc](https://github.com/de-it-krachten/cicd-tools/commit/4de52bce3d2699434091b0fb3cbb2817cb7ba013))
+
 # [2.6.0](https://github.com/de-it-krachten/cicd-tools/compare/v2.5.3...v2.6.0) (2026-09-25)
 
 
