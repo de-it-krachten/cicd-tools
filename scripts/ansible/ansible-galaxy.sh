@@ -120,11 +120,12 @@ function Get_roles
     exit ${Exit:-1}
   fi
 
-  [[ -n $Path ]] && Args="-p ${Path}" || Args=
+  [[ $Debug == true ]] && Galaxy_args="$Galaxy_args -vvvv"
+  [[ -n $Path ]] && Galaxy_args="$Galaxy_args -p ${Path}"
   [[ $Clean == true ]] && ${DIRNAME}/ansible-requirements-clean.sh ${Sudo1} ${Args} ${Clean_args} ${Reqfile}
   [[ $Clean_only == true ]] && exit 0
 
-  $Echo ansible-galaxy install -r $Reqfile -p ${Path}roles --ignore-errors
+  $Echo ansible-galaxy install $Galaxy_args -r $Reqfile --ignore-errors
 
 }
 

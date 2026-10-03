@@ -354,7 +354,7 @@ yq -y .vagrant_boxes.ansible.groups $Vagrant_definition > ${Vagrantdir}/ansible.
 
 # Create Vagrantfile from template
 rm -f Vagrantfile.${Project} Vagrantfile.${Project}.j2
-cp ${DIRNAME}/Vagrantfile.template.j2 Vagrantfile.${Project}.j2
+sed -r "s/^\\s+</</" ${DIRNAME}/Vagrantfile.template.j2 > Vagrantfile.${Project}.j2
 if e2j2 -m "<=" -f Vagrantfile.${Project}.j2
 then
   [[ $Verbose == true ]] && cat Vagrantfile.${Project} | grep -v "^$"
