@@ -23,6 +23,7 @@ ansible_os_license_status
 ansible_processor_vcpus
 ansible_memtotal_mb
 ansible_all_ipv4_addresses
+ansible_virtualization_role
 "
 
 if [[ $# -eq 0 ]]

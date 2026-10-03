@@ -169,9 +169,9 @@ function Get_key
 
   if [[ -z $subkey ]]
   then
-    yq -y '."'$key'"' $Configfile | sed '/\.\.\./d;/null/d;/\[\]/d;s/^- //'
+    yq -y '."'$key'"' $Configfile | sed '/\.\.\./d;/---/d;/null/d;/\[\]/d;s/^- //'
   else
-    yq -y '."'$key'".'$subkey'' $Configfile | sed '/\.\.\./d;/null/d;/\[\]/d;s/^- //'
+    yq -y '."'$key'".'$subkey'' $Configfile | sed '/\.\.\./d;/---/d;/null/d;/\[\]/d;s/^- //'
   fi
 
 }
@@ -331,11 +331,11 @@ symlinks=$(yq -y '."'$Profile'".links' $Configfile | sed '/\.\.\./d;/---/d;/null
 for symlink in $symlinks
 do
   echo "  > Creating symboc link '/usr/local/bin/$symlink' -> '$Venv/bin/$symlink'"
-  ln -fs $Venv/bin/$symlink /usr/local/bin/$symlink
+  $sudo ln -fs $Venv/bin/$symlink /usr/local/bin/$symlink
 done
 
 # Install requirements
-reqs=$(yq -y .'"'$Profile'".requirements' $Configfile | sed '/\.\.\./d;/null/d;/\[\]/d;s/^- //')
+reqs=$(yq -y .'"'$Profile'".requirements' $Configfile | sed '/\.\.\./d;/---/d;/null/d;/\[\]/d;s/^- //')
 for req in $reqs
 do
   reqfile=$Venv/lib/$(basename $Python)/site-packages/ansible_collections/$req
