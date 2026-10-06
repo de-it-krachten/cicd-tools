@@ -261,6 +261,10 @@ then
   exit 1
 fi
 
+# Install minimal set of required plugins
+packer plugin install github.com/hashicorp/ansible
+packer plugin install github.com/hashicorp/docker
+
 # Generate configuration file from template
 if [[ $Configfile =~ \.j2$ ]]
 then
