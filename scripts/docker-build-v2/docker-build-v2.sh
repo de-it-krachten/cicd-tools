@@ -365,8 +365,9 @@ echo "Push phase"
 echo "============================================================"
 if [[ $Push == true ]]
 then
+  registries=$(yq '.image.registries' $Configfile | jq -r '. |= join("|")')
   image_name=$(yq -jr .image.name $Configfile)
-  images=$(docker image ls | grep "$image_name" | awk '{print $1}')
+  images=$(docker image ls | grep "$image_name" | grep -E "$registries" | awk '{print $1}')
   for image in $images
   do
     docker push $image
