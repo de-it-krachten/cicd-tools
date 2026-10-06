@@ -73,6 +73,8 @@ ansiblecore219
 ansiblecore220
 ansiblecore221
 awxkit
+azure-pipeline-validator
+az-cli
 "
 
 VENV_LIST=${VENV_LIST:-$VENV_LIST_DEFAULT}
