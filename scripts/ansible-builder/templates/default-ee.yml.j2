@@ -1,0 +1,70 @@
+---
+version: 3
+images:
+  base_image:
+    name: {{ image }}
+dependencies:
+  ansible_core:
+    package_pip: "ansible-core{{ ansible_core }}"
+  ansible_runner:
+    package_pip: ansible-runner
+  python_interpreter:
+    package_system: "python{{ python }}"
+    python_path: "/usr/bin/python{{ python }}"
+  galaxy:
+    collections:
+      - community.docker
+  python:
+    # linting
+    - ansible-lint
+    - ansible-compat
+    - yamllint
+    # Molecule
+    - molecule
+    - molecule-plugins
+    - molecule-plugins[docker]
+    - molecule-plugins[podman]
+    - molecule-plugins[vagrant]
+    - molecule-hetznercloud
+    - hcloud
+    # generic
+    - lxml
+    - dnspython
+    - jmespath
+    - netaddr
+    - requests
+    - urllib3
+    - passlib
+    # vmware
+    - pyvim
+    - pyvmomi
+    # Windows connectivity
+    - pysocks
+    - pywinrm
+    - pywinrm[credssp]
+    - pypsrp
+    - pypsrp[credssp]
+
+options:
+  tags:
+    - {{ registry1 }}/{{ name }}:{{ date }}
+    - {{ registry1 }}/{{ name }}:latest
+{% if registry2 is defined %}
+    - {{ registry2 }}/{{ name }}:{{ date }}
+    - {{ registry2 }}/{{ name }}:latest
+{% endif %}
+
+
+additional_build_steps:
+  prepend_base:
+    - RUN dnf update -y
+    - RUN dnf install epel-release -y
+    - RUN crb enable
+
+  append_final:
+    - RUN id -un
+    - RUN ansible --version
+    - RUN ansible-galaxy --version
+    - RUN ansible-galaxy collection list
+    - RUN pip3 list
+    - RUN dnf clean all
