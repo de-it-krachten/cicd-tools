@@ -2,7 +2,15 @@
 
 default:
   python: >-
-    {%- if '/usr/bin/python3.13' is is_file %}
+    {%- if '/usr/bin/python3.15' is is_file %}
+    /usr/bin/python3.15
+    {%- elif '/opt/az/bin/python3.15' is is_file %}
+    /opt/az/bin/python3.15
+    {%- elif '/usr/bin/python3.14' is is_file %}
+    /usr/bin/python3.14
+    {%- elif '/opt/az/bin/python3.14' is is_file %}
+    /opt/az/bin/python3.14
+    {%- elif '/usr/bin/python3.13' is is_file %}
     /usr/bin/python3.13
     {%- elif '/opt/az/bin/python3.13' is is_file %}
     /opt/az/bin/python3.13
@@ -42,9 +50,11 @@ jinjanator:
   requirements: []
 
 pproxy:
+  python: /usr/bin/python3.11
   packages:
     - pproxy
     - python-daemon
+    - "setuptools<81"
   links:
     - pproxy
   requirements: []
@@ -136,4 +146,11 @@ azure-pipeline-validator:
     - azure-pipeline-validator
   links:
     - azure-pipeline-validator
+  requirements: []
+
+az-cli:
+  packages:
+    - az-cli
+  links:
+    - az
   requirements: []

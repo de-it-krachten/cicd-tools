@@ -261,6 +261,10 @@ then
   exit 1
 fi
 
+# Install minimal set of required plugins
+packer plugin install github.com/hashicorp/ansible
+packer plugin install github.com/hashicorp/docker
+
 # Generate configuration file from template
 if [[ $Configfile =~ \.j2$ ]]
 then
@@ -361,8 +365,9 @@ echo "Push phase"
 echo "============================================================"
 if [[ $Push == true ]]
 then
+  registries=$(yq '.image.registries' $Configfile | jq -r '. |= join("|")')
   image_name=$(yq -jr .image.name $Configfile)
-  images=$(docker image ls | grep "$image_name" | awk '{print $1}')
+  images=$(docker image ls | grep "$image_name" | grep -E "$registries" | awk '{print $1}')
   for image in $images
   do
     docker push $image

@@ -57,27 +57,6 @@ HOSTNAME=$(hostname -s)
 #
 ##############################################################
 
-CONFIGFILE=${DIRNAME}/ansible.yml
-TEMPLATEFILE=${DIRNAME}/ansible.yml.j2
-
-VENV_LIST_DEFAULT="
-yq
-e2j2
-jinjanator
-pproxy
-docker-squash
-ansible-navigator
-ansiblecore216
-ansiblecore218
-ansiblecore219
-ansiblecore220
-ansiblecore221
-awxkit
-azure-pipeline-validator
-az-cli
-"
-
-VENV_LIST=${VENV_LIST:-$VENV_LIST_DEFAULT}
 
 ##############################################################
 #
@@ -109,95 +88,48 @@ function Usage
 
   cat << EOF | grep -v "^#"
 
-$BASENAME
-
+$BASENAME - deep sort JSON/YAML: object keys and arrays at every level.
+Arrays: objects with a "name" field first (sorted by name), then the rest by value.
+ 
 Usage : $BASENAME <flags> <arguments>
 
 Flags :
 
-   -d|--debug           : Debug mode (set -x)
-   -D|--dry-run         : Dry run mode
-   -h|--help            : Prints this help message
-   -v|--verbose         : Verbose output
+   -d|--debug         : Debug mode (set -x)
+   -D|--dry-run       : Dry run mode
+   -h|--help          : Prints this help message
+   -v|--verbose       : Verbose output
+
+   -j|--json          : Output as json (default)
+   -s|--selftest      : Executes a selftest
+   -y|--yaml          : Output as yaml
 
 EOF
 
 }
 
-function Print_separator
-{ 
-  printf "%80s\n" | tr ' ' '-'
-}
-
-function Jinjanator
+function Selftest
 {
 
-  venv=${root_dir}/jinjanator
-  python=$(which python3)
-
-  # Show settings
-  cat <<EOF 
-================================================================================
-virtualenv            : $venv
-python executable     : $python
-================================================================================
+  cat <<EOF >${TMPFILE}.yml
+---
+a:
+  c:
+    y:
+      - 2
+      - 10000
+    x:
+      - 1
+      - 3
+      - 101
+  b:
+    name: bep
+    age: 19
 EOF
 
-  $Sudo python3 -m venv $venv
-  $Sudo $venv/bin/pip3 install pip wheel setuptools --upgrade
-  $Sudo $venv/bin/pip3 install jinjanator jinjanator-plugin-ansible
-  [[ $venv =~ $root_dir ]] && $Sudo ln -fs $venv/bin/jinjanate /usr/local/bin/jinjanate
-
+  ${DIRNAME}/${BASENAME} --$Output ${TMPFILE}.yml
+  exit 0
 }
-
-function Yq
-{
-
-  venv=${root_dir}/yq
-  python=$(which python3)
-
-  # Show settings
-  cat <<EOF 
-================================================================================
-virtualenv            : $venv
-python executable     : $python
-================================================================================
-EOF
-
-  $Sudo python3 -m venv $venv
-  $Sudo $venv/bin/pip3 install pip wheel setuptools --upgrade
-  $Sudo $venv/bin/pip3 install yq
-  [[ $venv =~ $root_dir ]] && $Sudo ln -fs $venv/bin/yq /usr/local/bin/yq
-
-}
-
-
-
-function Template
-{
-
-  if [[ -f ${TEMPLATEFILE} ]]
-  then
-    $Sudo $venv/bin/jinjanate ${TEMPLATEFILE} --quiet -o ${CONFIGFILE}
-  fi
-
-}
-
-function Venv
-{
-
-  [[ -n $Python_executable ]] && Args="-e $Python_executable"
-
-#  Print_separator
-#  echo "$venv"
-  Print_separator
-  echo "$Sudo ${DIRNAME}/python.sh $Args $Verbose1 -c ${DIRNAME}/ansible.yml -p $venv -V $root_dir/$venv"
-  Print_separator
-  $Sudo ${DIRNAME}/python.sh $Args $Verbose1 -c ${DIRNAME}/ansible.yml -p $venv -V $root_dir/$venv
-  $Sudo rm -fr $root_dir/$venv/lib/python3.*/site-packages/selinux
-
-}
-
 
 
 ##############################################################
@@ -216,9 +148,10 @@ Verbose=false
 Verbose_level=0
 Dry_run=false
 Echo=
+Output=json
 
 # parse command line into arguments and check results of parsing
-while getopts :dhp:sv-: OPT
+while getopts :dDhjsvy-: OPT
 do
 
   # Support long options
@@ -231,21 +164,30 @@ do
   case $OPT in
     d|debug)
       Verbose=true
+      Verbose1="-v"
       set -vx
+      ;;
+    D|dry-run)
+      Dry_run=true
+      Dry_run1="-D"
+      Echo=echo
       ;;
     h|help)
       Usage
       exit 0
       ;;
-    p|python)
-      Python_executable=$OPTARG
+    j|json)
+      Output=json
       ;;
-    s|sudo)
-      Sudo=sudo
+    s|selftest)
+      Selftest=true
       ;;
     v|verbose)
       Verbose=true
       Verbose1="-v"
+      ;;
+    y|yaml)
+      Output=yaml
       ;;
     *)
       echo "Unknown flag -$OPT given!" >&2
@@ -253,27 +195,44 @@ do
       ;;
   esac
 
+  # Set flag to be use by Test_flag
+  eval ${OPT}flag=1
+
 done
 shift $(($OPTIND -1))
 
-root_dir=$1
-
-if [[ -z $root_dir ]]
+if [[ $Selftest == true ]]
 then
-  echo "Usage   : $0 <venv-root-dir>" >&2
-  echo "Example : $0 /usr/local/venv" >&2
+  Selftest
+  exit 0
+fi
+
+if [[ $# -eq 0 ]]
+then
+  Usage >&2
   exit 1
 fi
 
-# Setup yq & jinjanator
-Yq
-Jinjanator
+# Check for dependencies yq and jq
+command -v yq >/dev/null 2>&1 || { echo "Error: yq is not installed." >&2; exit 1; }
+command -v jq >/dev/null 2>&1 || { echo "Error: jq is not installed." >&2; exit 1; }
 
-# Create from template
-Template
+read -r -d '' FILTER <<'EOF' || true
+walk(
+  if type == "array" then
+    sort_by(if type == "object" and has("name") then [0, .name] else [1, .] end)
+  elif type == "object" then
+    to_entries | sort_by(.key) | from_entries
+  else . end
+)
+EOF
 
-# Setup generic
-for venv in $VENV_LIST
-do
-  Venv
+for f in "$@"; do
+  [[ -f "$f" ]] || { echo "Error: '$f' not found." >&2; exit 1; }
+  if [[ $Output == json ]]
+  then
+    yq -j . $f | jq "$FILTER"
+  else
+    yq -j . $f | jq "$FILTER" | yq -y .
+  fi 
 done
