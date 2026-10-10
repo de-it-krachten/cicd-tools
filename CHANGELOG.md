@@ -1,3 +1,19 @@
+# [2.7.0](https://github.com/de-it-krachten/cicd-tools/compare/v2.6.1...v2.7.0) (2026-10-10)
+
+
+### Bug Fixes
+
+* docker-build | add minimal packer plugins ([f7d39a2](https://github.com/de-it-krachten/cicd-tools/commit/f7d39a2ddbeadfa61268e7fa7f6fef1ee970e420))
+* docker-build | fix image name using push v2 ([e687d8e](https://github.com/de-it-krachten/cicd-tools/commit/e687d8eae8fa396146b07b7893bf6b6040a7dd1c))
+* python | add venv azure-pipeline-validator + az-cli ([b473984](https://github.com/de-it-krachten/cicd-tools/commit/b4739845af0d84ba827374750940a8b28bb32840))
+* vagrant | activate birectional clipboard ([aa0cf2c](https://github.com/de-it-krachten/cicd-tools/commit/aa0cf2c786ce181d2dc55d3681c403c10c0c6c8e))
+* yaml | add deepsort script (also works for json) ([b3de657](https://github.com/de-it-krachten/cicd-tools/commit/b3de657fcb3374824ef33010f75180d46e85fee1))
+
+
+### Features
+
+* Add ansible-builder support ([6ea1ef2](https://github.com/de-it-krachten/cicd-tools/commit/6ea1ef2d34256376ce107ebaa09320fc2984d1e3))
+
 ## [2.6.1](https://github.com/de-it-krachten/cicd-tools/compare/v2.6.0...v2.6.1) (2026-10-03)
 
 
