@@ -335,15 +335,20 @@
             mode: "0644"
           when: proxy_use is defined and proxy_use | bool
 
+        - name: Purge stale apt lists
+          ansible.builtin.file:
+            path: /var/lib/apt/lists
+            state: absent
+
         - name: Update APT cache
           ansible.builtin.apt:
-            update_cache: yes
+            update_cache: true
             cache_valid_time: 0
 
         - name: Upgrade APT packages
           ansible.builtin.apt:
-            force_apt_get: yes
-            upgrade: yes
+            force_apt_get: true
+            upgrade: true
           when: __update_all | bool
 
         - name: Install default packages
@@ -435,7 +440,7 @@
 
         - name: Update DNF cache
           ansible.builtin.dnf:
-            update_cache: yes
+            update_cache: true
 
         - name: Upgrade DNF packages  # noqa package-latest
           ansible.builtin.dnf:
