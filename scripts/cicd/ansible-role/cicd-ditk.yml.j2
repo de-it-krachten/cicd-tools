@@ -62,8 +62,9 @@ github:
   # https://docs.ansible.com/ansible/latest/reference_appendices/release_and_maintenance.html
   image: ubuntu2204
   lint_matrix:
-# 2.16 is latest version to supports python3.6 (rhel8)
-{%- for v in [ '2.16', '2.18', '2.19', '2.20', '2.21' ] %}
+# Supported versions are N and N-1
+# Only deviation is 2.16, as it is the latest version to support python3.6 (RHEL8)
+{%- for v in [ '2.16', '2.20', '2.21' ] %}
 {%- set parts = v.split('.') %}
 {#- ansible-core #}
 {%- set v1 = parts[0] %}
