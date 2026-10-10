@@ -141,6 +141,8 @@ jobs:
           URL: https://github.com/de-it-krachten/${PACKAGE_NAME}
           BuildArch: noarch
           Source0: %{name}.tar.gz
+          AutoReqProv: no
+          Requires: coreutils
 
           %description
           Collection of custom utility scripts.
