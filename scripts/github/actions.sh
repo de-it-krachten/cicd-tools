@@ -117,7 +117,7 @@ function Cancel
   do
     counter=$(($counter+1))
     echo "[$counter/$count] Deleting '$run'"
-    gh run cancel --repo "$Org/$Repo" $run >/dev/null
+    $Echo gh run cancel --repo "$Org/$Repo" $run >/dev/null
     sleep 1
   done
 
@@ -138,7 +138,7 @@ function Delete
   do
     counter=$(($counter+1))
     echo "[$counter/$count] Deleting '$run'"
-    gh run delete --repo "$Org/$Repo" $run >/dev/null
+    $Echo gh run delete --repo "$Org/$Repo" $run >/dev/null
     sleep 1
   done
 
@@ -167,7 +167,7 @@ Delete=false
 Maxdays=90
 
 # parse command line into arguments and check results of parsing
-while getopts :cdDhm:vx-: OPT
+while getopts :cdDhm:o:vx-: OPT
 do
 
   # Support long options
@@ -198,6 +198,9 @@ do
     m|max-days)
       Maxdays=$OPTARG
       ;;
+    o|org)
+      Org=$OPTARG
+      ;;
     v|verbose)
       Verbose=true
       Verbose1="-v"
@@ -214,22 +217,19 @@ do
 done
 shift $(($OPTIND -1))
 
-if [[ $# -lt 2 ]]
-then
-  echo "Usage : $0 <org> <repo|ALL>" >&2
-  exit 1
-fi
-
-Org="$1"
-shift
+Org=${Org:-$GH_ORG}
 Repos="$@"
 
 if [[ $Repos == ALL ]]
 then
   echo "Fetching all repositories in organization: $Org"
   Repos=$(gh repo list $Org --json name --jq ".[].name" --limit 1000 | sort)
+elif [[ $Repos == "" ]]
+then
+  Repos=$(basename $PWD)
 else
-  Repos=$(ls -d "$@" | xargs -n1 echo)
+  # Repos=$(ls -d "$Repos" | xargs -n1 echo)
+  Repos=$(echo "$Repos" | xargs -n1 echo)
 fi
 
 echo "$Repos" | while read Repo
