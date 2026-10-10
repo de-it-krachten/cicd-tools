@@ -335,11 +335,6 @@
             mode: "0644"
           when: proxy_use is defined and proxy_use | bool
 
-        - name: Purge stale apt lists
-          ansible.builtin.file:
-            path: /var/lib/apt/lists
-            state: absent
-
         - name: Update APT cache
           ansible.builtin.apt:
             update_cache: true

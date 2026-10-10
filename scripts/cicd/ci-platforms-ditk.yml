@@ -74,8 +74,8 @@ platform_defaults:
     ci: false
     supported: false
   debian11:
-    ci: true
-    supported: true
+    ci: false
+    supported: false
   debian12:
     ci: true
     supported: true
