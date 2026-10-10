@@ -1,3 +1,10 @@
+## [2.7.1](https://github.com/de-it-krachten/cicd-tools/compare/v2.7.0...v2.7.1) (2026-10-10)
+
+
+### Bug Fixes
+
+* rpmbuild | fix issue with RPM installations not finding /bin/env ([b5455ca](https://github.com/de-it-krachten/cicd-tools/commit/b5455cadb3ee2a201ba7e9678f1f54bf5aca5d7f))
+
 # [2.7.0](https://github.com/de-it-krachten/cicd-tools/compare/v2.6.1...v2.7.0) (2026-10-10)
 
 
