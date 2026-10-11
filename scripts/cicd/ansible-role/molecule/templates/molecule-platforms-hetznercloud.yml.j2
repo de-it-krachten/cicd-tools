@@ -1,14 +1,18 @@
 ---
 
-<% for platform in platforms|dict2items %>
+<% for platform in platforms | dict2items %>
+<% if platform.key != 'defaults' %>
+<% set defaults = platforms.defaults %>
+<% set __platform = defaults | combine(platform.value, recursive=true) %>
 <% if platform.value.molecule.hetznercloud is defined %>
 - name: <= platform.key =>
-  ci: <= platform.value.ci | lower =>
-<% if platform.value.molecule.hetznercloud.server_type is defined %>
-  server_type: <= platform.value.molecule.hetznercloud.server_type =>
+  ci: <= __platform.ci | lower =>
+<% if __platform.molecule.hetznercloud.server_type is defined %>
+  server_type: <= __platform.molecule.hetznercloud.server_type =>
 <% endif %>
-<% if platform.value.molecule.hetznercloud.image is defined %>
-  image: <= platform.value.molecule.hetznercloud.image =>
+<% if __platform.molecule.hetznercloud.image is defined %>
+  image: <= __platform.molecule.hetznercloud.image =>
+<% endif %>
 <% endif %>
 <% endif %>
 <% endfor %>

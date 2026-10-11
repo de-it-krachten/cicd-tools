@@ -1,4 +1,20 @@
 platforms:
+  defaults:
+    name: defaults
+    ci: false
+    supported: false
+    molecule:
+      docker:
+        pre_build_image: true
+        privileged: true
+        volumes:
+          - /sys/fs/cgroup:/sys/fs/cgroup:rw
+        cgroupns_mode: host
+      podman:
+        pre_build_image: true
+        privileged: false
+        volumes:
+          - /sys/fs/cgroup:/sys/fs/cgroup:ro
   rhel7:
     name: Red Hat Enterprise Linux 7
     ci: {{ platform_defaults.rhel7.ci | lower }}
@@ -10,16 +26,9 @@ platforms:
       docker:
         image: "registry.access.redhat.com/ubi7/ubi-init:latest"
         pre_build_image: false
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "registry.access.redhat.com/ubi7/ubi-init:latest"
         pre_build_image: false
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
   rhel8:
     name: Red Hat Enterprise Linux 8
     ci: {{ platform_defaults.rhel8.ci | lower }}
@@ -31,16 +40,9 @@ platforms:
       docker:
         image: "registry.access.redhat.com/ubi8/ubi-init:latest"
         pre_build_image: false
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "registry.access.redhat.com/ubi8/ubi-init:latest"
         pre_build_image: false
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
   rhel9:
     name: Red Hat Enterprise Linux 9
     ci: {{ platform_defaults.rhel9.ci | lower }}
@@ -52,16 +54,9 @@ platforms:
       docker:
         image: "registry.access.redhat.com/ubi9/ubi-init:latest"
         pre_build_image: false
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "registry.access.redhat.com/ubi9/ubi-init:latest"
         pre_build_image: false
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
   rhel10:
     name: Red Hat Enterprise Linux 10
     ci: {{ platform_defaults.rhel10.ci | lower }}
@@ -73,16 +68,9 @@ platforms:
       docker:
         image: "registry.access.redhat.com/ubi10/ubi-init:latest"
         pre_build_image: false
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "registry.access.redhat.com/ubi10/ubi-init:latest"
         pre_build_image: false
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
   centos7:
     name: CentOS 7
     ci: {{ platform_defaults.centos7.ci | lower }}
@@ -95,17 +83,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/geerlingguy/docker-centos7-ansible:latest"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/geerlingguy/docker-centos7-ansible:latest"
-        pre_build_image: true
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "cloud-image/centos-7"
       hetznercloud:
@@ -121,17 +100,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/geerlingguy/docker-centos8-ansible:latest"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/geerlingguy/docker-centos8-ansible:latest"
-        pre_build_image: true
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "cloud-image/centos-8"
   centos8s:
@@ -144,17 +114,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/dropveter/centos8s-ansible:latest"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/dropveter/centos8s-ansible:latest"
-        pre_build_image: true
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "cloud-image/centos-8-stream"
       hetznercloud:
@@ -170,17 +131,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/dropveter/centos9s-ansible:latest"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/dropveter/centos9s-ansible:latest"
-        pre_build_image: true
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "cloud-image/centos-9-stream"
       hetznercloud:
@@ -196,17 +148,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/dropveter/centos10s-ansible:latest"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/dropveter/centos10s-ansible:latest"
-        pre_build_image: true
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "cloud-image/centos-10-stream"
       hetznercloud:
@@ -222,17 +165,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/geerlingguy/docker-rockylinux8-ansible:latest"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/geerlingguy/docker-rockylinux8-ansible:latest"
-        pre_build_image: true
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "cloud-image/rocky-8"
       hetznercloud:
@@ -248,17 +182,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/geerlingguy/docker-rockylinux9-ansible:latest"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/geerlingguy/docker-rockylinux9-ansible:latest"
-        pre_build_image: true
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "cloud-image/rocky-9"
       hetznercloud:
@@ -274,17 +199,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/geerlingguy/docker-rockylinux10-ansible:latest"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/geerlingguy/docker-rockylinux10-ansible:latest"
-        pre_build_image: true
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "cloud-image/rocky-10"
       hetznercloud:
@@ -300,17 +216,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/dropveter/oraclelinux8-ansible"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/dropveter/oraclelinux8-ansible"
-        pre_build_image: true
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "cloud-image/oracle-linux-8"
   oraclelinux9:
@@ -323,17 +230,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/dropveter/oraclelinux9-ansible"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/dropveter/oraclelinux9-ansible"
-        pre_build_image: true
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "cloud-image/oracle-linux-9"
   oraclelinux10:
@@ -346,17 +244,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/dropveter/oraclelinux10-ansible"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/dropveter/oraclelinux10-ansible"
-        pre_build_image: true
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "cloud-image/oracle-linux-10"
   olam8:
@@ -369,19 +258,10 @@ platforms:
     molecule:
       docker:
         image: "docker.io/dropveter/olam:latest"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
         ports:
           - 443:443
       podman:
         image: "docker.io/dropveter/olam:latest"
-        pre_build_image: true
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant: {}
   almalinux8:
     name: AlmaLinux 8
@@ -393,17 +273,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/dropveter/almalinux8-ansible"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/dropveter/almalinux8-ansible"
-        pre_build_image: true
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "cloud-image/almalinux-8"
   almalinux9:
@@ -416,17 +287,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/dropveter/almalinux9-ansible"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/dropveter/almalinux9-ansible"
-        pre_build_image: true
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "cloud-image/almalinux-9"
   almalinux10:
@@ -439,17 +301,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/dropveter/almalinux10-ansible"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/dropveter/almalinux10-ansible"
-        pre_build_image: true
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "cloud-image/almalinux-10"
   sles15:
@@ -462,11 +315,6 @@ platforms:
 #    molecule:
 #      docker:
 #        image: "robertdebock/opensuse"
-#        pre_build_image: true
-#        privileged: true
-#        volumes:
-#          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-#        cgroupns_mode: host
 #      podman:
 #        image: "docker.io/robertdebock/opensuse"
 #      vagrant:
@@ -481,11 +329,6 @@ platforms:
 #    molecule:
 #      docker:
 #        image: "robertdebock/opensuse"
-#        pre_build_image: true
-#        privileged: true
-#        volumes:
-#          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-#        cgroupns_mode: host
 #      podman:
 #        image: "docker.io/robertdebock/opensuse"
 #      vagrant:
@@ -500,17 +343,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/dropveter/opensuse15-ansible:latest"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/dropveter/opensuse15-ansible:latest"
-        pre_build_image: true
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "generic/opensuse15"
   opensuse16:
@@ -523,17 +357,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/dropveter/opensuse16-ansible:latest"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/dropveter/opensuse16-ansible:latest"
-        pre_build_image: true
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "generic/opensuse16"
   opensusetumbleweed:
@@ -546,11 +371,6 @@ platforms:
 #    molecule:
 #      docker:
 #        image: "robertdebock/opensuse"
-#        pre_build_image: true
-#        privileged: true
-#        volumes:
-#          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-#        cgroupns_mode: host
 #      podman:
 #        image: "docker.io/robertdebock/opensuse"
 #      vagrant:
@@ -565,17 +385,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/geerlingguy/docker-debian10-ansible:latest"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/geerlingguy/docker-debian10-ansible:latest"
-        pre_build_image: true
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "cloud-image/debian-10"
       hetznercloud:
@@ -591,17 +402,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/geerlingguy/docker-debian11-ansible:latest"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/geerlingguy/docker-debian11-ansible:latest"
-        pre_build_image: true
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "cloud-image/debian-11"
       hetznercloud:
@@ -617,17 +419,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/geerlingguy/docker-debian12-ansible:latest"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/geerlingguy/docker-debian12-ansible:latest"
-        pre_build_image: true
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "cloud-image/debian-12"
       hetznercloud:
@@ -643,17 +436,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/geerlingguy/docker-debian13-ansible:latest"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/geerlingguy/docker-debian13-ansible:latest"
-        pre_build_image: true
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "cloud-image/debian-13"
       hetznercloud:
@@ -669,17 +453,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/geerlingguy/docker-ubuntu1804-ansible:latest"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/geerlingguy/docker-ubuntu1804-ansible:latest"
-        pre_build_image: true
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "cloud-image/ubuntu-18.04"
       hetznercloud:
@@ -695,17 +470,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/geerlingguy/docker-ubuntu2004-ansible:latest"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/geerlingguy/docker-ubuntu2004-ansible:latest"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "cloud-image/ubuntu-20.04"
       hetznercloud:
@@ -721,17 +487,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/geerlingguy/docker-ubuntu2204-ansible:latest"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/geerlingguy/docker-ubuntu2204-ansible:latest"
-        pre_build_image: true
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "cloud-image/ubuntu-22.04"
       hetznercloud:
@@ -747,17 +504,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/geerlingguy/docker-ubuntu2404-ansible:latest"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/geerlingguy/docker-ubuntu2404-ansible:latest"
-        pre_build_image: true
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "cloud-image/ubuntu-24.04"
       hetznercloud:
@@ -773,17 +521,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/geerlingguy/docker-ubuntu2604-ansible:latest"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/geerlingguy/docker-ubuntu2604-ansible:latest"
-        pre_build_image: true
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "cloud-image/ubuntu-26.04"
       hetznercloud:
@@ -799,17 +538,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/geerlingguy/docker-fedora37-ansible:latest"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/geerlingguy/docker-fedora37-ansible:latest"
-        pre_build_image: true
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "generic/fedora37"
       hetznercloud:
@@ -825,17 +555,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/geerlingguy/docker-fedora38-ansible:latest"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/geerlingguy/docker-fedora38-ansible:latest"
-        pre_build_image: true
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "cloud-image/fedora-38"
       hetznercloud:
@@ -851,17 +572,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/geerlingguy/docker-fedora39-ansible:latest"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/geerlingguy/docker-fedora39-ansible:latest"
-        pre_build_image: true
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "cloud-image/fedora-39"
       hetznercloud:
@@ -877,17 +589,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/geerlingguy/docker-fedora40-ansible:latest"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/geerlingguy/docker-fedora40-ansible:latest"
-        pre_build_image: true
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "cloud-image/fedora-40"
       hetznercloud:
@@ -903,17 +606,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/geerlingguy/docker-fedora41-ansible:latest"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/geerlingguy/docker-fedora41-ansible:latest"
-        pre_build_image: true
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "cloud-image/fedora-41"
       hetznercloud:
@@ -929,17 +623,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/geerlingguy/docker-fedora42-ansible:latest"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/geerlingguy/docker-fedora42-ansible:latest"
-        pre_build_image: true
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "cloud-image/fedora-42"
       hetznercloud:
@@ -955,17 +640,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/geerlingguy/docker-fedora43-ansible:latest"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/geerlingguy/docker-fedora43-ansible:latest"
-        pre_build_image: true
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "cloud-image/fedora-43"
       hetznercloud:
@@ -981,17 +657,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/geerlingguy/docker-fedora44-ansible:latest"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/geerlingguy/docker-fedora44-ansible:latest"
-        pre_build_image: true
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "cloud-image/fedora-44"
       hetznercloud:
@@ -1007,17 +674,8 @@ platforms:
     molecule:
       docker:
         image: "docker.io/dropveter/alpine-python3"
-        pre_build_image: true
-        privileged: true
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:rw
-        cgroupns_mode: host
       podman:
         image: "docker.io/dropveter/alpine-python3"
-        pre_build_image: false
-        privileged: false
-        volumes:
-          - /sys/fs/cgroup:/sys/fs/cgroup:ro
       vagrant:
         box: "cloud-image/alpine-3.24"
   docker:
@@ -1027,9 +685,6 @@ platforms:
     molecule:
       docker:
         image: "docker.io/dropveter/docker-dind-ansible:latest"
-        cgroupns_mode: host
-        pre_build_image: true
-        privileged: true
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:rw
           - certs-ca
