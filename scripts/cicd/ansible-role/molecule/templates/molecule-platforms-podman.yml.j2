@@ -1,5 +1,4 @@
 ---
-
 <% for platform in platforms | dict2items %>
 <% if platform.key != 'defaults' %>
 <% set defaults = platforms.defaults %>
@@ -24,6 +23,12 @@
 <% endif %>
 <% if __platform.molecule.podman.pre_build_image is defined %>
   pre_build_image: <= __platform.molecule.podman.pre_build_image | lower =>
+<% endif %>
+<% if __platform.molecule.podman.extra_opts is defined %>
+  extra_opts:
+<% for opt in __platform.molecule.podman.extra_opts %>
+    - <= opt =>
+<% endfor %>
 <% endif %>
 <% if __platform.molecule.podman.environment is defined %>
   environment:

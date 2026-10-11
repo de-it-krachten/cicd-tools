@@ -24,6 +24,12 @@
       <% if __platform.molecule.podman.pre_build_image is defined %>
   pre_build_image: <= __platform.molecule.podman.pre_build_image | lower =>
       <% endif %>
+      <% if __platform.molecule.podman.extra_opts is defined %>
+  extra_opts:
+        <% for opt in __platform.molecule.podman.extra_opts %>
+    - <= opt =>
+        <% endfor %>
+      <% endif %>
       <% if __platform.molecule.podman.environment is defined %>
   environment:
         <% for key, value in __platform.molecule.podman.environment.items() %>

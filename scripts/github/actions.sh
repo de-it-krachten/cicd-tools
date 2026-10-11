@@ -107,16 +107,15 @@ function Cancel
 {
 
   # Cancel runs
-  runs=$(gh run list --repo "$Org/$Repo" --json name,status,databaseId --limit 1000 | jq '.[] | select(.status=="queued") | .databaseId')
+  runs=$(gh run list --repo "$Org/$Repo" --json name,status,databaseId --limit 1000 | jq '.[] | select(.status | test("^(queued|in_progress)$")) | .databaseId')
 
   count=$(echo "$runs" | wc -l)
-  count=$(($count - 1))
   counter=0
 
   for run in $runs
   do
     counter=$(($counter+1))
-    echo "[$counter/$count] Deleting '$run'"
+    echo "[$counter/$count] Cancelling '$run'"
     $Echo gh run cancel --repo "$Org/$Repo" $run >/dev/null
     sleep 1
   done
@@ -127,11 +126,10 @@ function Delete
 {
 
   # Delete runs
-  Cutoff=$(date -d "$Days days ago" +%Y-%m-%d)
-  runs=$(gh run list --repo "$Org/$Repo" --created "<${Cutoff}" --limit 1000 --json databaseId | jq '.[].databaseId')
+  Cutoff=$(date -d "$Maxdays days ago" +%Y-%m-%d)
+  runs=$(gh run list --repo "$Org/$Repo" --created "<=${Cutoff}" --limit 1000 --json databaseId | jq '.[].databaseId')
 
   count=$(echo "$runs" | wc -l)
-  count=$(($count - 1))
   counter=0
 
   for run in $runs

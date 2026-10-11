@@ -12,9 +12,11 @@ platforms:
         cgroupns_mode: host
       podman:
         pre_build_image: true
-        privileged: false
+        privileged: true
         volumes:
           - /sys/fs/cgroup:/sys/fs/cgroup:ro
+        extra_opts:
+          - "--no-hosts"
   rhel7:
     name: Red Hat Enterprise Linux 7
     ci: {{ platform_defaults.rhel7.ci | lower }}

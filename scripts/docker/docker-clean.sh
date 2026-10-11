@@ -147,9 +147,8 @@ Delete_external_containers=false
 Delete_images=false
 Delete_volumes=false
 System_prune=false
-Remote=false
+Remote=""
 Filter=""
-Docker=docker
 Tries=3
 Sudo=
 
@@ -181,11 +180,9 @@ do
        ;;
     p) System_prune=true
        ;;
-    r) Remote=true
-       Docker="docker --host tcp://${DOCKER_HOST}:${DOCKER_PORT}"
+    r) Remote="--host tcp://${DOCKER_HOST}:${DOCKER_PORT}"
        ;;
-    R) Remote=true
-       Docker="docker --host tcp://${OPTARG}"
+    R) Remote="--host tcp://${OPTARG}"
        ;;
     s) [[ $(id -un) != root ]] && Sudo=sudo
        ;;
@@ -194,12 +191,6 @@ do
     V) Delete_volumes=true
        ;;
     x) Delete_external_containers=true
-       ;;
-    podman)
-       Docker="podman"
-       ;;
-    docker)
-       Docker="docker"
        ;;
     *) echo "Unknown flag -$OPT given!" >&2
        exit 1
@@ -212,6 +203,9 @@ do
 done
 shift $(($OPTIND -1))
 
+[[ $BASENAME1 == podman-clean.sh ]] && Docker="podman"
+[[ $BASENAME1 == docker-clean.sh ]] && Docker="docker"
+[[ -n $Remote ]] && Docker="$Docker $Remote"
 
 # Containers
 if [[ $Delete_containers == true ]]

@@ -474,14 +474,23 @@ function Execute_molecule
   # Do not support legacy facts
   export ANSIBLE_INJECT_FACT_VARS=${ANSIBLE_INJECT_FACT_VARS:-'False'}
 
+  # Set remote temp dir
+  export ANSIBLE_REMOTE_TMP=/tmp/ansible-tmp
+
   # Show all ANSIBLE related variables
   echo "Show ansible variables:"
-  set | grep -E "^(ANSIBLE_|PY_COLORS)"
+  set | grep -E "^(ANSIBLE_|MOLECULE_|PY_COLORS)"
 
   Molecule_args="--scenario-name=$Scenario"
   [[ $Mode == test ]] && Molecule_args+=" --destroy=$Destroy"
 
-  Cmd=$(echo molecule $Verbose1 $Args $Mode $Molecule_args)
+set -vx
+  if [[ $Sudo == true ]]
+  then
+    Cmd=$(echo sudo --preserve-env=MOLECULE_DEBUG,PY_COLORS,ANSIBLE_FORCE_COLOR,ANSIBLE_INJECT_FACT_VARS,ANSIBLE_REMOTE_TMP,ANSIBLE_COLLECTIONS_PATH,ANSIBLE_ROLES_PATH $Molecule_executable $Verbose1 $Args $Mode $Molecule_args)
+  else
+    Cmd=$(echo $Molecule_executable $Verbose1 $Args $Mode $Molecule_args)
+  fi
 
   if [[ $Verbose == true ]]
   then
@@ -655,9 +664,7 @@ Driver=${MOLECULE_DRIVER:-docker}
 Allow_platforms_not_found=false
 Shell=false
 Use_old_galaxy=false
-
-# Sudo command for non-root
-[[ `id -un` != root ]] && Sudo=sudo
+Sudo=false
 
 # parse command line into arguments and check results of parsing
 while getopts :Ac:Cde:DfhGkKLm:npPr:R:s:SvWxXyYzZ:-: OPT
@@ -740,13 +747,13 @@ do
         ;;
      Z) Molecule_distributions=$(echo $Molecule_distributions $OPTARG)
         ;;
+     sudo)
+        Sudo=true
+        ;;
      *) echo "Unknown flag -$OPT given!" >&2
         exit 1
         ;;
    esac
-
-   # Set flag to be use by Test_flag
-   eval ${OPT}flag=1
 
 done
 shift $(($OPTIND -1))
@@ -758,6 +765,7 @@ then
 fi
 
 # Get virtual environment where molecule is installed
+Molecule_executable="$(which molecule)"
 Virtual_environment=$(which molecule | sed "s/\/bin\/molecule//")
 Virtual_python=$(basename $(readlink -f $Virtual_environment/bin/python3))
 Ansible_driver_libary=${Virtual_environment}/lib64/${Virtual_python}/site-packages/molecule_plugins/$Driver/modules
@@ -787,9 +795,18 @@ then
   Args="${Debug1} ${Verbose1} -L"
   [[ -n $Driver ]] && Args="$Args -r $Driver"
   [[ -n $Provider ]] && Args="$Args -R $Provider"
+  [[ $Sudo == true ]] && Args="$Args --sudo"
+  Print_full_line -c "#"
+  Print_full_line -c "#"
   ${DIRNAME1}/${BASENAME} ${Args} -m destroy -Z "${Molecule_distributions}"
+  Print_full_line -c "#"
+  Print_full_line -c "#"
   ${DIRNAME1}/${BASENAME} ${Args} -m create -Z "${Molecule_distributions}" || exit $?
+  Print_full_line -c "#"
+  Print_full_line -c "#"
   ${DIRNAME1}/${BASENAME} ${Args} -k -Z "${Molecule_distributions}" || exit $?
+  Print_full_line -c "#"
+  Print_full_line -c "#"
   exit 0
 fi
 
@@ -843,7 +860,7 @@ do
   Molecule2
 
   # Execute dependency phase
-  [[ $Pre_dependency == true ]] && molecule dependency --scenario-name=$Scenario
+  [[ $Pre_dependency == true ]] && $Molecule_executable dependency --scenario-name=$Scenario
 
   # Loop over all scenarios
   for Scenario in $Scenarios
