@@ -1,3 +1,19 @@
+# [2.8.0](https://github.com/de-it-krachten/cicd-tools/compare/v2.7.1...v2.8.0) (2026-10-15)
+
+
+### Bug Fixes
+
+* Github | Add scipt to cancel & delete action runs ([2d0bff9](https://github.com/de-it-krachten/cicd-tools/commit/2d0bff98df54267c68313ec89662c3639f58b412))
+* molecule | delete APT stale list during prepare ([40169ba](https://github.com/de-it-krachten/cicd-tools/commit/40169ba4ef0c4c1208ed81013bc09045dd69aa49))
+* Remove obsolete ansible versions from linting ([d358d89](https://github.com/de-it-krachten/cicd-tools/commit/d358d898d3a76689d6e16e6cf986c63d96ce85c9))
+
+
+### Features
+
+* molecule | Improve podman support ([114c927](https://github.com/de-it-krachten/cicd-tools/commit/114c9276da5f0aca61bde447c1427117f557d5a6))
+* molecule | introduction of platform defaults ([ed2d533](https://github.com/de-it-krachten/cicd-tools/commit/ed2d5332f79c890f58ca6fb256304ec8c6566e6c))
+* Remove Debian 11 from support list ([299e8e9](https://github.com/de-it-krachten/cicd-tools/commit/299e8e94ce804de3f655b048322386ba16730e1f))
+
 ## [2.7.1](https://github.com/de-it-krachten/cicd-tools/compare/v2.7.0...v2.7.1) (2026-10-10)
 
 
