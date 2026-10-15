@@ -127,6 +127,7 @@ collections:
   - name: community.docker
   - name: community.general
   - name: community.windows
+  - name: containers.podman
 EOF
 
   if [[ $Verbosity_level -gt 1 ]]

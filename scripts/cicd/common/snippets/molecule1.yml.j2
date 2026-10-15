@@ -97,7 +97,11 @@
         run: |
           ansible="${{ matrix.venv }}"
           source /usr/local/venv/$ansible/bin/activate
-          /usr/local/bin/molecule-test.sh -A -x -v
+<% if molecule.driver == 'podman' and not molecule.rootless | bool %>
+          /usr/local/bin/molecule-test.sh --sudo -A -x -v -r <= molecule.driver =>
+<% else %>
+          /usr/local/bin/molecule-test.sh -A -x -v -r <= molecule.driver =>
+<% endif %>
         env:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'

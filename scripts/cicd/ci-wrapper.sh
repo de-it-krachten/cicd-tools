@@ -102,7 +102,7 @@ Flags :
 
    -i|--initial         : Initial setup
    -p|--phase=#         : Phase to execute
-   -s|-silent           : Run in silent mode
+   -s|--silent           : Run in silent mode
    -w|--windows         : Execute for Windows
 
 EOF

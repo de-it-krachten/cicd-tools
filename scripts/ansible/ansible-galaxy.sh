@@ -98,6 +98,7 @@ Flags :
    --clean              : Delete roles before collectiong them
    -C|--clean-only      : Delete roles and does no collection
 
+   -F|--force           : Forcingly install roles or collections (will delete any customizations done locally)
    -g|--git-source      : Skips galaxy and retrieves from github
 #   -G|-no-git-ignore    : ???
    -p|--path <path>     : Target location to write roles or collections to
@@ -121,7 +122,9 @@ function Get_roles
   fi
 
   [[ $Debug == true ]] && Galaxy_args="$Galaxy_args -vvvv"
-  [[ -n $Path ]] && Galaxy_args="$Galaxy_args -p ${Path}"
+  Path=${Path:-roles/}
+  Galaxy_args="$Galaxy_args -p ${Path}"
+  [[ $Force == true ]] && Galaxy_args="$Galaxy_args --force"
   [[ $Clean == true ]] && ${DIRNAME}/ansible-requirements-clean.sh ${Sudo1} ${Args} ${Clean_args} ${Reqfile}
   [[ $Clean_only == true ]] && exit 0
 
@@ -185,9 +188,10 @@ Mode=roles
 Collections_yaml=collections/requirements.yml
 Roles_yaml=roles/requirements.yml
 Git_source=false
+Force=false
 
 # parse command line into arguments and check results of parsing
-while getopts :cCdDgGhp:qrsv-: OPT
+while getopts :cCdDFgGhp:qrsv-: OPT
 do
 
   # Support long options
@@ -218,6 +222,9 @@ do
       Dry_run=true
       Dry_run1="-D"
       Echo=echo
+      ;;
+    F|force)
+      Force=true
       ;;
     g|git-source)
       Git_source=true
@@ -252,9 +259,6 @@ do
       exit 1
       ;;
   esac
-
-  # Set flag to be use by Test_flag
-  eval ${OPT}flag=1
 
 done
 shift $(($OPTIND -1))

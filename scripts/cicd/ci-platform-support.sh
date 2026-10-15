@@ -184,7 +184,7 @@ EOF
   [[ -s $TMPFILE ]] && echo >> $TMPFILE
 
   # Delete any platforms present
-  sed -i '/# Supported platforms/,/^$/d' .cicd.overwrite
+  sed -i '/# Supported platforms$/,/^$/d' .cicd.overwrite
   sed -i '/platforms:/,/^$/d' .cicd.overwrite
 
   # Create supported platforms

@@ -127,7 +127,7 @@ function Ansible_type
 function Dependencies
 {
 
-  echo -e "---\ncollections:\n  - community.docker" > ${TMPFILE}
+  echo -e "---\ncollections:\n  - community.docker\n  - containers.podman" > ${TMPFILE}
   [[ -f .collections ]] && yq -y . .collections | grep "^  - " >> ${TMPFILE}
   ansible-galaxy collection install -r ${TMPFILE}
 
