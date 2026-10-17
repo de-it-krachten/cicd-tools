@@ -130,6 +130,9 @@ Vagrant.configure("2") do |config|
         # ansible.groups
         ansible.groups = YAML.load_file("<= Vagrantdir + '/ansible.groups.yml' =>")
 
+        #
+        ansible.skip_tags = <= playbook.skip_tags | default([]) =>
+
       end
     <% endfor %>
   <% endif %>

@@ -484,7 +484,6 @@ function Execute_molecule
   Molecule_args="--scenario-name=$Scenario"
   [[ $Mode == test ]] && Molecule_args+=" --destroy=$Destroy"
 
-set -vx
   if [[ $Sudo == true ]]
   then
     Cmd=$(echo sudo --preserve-env=MOLECULE_DEBUG,PY_COLORS,ANSIBLE_FORCE_COLOR,ANSIBLE_INJECT_FACT_VARS,ANSIBLE_REMOTE_TMP,ANSIBLE_COLLECTIONS_PATH,ANSIBLE_ROLES_PATH $Molecule_executable $Verbose1 $Args $Mode $Molecule_args)
