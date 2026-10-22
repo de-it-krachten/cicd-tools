@@ -1,0 +1,202 @@
+# [2.8.0](https://github.com/de-it-krachten/cicd-tools/compare/v2.7.1...v2.8.0) (2026-10-15)
+
+
+### Bug Fixes
+
+* Github | Add scipt to cancel & delete action runs ([2d0bff9](https://github.com/de-it-krachten/cicd-tools/commit/2d0bff98df54267c68313ec89662c3639f58b412))
+* molecule | delete APT stale list during prepare ([40169ba](https://github.com/de-it-krachten/cicd-tools/commit/40169ba4ef0c4c1208ed81013bc09045dd69aa49))
+* Remove obsolete ansible versions from linting ([d358d89](https://github.com/de-it-krachten/cicd-tools/commit/d358d898d3a76689d6e16e6cf986c63d96ce85c9))
+
+
+### Features
+
+* molecule | Improve podman support ([114c927](https://github.com/de-it-krachten/cicd-tools/commit/114c9276da5f0aca61bde447c1427117f557d5a6))
+* molecule | introduction of platform defaults ([ed2d533](https://github.com/de-it-krachten/cicd-tools/commit/ed2d5332f79c890f58ca6fb256304ec8c6566e6c))
+* Remove Debian 11 from support list ([299e8e9](https://github.com/de-it-krachten/cicd-tools/commit/299e8e94ce804de3f655b048322386ba16730e1f))
+
+## [2.7.1](https://github.com/de-it-krachten/cicd-tools/compare/v2.7.0...v2.7.1) (2026-10-10)
+
+
+### Bug Fixes
+
+* rpmbuild | fix issue with RPM installations not finding /bin/env ([b5455ca](https://github.com/de-it-krachten/cicd-tools/commit/b5455cadb3ee2a201ba7e9678f1f54bf5aca5d7f))
+
+# [2.7.0](https://github.com/de-it-krachten/cicd-tools/compare/v2.6.1...v2.7.0) (2026-10-10)
+
+
+### Bug Fixes
+
+* docker-build | add minimal packer plugins ([f7d39a2](https://github.com/de-it-krachten/cicd-tools/commit/f7d39a2ddbeadfa61268e7fa7f6fef1ee970e420))
+* docker-build | fix image name using push v2 ([e687d8e](https://github.com/de-it-krachten/cicd-tools/commit/e687d8eae8fa396146b07b7893bf6b6040a7dd1c))
+* python | add venv azure-pipeline-validator + az-cli ([b473984](https://github.com/de-it-krachten/cicd-tools/commit/b4739845af0d84ba827374750940a8b28bb32840))
+* vagrant | activate birectional clipboard ([aa0cf2c](https://github.com/de-it-krachten/cicd-tools/commit/aa0cf2c786ce181d2dc55d3681c403c10c0c6c8e))
+* yaml | add deepsort script (also works for json) ([b3de657](https://github.com/de-it-krachten/cicd-tools/commit/b3de657fcb3374824ef33010f75180d46e85fee1))
+
+
+### Features
+
+* Add ansible-builder support ([6ea1ef2](https://github.com/de-it-krachten/cicd-tools/commit/6ea1ef2d34256376ce107ebaa09320fc2984d1e3))
+
+## [2.6.1](https://github.com/de-it-krachten/cicd-tools/compare/v2.6.0...v2.6.1) (2026-10-03)
+
+
+### Bug Fixes
+
+* Add facts names to be replaced ([88892aa](https://github.com/de-it-krachten/cicd-tools/commit/88892aa91144f3848b23be0d9daae1b4cee8932e))
+* ansible-galaxy.sh | re-introduce role cleaning before collection ([3b183ef](https://github.com/de-it-krachten/cicd-tools/commit/3b183ef4b514eda2f37a7d247337c52abdafd515))
+* Make it possible to set alternative collections path ([9181d72](https://github.com/de-it-krachten/cicd-tools/commit/9181d72dddcd737d89e88ce709348295768acb00))
+* python-venv | Fix script due to yq output change ([4de52bc](https://github.com/de-it-krachten/cicd-tools/commit/4de52bce3d2699434091b0fb3cbb2817cb7ba013))
+
+# [2.6.0](https://github.com/de-it-krachten/cicd-tools/compare/v2.5.3...v2.6.0) (2026-09-25)
+
+
+### Bug Fixes
+
+* Add option '-f' to molecule-test.sh to inject legacy vars ([65abf29](https://github.com/de-it-krachten/cicd-tools/commit/65abf2959eb4589c188788264c46e171dca7f6ba))
+* ci-init.sh | Fix for newer yq output ([967bde7](https://github.com/de-it-krachten/cicd-tools/commit/967bde770ce27937864d4b46968251a3819e6b41))
+* Fix ansible-collection install ([669d092](https://github.com/de-it-krachten/cicd-tools/commit/669d0922362cc990bf61addc002967a6a01fb6d6))
+* Fix collection retrieval for fixed requirements files ([50ef226](https://github.com/de-it-krachten/cicd-tools/commit/50ef22619bb353adf668e22140a448204e62df2a))
+* Fix docker-build v2 ([f798bdf](https://github.com/de-it-krachten/cicd-tools/commit/f798bdfc698aae948bd579b69fe08017427ae410))
+* Fix issue with new yq version ([5a6c24a](https://github.com/de-it-krachten/cicd-tools/commit/5a6c24ae5669599fbd86861ae7538ed5b3052e86))
+* Make vagrant-setup.sh fail if provision step fails ([991d012](https://github.com/de-it-krachten/cicd-tools/commit/991d012f616a18c6f2ae3e3b8dfa42bbbcb300b0))
+* Reset passwords on vagrant boxes ([38bac3f](https://github.com/de-it-krachten/cicd-tools/commit/38bac3ff3e0e5709059e453d7834f133099d1139))
+* Support for providing 'ANSIBLE_INJECT_FACT_VARS' as Github var ([e0be687](https://github.com/de-it-krachten/cicd-tools/commit/e0be68740b56360de26d729bace103ea4f2f70a5))
+
+
+### Features
+
+* make ansible-galaxy.sh support collections ([1b085e5](https://github.com/de-it-krachten/cicd-tools/commit/1b085e5443192dbf88763ff84f4acaab17abfa1c))
+
+## [2.5.3](https://github.com/de-it-krachten/cicd-tools/compare/v2.5.2...v2.5.3) (2026-07-31)
+
+
+### Bug Fixes
+
+* Extend list of facts to conver ([e920f1a](https://github.com/de-it-krachten/cicd-tools/commit/e920f1a065de486b0f718e62f17e96ff7983cd5c))
+* Honor ANSIBLE_INJECT_FACT_VARS when externally set ([2331e85](https://github.com/de-it-krachten/cicd-tools/commit/2331e85021ac4f5b7cf7a7fbe0ca05c0622bf899))
+* Support for latest molecule v26 ([8c3af3f](https://github.com/de-it-krachten/cicd-tools/commit/8c3af3fe5f5c58746d17e9c29b548cd35e96478c))
+
+## [2.5.2](https://github.com/de-it-krachten/cicd-tools/compare/v2.5.1...v2.5.2) (2026-07-22)
+
+
+### Bug Fixes
+
+* Fix python executable support ([3b014ea](https://github.com/de-it-krachten/cicd-tools/commit/3b014eacfd4b26acd62c4c3538bc671d2d464841))
+
+## [2.5.1](https://github.com/de-it-krachten/cicd-tools/compare/v2.5.0...v2.5.1) (2026-07-22)
+
+
+### Bug Fixes
+
+* Support for explicit python executable ([af40cbd](https://github.com/de-it-krachten/cicd-tools/commit/af40cbd926921a1b86cccda0d2112b37a6edf42d))
+
+# [2.5.0](https://github.com/de-it-krachten/cicd-tools/compare/v2.4.2...v2.5.0) (2026-07-21)
+
+
+### Bug Fixes
+
+* CI ordering ([edb8b66](https://github.com/de-it-krachten/cicd-tools/commit/edb8b663f46294ca6f0f42b1563580c5e6868a2f))
+* Extend podman config for all platforms ([12a37ba](https://github.com/de-it-krachten/cicd-tools/commit/12a37ba49670b2622e2cc3c224fda0a7801a9c06))
+* Fix branch protection issues ([0443142](https://github.com/de-it-krachten/cicd-tools/commit/0443142dbe5aeab2e938bd6117cceb3abc8f7684))
+* Fix image restore ([62c3718](https://github.com/de-it-krachten/cicd-tools/commit/62c3718bfb4cd4cc3c004ac9e00b55a8f016606d))
+* vagrant | Add support VM grouping ([712b668](https://github.com/de-it-krachten/cicd-tools/commit/712b668684aa01dd1a0bd3e940569600f5eedb09))
+
+
+### Features
+
+* Split molecule into 2 phases ([8ff4d72](https://github.com/de-it-krachten/cicd-tools/commit/8ff4d7290d1488ddc55c26da2831fde28c643eb3))
+
+## [2.4.2](https://github.com/de-it-krachten/cicd-tools/compare/v2.4.1...v2.4.2) (2026-06-07)
+
+
+### Bug Fixes
+
+* Fix for collections merge ([74383fb](https://github.com/de-it-krachten/cicd-tools/commit/74383fbd6258c8a08322b47c4da16fbd45c324b8))
+* Update code to reflect ansible 2.20 ([17802ec](https://github.com/de-it-krachten/cicd-tools/commit/17802ec24f87f19d6d12383c7c2d06dc2e3c6c03))
+
+## [2.4.1](https://github.com/de-it-krachten/cicd-tools/compare/v2.4.0...v2.4.1) (2026-05-22)
+
+
+### Bug Fixes
+
+* Fix ansible environments ([7cb9f90](https://github.com/de-it-krachten/cicd-tools/commit/7cb9f90ebc3062321e5d4bb4f49bfe220abe0d0b))
+
+# [2.4.0](https://github.com/de-it-krachten/cicd-tools/compare/v2.3.1...v2.4.0) (2026-05-22)
+
+
+### Features
+
+* Add support for ansible 2.21 ([b7d7b68](https://github.com/de-it-krachten/cicd-tools/commit/b7d7b6875fa3e1080ecc03d77f09870e2cd9ca42))
+
+## [2.3.1](https://github.com/de-it-krachten/cicd-tools/compare/v2.3.0...v2.3.1) (2026-04-28)
+
+
+### Bug Fixes
+
+* Fix for absent deployment key ([103c953](https://github.com/de-it-krachten/cicd-tools/commit/103c9538a1010b9695e3a9139fbcf2b0265f49ae))
+
+# [2.3.0](https://github.com/de-it-krachten/cicd-tools/compare/v2.2.0...v2.3.0) (2026-04-28)
+
+
+### Bug Fixes
+
+* Set correct venv for lint/molecule ([e2dc108](https://github.com/de-it-krachten/cicd-tools/commit/e2dc1088e0095b8c0ef779b17fcf109423b55b5f))
+
+
+### Features
+
+* Refactor Github CI templates to re-use code ([e409503](https://github.com/de-it-krachten/cicd-tools/commit/e4095033a6253a30c132bbc197362b69f43b871d))
+
+# [2.2.0](https://github.com/de-it-krachten/cicd-tools/compare/v2.1.1...v2.2.0) (2026-04-28)
+
+
+### Bug Fixes
+
+* Improve venv scripts ([7b6d6ed](https://github.com/de-it-krachten/cicd-tools/commit/7b6d6edf464eeeef47371fe018fc4e7d14926d7f))
+
+
+### Features
+
+* Refactor ansible-collections.sh ([d960813](https://github.com/de-it-krachten/cicd-tools/commit/d960813cc7145fcfca226703ffd6a7a7d0bb2e8f))
+
+## [2.1.1](https://github.com/de-it-krachten/cicd-tools/compare/v2.1.0...v2.1.1) (2026-04-10)
+
+
+### Bug Fixes
+
+* ansible-lint.sh | Improve temporary replacement ([a648bbc](https://github.com/de-it-krachten/cicd-tools/commit/a648bbc0940ff6b9135f733dab7d910b5498afdb))
+
+# [2.1.0](https://github.com/de-it-krachten/cicd-tools/compare/v2.0.0...v2.1.0) (2026-04-09)
+
+
+### Bug Fixes
+
+* ansible-lint.sh | Workaround for variable in hosts ([d4fc867](https://github.com/de-it-krachten/cicd-tools/commit/d4fc867770d8de1d90d2a61c4c66429465a39a3a))
+* vagrant | fix for multiple ansible runs ([784b7bf](https://github.com/de-it-krachten/cicd-tools/commit/784b7bf807e5980a1940e0fe273ec3bd87be805c))
+
+
+### Features
+
+* Add support for Ubuntu 26.04 ([a1d56c3](https://github.com/de-it-krachten/cicd-tools/commit/a1d56c317232f28291128865a7fb687d667ff6b9))
+
+# [2.0.0](https://github.com/de-it-krachten/cicd-tools-v2/compare/v1.0.0...v2.0.0) (2026-03-30)
+
+
+* Merge pull request [#4](https://github.com/de-it-krachten/cicd-tools-v2/issues/4) from de-it-krachten/dev ([d752309](https://github.com/de-it-krachten/cicd-tools-v2/commit/d75230975f6e176326d4e346555b6975af779a88))
+
+
+### BREAKING CHANGES
+
+* Bump to v2
+
+# 1.0.0 (2026-03-30)
+
+
+### Bug Fixes
+
+* Add missing components ([a76eade](https://github.com/de-it-krachten/cicd-tools-v2/commit/a76eade74218205d2757df8fef1d930c565f3b8c))
+
+
+### Features
+
+* CICD tools v2 ([185566d](https://github.com/de-it-krachten/cicd-tools-v2/commit/185566d782b7ba620d7e6627d799ad7b567dcbb1))
