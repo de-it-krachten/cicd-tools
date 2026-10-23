@@ -1,0 +1,29 @@
+  # Gate job: reports a single check named "CI" for branch protection.
+  ci:
+    name: CI
+    if: always()
+<% if github.molecule | bool %>
+    needs: [lint, molecule]
+<% else %>
+    needs: [lint]
+<% endif %>
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: .
+    steps:
+
+      - name: Check lint matrix result.
+        if: ${{ needs.lint.result != 'success' }}
+        run: |
+          echo "Lint matrix result: ${{ needs.lint.result }}"
+          exit 1
+
+<% if github.molecule | bool %>
+      - name: Check molecule matrix result.
+        if: ${{ needs.molecule.result != 'success' }}
+        run: |
+          echo "Molecule matrix result: ${{ needs.molecule.result }}"
+          exit 1
+<% endif %>
+

@@ -14,8 +14,10 @@
             venv: "<= item.venv =>"
 
 <% endfor %>
+<% if github.authenticate | default(false) | bool %>
     env:
       APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
+<% endif %>
     steps:
 
       - name: Check out the codebase.
@@ -28,6 +30,7 @@
         with:
           python-version: "${{ matrix.python }}"
 
+<% if github.authenticate | default(false) | bool %>
       - name: Generate installation token
         if: env.APP_PRIVATE_KEY != ''
         id: app-token
@@ -40,6 +43,8 @@
         if: env.APP_PRIVATE_KEY != ''
         run: |
           echo "GH_TOKEN=${{ steps.app-token.outputs.token }}" >> "$GITHUB_ENV"
+
+<% endif %>
 
 <% if github.deploy_keys is defined %>
       - name: Set-up SSH agent
