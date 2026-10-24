@@ -101,8 +101,10 @@ Flags :
    -h|--help            : Prints this help message
 
    -i|--initial         : Initial setup
+   -m|--mode <mode>     : Set mode explicitly
+                          (by default, it will get from repo name)
    -p|--phase=#         : Phase to execute
-   -s|--silent           : Run in silent mode
+   -s|--silent          : Run in silent mode
    -w|--windows         : Execute for Windows
 
 EOF
@@ -159,7 +161,7 @@ Initial=false
 Platforms=${CICD_ORGANIZATION}
 
 # parse command line into arguments and check results of parsing
-while getopts :dhip:sw-: OPT
+while getopts :dhim:p:sw-: OPT
 do
 
   # Support long options
@@ -180,6 +182,9 @@ do
     i|initial)
       Initial=true
       ;;
+    m|mode)
+      Mode=$OPTARG
+      ;;
     p|phase)
       Phase=$OPTARG
       ;;
@@ -195,13 +200,10 @@ do
       ;;
   esac
 
-  # Set flag to be use by Test_flag
-  # eval ${OPT}flag=1
-
 done
 shift $(($OPTIND -1))
 
-repo=$(basename $PWD)
+Repo=$(basename $(/bin/pwd))
 
 if [[ -z $GH_TOKEN ]]
 then
@@ -213,8 +215,27 @@ fi
 
 Args="--platforms=$Platforms"
 
-case $repo in
-  ansible-role-*)
+if [[ $Mode == "" ]]
+then
+  case $Repo in
+    ansible-role-*)
+      Mode=ansible-role
+      ;;
+    ansible-playbooks-*)
+      Mode=ansible-playbooks
+      ;;
+    ansible-collection-*)
+      Mode=ansible-collection
+      ;;
+    *)
+      echo "Unable to figure out what we are dealing with!" >&2
+      exit 1
+      ;;
+  esac
+fi
+
+case $Mode in
+  ansible-role)
 
     # Generate collections
     ${CICD_ROOT}/bin/ansible-get-collections.sh > .collections1
@@ -222,7 +243,7 @@ case $repo in
     rm -f .collections1
 
     # Generate .gitignore
-    echo "Ansible role repo '$repo'"
+    echo "Ansible role repo '$Repo'"
     [[ ! -s .gitignore ]] && touch .gitignore
     sed -i -r "s|^(molecule/default/molecule.yml)$|#\\1|" .gitignore
 
@@ -248,10 +269,10 @@ case $repo in
     # Commit all support changes
     [[ $Initial == false ]] && ${CICD_ROOT}/bin/ci-platform-support.sh --commit
     ;;
-  ansible-playbooks-*)
+  ansible-playbook*)
 
     # Update .cicd file
-    echo "Ansible playbook repo '$repo'"
+    echo "Ansible playbook repo '$Repo'"
     ${CICD_ROOT}/bin/ci-init.sh $Args -m playbook -iF
     [[ $Phase == 1 ]] && exit 0
 
@@ -262,10 +283,10 @@ case $repo in
     Readme
     ;;
 
-  ansible-collection-*)
+  ansible-collection*)
 
     # Update .cicd file
-    echo "Ansible collection repo '$repo'"
+    echo "Ansible collection repo '$Repo'"
     ${CICD_ROOT}/bin/ci-init.sh $Args -m collection -iF
     [[ $Phase == 1 ]] && exit 0
 
@@ -274,10 +295,6 @@ case $repo in
 
     # Update README
     Readme
-    ;;
-  *)
-    echo "Unable to figure out what we are dealing with!" >&2
-    exit 1
     ;;
 esac
 

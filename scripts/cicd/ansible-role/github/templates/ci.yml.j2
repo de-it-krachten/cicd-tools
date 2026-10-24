@@ -32,6 +32,7 @@ jobs:
 <% if github.molecule | bool and platforms_phase1 | length > 0 %>
 
 <% include snippet_path + 'molecule1.yml.j2' %>
+
 <% include snippet_path + 'molecule2.yml.j2' %>
 
 <% else %>
