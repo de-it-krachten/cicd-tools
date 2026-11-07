@@ -22,11 +22,24 @@
           echo "Lint matrix result: ${{ needs.lint.result }}"
           exit 1
 
-<% if github.molecule | bool %>
+<% if github.molecule | bool and platforms_phase1 | length == 0 %>
       - name: Check molecule matrix result.
         if: ${{ needs.molecule.result != 'success' }}
         run: |
           echo "Molecule matrix result: ${{ needs.molecule.result }}"
           exit 1
+<% elif github.molecule | bool and platforms_phase1 | length > 0 %>
+      - name: Check molecule1 matrix result.
+        if: ${{ needs.molecule1.result != 'success' }}
+        run: |
+          echo "Molecule1 matrix result: ${{ needs.molecule1.result }}"
+          exit 1
+
+      - name: Check molecule2 matrix result.
+        if: ${{ needs.molecule2.result != 'success' }}
+        run: |
+          echo "Molecule2 matrix result: ${{ needs.molecule2.result }}"
+          exit 1
+
 <% endif %>
 
