@@ -475,7 +475,7 @@ function Execute_molecule
   export ANSIBLE_INJECT_FACT_VARS=${ANSIBLE_INJECT_FACT_VARS:-'False'}
 
   # Set remote temp dir
-  export ANSIBLE_REMOTE_TMP=/tmp/ansible-tmp
+  export ANSIBLE_REMOTE_TMP='$HOME/.ansible-tmp'
 
   # Show all ANSIBLE related variables
   echo "Show ansible variables:"
