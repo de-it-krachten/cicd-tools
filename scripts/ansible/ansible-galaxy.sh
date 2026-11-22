@@ -121,13 +121,14 @@ function Get_roles
     exit ${Exit:-1}
   fi
 
-  [[ $Debug == true ]] && Galaxy_args="$Galaxy_args -vvvv"
+  Galaxy_args="$Galaxy_args $Verbose1"
   Path=${Path:-roles/}
   Galaxy_args="$Galaxy_args -p ${Path}"
   [[ $Force == true ]] && Galaxy_args="$Galaxy_args --force"
   [[ $Clean == true ]] && ${DIRNAME}/ansible-requirements-clean.sh ${Sudo1} ${Args} ${Clean_args} ${Reqfile}
   [[ $Clean_only == true ]] && exit 0
 
+  [[ $Verbose == true ]] && echo "ansible-galaxy install $Galaxy_args -r $Reqfile --ignore-errors" | sed "s/  */ /g"
   $Echo ansible-galaxy install $Galaxy_args -r $Reqfile --ignore-errors
 
 }
@@ -156,9 +157,10 @@ function Get_collections
 
   fi
 
-  [[ $Debug == true ]] && Galaxy_args="$Galaxy_args -vvvv"
+  Galaxy_args="$Galaxy_args $Verbose1"
   [[ -n $Path ]] && Galaxy_args="$Galaxy_args -p ${Path}"
 
+  [[ $Verbose == true ]] && echo "ansible-galaxy collection install $Galaxy_args -r $Reqfile --ignore-errors" | sed "s/  */ /g"
   $Echo ansible-galaxy collection install $Galaxy_args -r $Reqfile --ignore-errors
 
 }
@@ -214,7 +216,7 @@ do
       ;;
     d|debug)
       Verbose=true
-      Verbose1="-v"
+      Verbose1="-vvvv"
       Debug=true
       set -vx
       ;;
@@ -252,7 +254,7 @@ do
       ;;
     v|verbose)
       Verbose=true
-      Verbose1="-v"
+      Verbose1+=" -v"
       ;;
     *)
       echo "Unknown flag -$OPT given!" >&2

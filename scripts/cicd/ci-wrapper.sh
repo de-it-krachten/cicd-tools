@@ -161,7 +161,7 @@ Initial=false
 Platforms=${CICD_ORGANIZATION}
 
 # parse command line into arguments and check results of parsing
-while getopts :dhim:p:sw-: OPT
+while getopts :dhim:p:svw-: OPT
 do
 
   # Support long options
@@ -190,6 +190,10 @@ do
       ;;
     s|silent)
       Silent=true
+      ;;
+    v|verbose)
+      Verbose=true
+      Verbose_level=$(($Verbose_level+1))
       ;;
     w|windows)
       Platforms=windows
