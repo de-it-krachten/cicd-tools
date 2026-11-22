@@ -24,6 +24,7 @@ ansible_processor_vcpus
 ansible_memtotal_mb
 ansible_all_ipv4_addresses
 ansible_virtualization_role
+ansible_date_time
 "
 
 if [[ $# -eq 0 ]]
