@@ -230,6 +230,7 @@ do
     v|verbose)
       Verbose=true
       Verbose1="-v"
+      Verbose_level=$(($Verbose_level+1))
       ;;
     *)
       echo "Unknown flag -$OPT given!" >&2
@@ -262,6 +263,8 @@ then
 fi
 
 # Install minimal set of required plugins
+echo "> Setup"
+echo "  > Installing packer plugins"
 packer plugin install github.com/hashicorp/ansible
 packer plugin install github.com/hashicorp/docker
 
@@ -271,6 +274,7 @@ then
   export DATESTAMP
   Template=$Configfile
   Configfile=$(echo $Configfile | sed "s/\.j2//")
+  echo "  > Rendering $Configfile from template"
   yq -y . $Template > $TMPFILE
   jinjanator.sh $TMPFILE > $Configfile
 fi
@@ -279,6 +283,8 @@ fi
 Custom_build=$(yq -jr .custom_image.build $Configfile)
 if [[ $Custom_build == true ]]
 then
+
+  echo "> Creating custom parent image"
 
   Name=$(yq -jr .custom_image.name $Configfile)
   Parent=$(yq -jr .custom_image.parent $Configfile)
@@ -291,6 +297,7 @@ then
   # Get exernal git repo
   if [[ ! $Git_url =~ ^(|null)$ ]]
   then
+    echo "  > Cloning git repo"
     d=$(basename $Git_url | sed "s/\.git$//")
     Build_location=/tmp/$d
     rm -fr $Build_location
@@ -303,28 +310,47 @@ then
   # Render Dockerfile from jinja template
   if [[ $Dockerfile =~ \.j2$ ]]
   then
-    jinjanator.sh $Dockerfile > Dockerfile
+    echo "  > Redering Dockerfile from template"
+    jinjanator.sh $Dockerfile > ${TMPFILE}Dockerfile
+    Dockerfile=${TMPFILE}Dockerfile
+  fi
+
+  # Show $Dockerfile
+  if [[ $Verbose_level -ge 2 ]]
+  then
+    echo "  > Dockerfile content"
+    cat $Dockerfile
   fi
 
   # Pull parent
-  [[ ! $Parent =~ ^(|null)$ ]] && docker pull $Parent
+  if [[ ! $Parent =~ ^(|null)$ ]]
+  then
+     echo "  > Pulling parent image"
+     docker pull $Parent
+  fi
 
   # Create docker image from Dockerfile
+  echo "  > Building image from Dockerfile"
   docker build -f $Dockerfile -t $Name .
 
   # Jump back tp the source directory
   cd - >/dev/null
 
+  # Get image settings
+  if [[ $Verbose_level -ge 2 ]]
+  then
+    echo "  > Image settings"
+    docker image inspect $Name
+  fi
+
 fi
 
 # Build image
-echo "============================================================"
-echo "Build phase"
-echo "============================================================"
+echo "> Build phase"
 if [[ $Build == true ]]
 then
 
-  echo "=== Copy ansible code"
+  echo "  > Copy ansible code"
   # Setup ansible directory
   Playbook=$(yq -jr .ansible.playbook $Configfile)
   export ansible_dir=/tmp/ansible.$$
@@ -333,9 +359,9 @@ then
   cp $Playbook $ansible_dir/
   cp requirements.yml $ansible_dir/roles
   [[ -d additional_files ]] && cp -r additional_files/* $ansible_dir/
-  echo "=== Get ansible roles"
+  echo "  > Get ansible roles"
   ansible-galaxy install -r $ansible_dir/roles/requirements.yml -p $ansible_dir/roles
-  echo "=== Get ansible collections"
+  echo "  > Get ansible collections"
   ansible-galaxy collection install -r $ansible_dir/roles/requirements.yml
 
   Parent_settings=$(yq -jr .image.inherit_parent_settings $Configfile)
@@ -349,19 +375,19 @@ then
    
     if [[ $Parent_pull != false ]]
     then
-      echo "=== Pull docker parent image"
+      echo "  > Pull docker parent image"
       docker pull $Parent_image
     fi
 
-    echo "=== Get parent config"
+    echo "  > Get parent settings"
     docker image inspect --format '{{json .Config}}' $Parent_image | jq '{
       parent_settings: [
-        (.User       | select(. // "" != "") | "USER \(.)"),
-        (.WorkingDir | select(. // "" != "") | "WORKDIR \(.)"),
+        (.User       | select((. // "") != "") | "USER \(.)"),
+        (.WorkingDir | select((. // "") != "") | "WORKDIR \(.)"),
         (.Env[]?     | "ENV \(.)"),
         (.Entrypoint | select(. != null) | "ENTRYPOINT \(tojson)"),
         (.Cmd        | select(. != null) | "CMD \(tojson)"),
-        (.StopSignal | select(. // "" != "") | "STOPSIGNAL \(.)"),
+        (.StopSignal | select((. // "") != "") | "STOPSIGNAL \(.)"),
         (.ExposedPorts // {} | keys[]? | "EXPOSE \(.)"),
         (.Volumes      // {} | keys[]? | "VOLUME \(.)"),
         (.Labels // {} | to_entries[]? | "LABEL \(.key)=\(.value)")
@@ -371,18 +397,18 @@ then
 
   if [[ $Verbose == true ]]
   then
-    echo "=== Show docker-build configuration"
+    echo "  > Show parent settings"
     cat $Configfile
   fi
 
-  echo "=== Create packer configuration in YAML"
+  echo "  > Create packer configuration in YAML"
   jinjanator.sh -s "<=" ${DIRNAME}/build.yml.j2 $Configfile > build.yml
 
-  echo "=== Convert to packer HCL-json"
+  echo "  > Convert to packer HCL-json"
   yq -j . build.yml > build.pkr.json
   [[ $Verbose == true ]] && cat build.yml
   [[ $Debug == true ]] && Args="-debug"
-  echo "=== Create docker image using packer"
+  echo "  > Create docker image using packer"
   packer build $Args build.pkr.json
   rm -f build.pkr.json build.yml
 else
@@ -390,9 +416,7 @@ else
 fi
 
 # Push image
-echo "============================================================"
-echo "Push phase"
-echo "============================================================"
+echo "> Push phase"
 if [[ $Push == true ]]
 then
   registries=$(yq '.image.registries' $Configfile | jq -r '. |= join("|")')
