@@ -334,6 +334,23 @@ do
   $sudo ln -fs $Venv/bin/$symlink /usr/local/bin/$symlink
 done
 
+# Remove SELinux
+if [[ $Profile =~ ^ansible ]]
+then
+  echo "Removing selinux package"
+  $Echo $Sudo rm -fr $Venv/lib/python3.*/site-packages/selinux 2>/dev/null
+
+  # Install/update ansible collections
+  collections=$(yq -y .'"'$Profile'".collections' $Configfile | sed '/\.\.\./d;/---/d;/null/d;/\[\]/d;s/^- //')
+  collection_path=$(ls -d $Venv/lib64/python3*/site-packages/ansible_collections 2>/dev/null)
+  echo "Installing specific ansible collections"
+  for collection in $collections
+  do
+    echo "  > Installing $collection"
+    $sudo $Venv/bin/ansible-galaxy collection install $collection -p $collection_path --force
+  done
+fi
+
 # Install requirements
 reqs=$(yq -y .'"'$Profile'".requirements' $Configfile | sed '/\.\.\./d;/---/d;/null/d;/\[\]/d;s/^- //')
 for req in $reqs

@@ -68,10 +68,11 @@ pproxy
 docker-squash
 ansible-navigator
 ansiblecore216
-ansiblecore218
-ansiblecore219
 ansiblecore220
 ansiblecore221
+ansible9
+ansible13
+ansible14
 awxkit
 azure-pipeline-validator
 az-cli
@@ -171,8 +172,6 @@ EOF
 
 }
 
-
-
 function Template
 {
 
@@ -191,10 +190,10 @@ function Venv
 #  Print_separator
 #  echo "$venv"
   Print_separator
-  echo "$Sudo ${DIRNAME}/python.sh $Args $Verbose1 -c ${DIRNAME}/ansible.yml -p $venv -V $root_dir/$venv"
+  echo "$Sudo ${DIRNAME}/python.sh $Args $Verbose1 -c ${DIRNAME}/ansible.yml -p $venv -V $root_dir/$venv" | sed "s/  */ /g"
   Print_separator
-  $Sudo ${DIRNAME}/python.sh $Args $Verbose1 -c ${DIRNAME}/ansible.yml -p $venv -V $root_dir/$venv
-  $Sudo rm -fr $root_dir/$venv/lib/python3.*/site-packages/selinux
+  $Echo $Sudo ${DIRNAME}/python.sh $Args $Verbose1 -c ${DIRNAME}/ansible.yml -p $venv -V $root_dir/$venv
+  $Echo $Sudo rm -fr $root_dir/$venv/lib/python3.*/site-packages/selinux
 
 }
 
@@ -218,7 +217,7 @@ Dry_run=false
 Echo=
 
 # parse command line into arguments and check results of parsing
-while getopts :dhp:sv-: OPT
+while getopts :dDhp:sv-: OPT
 do
 
   # Support long options
@@ -232,6 +231,10 @@ do
     d|debug)
       Verbose=true
       set -vx
+      ;;
+    D|dry-run)
+      Dry_run=true
+      Echo=echo
       ;;
     h|help)
       Usage

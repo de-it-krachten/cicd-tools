@@ -284,6 +284,7 @@ then
   Parent=$(yq -jr .custom_image.parent $Configfile)
   Git_url=$(yq -jr .custom_image.git $Configfile)
   Dockerfile=$(yq -jr .custom_image.dockerfile $Configfile)
+  Build_location=$(yq -jr .custom_image.build_location $Configfile)
 
   export Parent
 
@@ -291,10 +292,13 @@ then
   if [[ ! $Git_url =~ ^(|null)$ ]]
   then
     d=$(basename $Git_url | sed "s/\.git$//")
-    rm -fr /tmp/$d
+    Build_location=/tmp/$d
+    rm -fr $Build_location
     git -C /tmp clone $Git_url
-    cd /tmp/$d
   fi
+
+  # Switch to the build location
+  cd $Build_location
 
   # Render Dockerfile from jinja template
   if [[ $Dockerfile =~ \.j2$ ]]

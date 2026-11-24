@@ -2,6 +2,9 @@
 
 default:
   python: >-
+    {%- if python_default is defined %}
+    {{ python_default }}
+    {%- else %}
     {%- if '/usr/bin/python3.15' is is_file %}
     /usr/bin/python3.15
     {%- elif '/opt/az/bin/python3.15' is is_file %}
@@ -24,6 +27,7 @@ default:
     /opt/az/bin/python3.11
     {%- else %}
     /usr/bin/python3
+    {% endif %}
     {% endif %}
 
 yq:
@@ -75,15 +79,10 @@ pproxy:
   requirements: []
 
 {% set ansible_envs = [
-  { "name": "ansible9",  "version": "ansible>=9,<10" },
-  { "name": "ansible11", "version": "ansible>=11,<12" },
-  { "name": "ansible12", "version": "ansible>=12,<13" },
-  { "name": "ansible13", "version": "ansible>=13,<14" },
-  { "name": "ansible14", "version": "ansible>=14,<15" },
+  { "name": "ansible9",  "version": "ansible>=9,<10", "collections": [ "azure.azcollection==3.16.0" ] },
+  { "name": "ansible13", "version": "ansible>=13,<14", "collections": [ "azure.azcollection==3.16.0" ] },
+  { "name": "ansible14", "version": "ansible>=14,<15", "collections": [ "azure.azcollection==3.16.0" ] },
   { "name": "ansiblecore216", "version": "ansible-core>=2.16,<2.17" },
-  { "name": "ansiblecore217", "version": "ansible-core>=2.17,<2.18" },
-  { "name": "ansiblecore218", "version": "ansible-core>=2.18,<2.19" },
-  { "name": "ansiblecore219", "version": "ansible-core>=2.19,<2.20" },
   { "name": "ansiblecore220", "version": "ansible-core>=2.20,<2.21" },
   { "name": "ansiblecore221", "version": "ansible-core>=2.21,<2.22" }
 ] %}
@@ -125,6 +124,9 @@ pproxy:
     - pywinrm[credssp]
     - pypsrp
     - pypsrp[credssp]
+{% if env.collections is defined %}
+  collections: {{ env.collections }}
+{% endif %}
   links: []
   requirements:
     - azure/azcollection/requirements.txt
