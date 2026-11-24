@@ -279,18 +279,37 @@ fi
 Custom_build=$(yq -jr .custom_image.build $Configfile)
 if [[ $Custom_build == true ]]
 then
+
   Name=$(yq -jr .custom_image.name $Configfile)
   Parent=$(yq -jr .custom_image.parent $Configfile)
+  Git_url=$(yq -jr .custom_image.git $Configfile)
   Dockerfile=$(yq -jr .custom_image.dockerfile $Configfile)
+
   export Parent
 
+  # Get exernal git repo
+  if [[ ! $Git_url =~ ^(|null)$ ]]
+  then
+    d=$(basename $Git_url | sed "s/\.git$//")
+    rm -fr /tmp/$d
+    git -C /tmp clone $Git_url
+    cd /tmp/$d
+  fi
+
+  # Render Dockerfile from jinja template
   if [[ $Dockerfile =~ \.j2$ ]]
   then
     jinjanator.sh $Dockerfile > Dockerfile
   fi
 
-  docker pull $Parent
-  docker build -t $Name .
+  # Pull parent
+  [[ ! $Parent =~ ^(|null)$ ]] && docker pull $Parent
+
+  # Create docker image from Dockerfile
+  docker build -f $Dockerfile -t $Name .
+
+  # Jump back tp the source directory
+  cd - >/dev/null
 
 fi
 
@@ -321,8 +340,15 @@ then
     cp $Configfile ${TMPFILE}.yml
     Configfile=${TMPFILE}.yml
     Parent_image=$(yq -jr .image.parent $Configfile)
-    echo "=== Pull docker parent image"
-    docker pull $Parent_image
+    Parent_pull=$(yq -jr .image.parent_pull $Configfile)
+
+   
+    if [[ $Parent_pull != false ]]
+    then
+      echo "=== Pull docker parent image"
+      docker pull $Parent_image
+    fi
+
     echo "=== Get parent config"
     docker image inspect --format '{{json .Config}}' $Parent_image | jq '{
       parent_settings: [
